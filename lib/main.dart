@@ -25,7 +25,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Musca',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 96, 25, 163)),
       ),
       // Se usa una copia de ThemeData.dark() con fondo gris oscuro
       darkTheme: ThemeData.dark().copyWith(scaffoldBackgroundColor: Colors.grey[900]),
