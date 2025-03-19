@@ -45,6 +45,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  # Dependencia agregada para generar iconos de launcher
+  flutter_launcher_icons: ^0.10.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -67,6 +69,14 @@ flutter:
 
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package
+
+  # Agregado para usar el icono de la carpeta assets/icon
+  
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"
 
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a
