@@ -142,10 +142,15 @@ class _SettingsPageState extends State<SettingsPage> {
             //     style: TextStyle(fontSize: 16),
             //   ),
             // ),
-            Divider(thickness: 1, color: Colors.grey[400]),
+            // Divider(thickness: 1, color: Colors.grey[400]),
             const SizedBox(height: 8),
             Row(
               children: [
+                const Text(
+                  'App theme:',
+                  style: TextStyle(fontFamily: 'Poppins', fontSize: 16),
+                ),
+                const SizedBox(width: 80),
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
@@ -169,7 +174,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       child: Icon(
                         Icons.wb_sunny,
-                        size: 30,
+                        size: 20,
                         color: _selectedTheme == ThemeMode.light
                             ? Theme.of(context).colorScheme.primary
                             : Colors.grey,
@@ -177,7 +182,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
@@ -201,7 +206,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       child: Icon(
                         Icons.nightlight_round,
-                        size: 30,
+                        size: 20,
                         color: _selectedTheme == ThemeMode.dark
                             ? Theme.of(context).colorScheme.primary
                             : Colors.grey,
@@ -209,6 +214,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ),
                 ),
+                const SizedBox(width: 10),
               ],
             ),
           ],
