@@ -25,10 +25,13 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Musca',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 96, 25, 163)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromARGB(255, 96, 25, 163),
+        ),
       ),
-      // Se usa una copia de ThemeData.dark() con fondo gris oscuro
-      darkTheme: ThemeData.dark().copyWith(scaffoldBackgroundColor: Colors.grey[900]),
+      darkTheme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: Colors.grey[900],
+      ),
       themeMode: _themeMode,
       home: MyHomePage(title: 'Musca Calculator', onThemeChanged: _updateTheme),
     );
@@ -36,7 +39,11 @@ class _MyAppState extends State<MyApp> {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title, required this.onThemeChanged});
+  const MyHomePage({
+    super.key,
+    required this.title,
+    required this.onThemeChanged,
+  });
 
   final String title;
   final Function(ThemeMode) onThemeChanged;
@@ -61,39 +68,51 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
-      body: SafeArea(
+      // Contenido principal en un CustomScrollView
+      body: CustomScrollView(
+        slivers: [
+          // SliverAppBar con título grande
+          SliverAppBar(
+            pinned: true,
+            expandedHeight: 200,
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: true,
+              title: Text(widget.title),
+            ),
+          ),
+          // Resto del contenido
+          SliverFillRemaining(
+            child: Center(
+              child: Text(
+                'Main content goes here',
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
+          ),
+        ],
+      ),
+      // Barra inferior de navegación con los botones
+      bottomNavigationBar: BottomAppBar(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Acción del botón 1
-                  },
-                  child: const Text('Botón 1'),
-                ),
+              IconButton(
+                icon: const Icon(Icons.calculate),
+                onPressed: () {
+                  // Acción del botón Calculator
+                },
               ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Acción del botón 2
-                  },
-                  child: const Text('Botón 2'),
-                ),
+              IconButton(
+                icon: const Icon(Icons.people),
+                onPressed: () {
+                  // Acción del botón Profiles
+                },
               ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _openSettings,
-                  child: const Text('Ajustes'),
-                ),
+              IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: _openSettings,
               ),
             ],
           ),
@@ -113,13 +132,11 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   // Por defecto se selecciona claro (ThemeMode.light)
   ThemeMode _selectedTheme = ThemeMode.light;
-
   bool _isInitialized = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Se inicializa _selectedTheme según el tema actual de la aplicación.
     if (!_isInitialized) {
       final brightness = Theme.of(context).brightness;
       _selectedTheme = brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light;
@@ -130,95 +147,100 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Ajustes")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // const Align(
-            //   alignment: Alignment.centerLeft,
-            //   child: Text(
-            //     "Tema",
-            //     style: TextStyle(fontSize: 16),
-            //   ),
-            // ),
-            // Divider(thickness: 1, color: Colors.grey[400]),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Text(
-                  'App theme:',
-                  style: TextStyle(fontFamily: 'Poppins', fontSize: 16),
-                ),
-                const SizedBox(width: 80),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedTheme = ThemeMode.light;
-                      });
-                      // Actualiza el tema sin salir de la pantalla de ajustes.
-                      context
-                          .findAncestorStateOfType<_MyAppState>()
-                          ?._updateTheme(_selectedTheme);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: _selectedTheme == ThemeMode.light
-                              ? Theme.of(context).colorScheme.primary
-                              : Colors.grey,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.wb_sunny,
-                        size: 20,
-                        color: _selectedTheme == ThemeMode.light
-                            ? Theme.of(context).colorScheme.primary
-                            : Colors.grey,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedTheme = ThemeMode.dark;
-                      });
-                      // Actualiza el tema sin salir de la pantalla de ajustes.
-                      context
-                          .findAncestorStateOfType<_MyAppState>()
-                          ?._updateTheme(_selectedTheme);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: _selectedTheme == ThemeMode.dark
-                              ? Theme.of(context).colorScheme.primary
-                              : Colors.grey,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.nightlight_round,
-                        size: 20,
-                        color: _selectedTheme == ThemeMode.dark
-                            ? Theme.of(context).colorScheme.primary
-                            : Colors.grey,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-              ],
+      body: CustomScrollView(
+        slivers: [
+          // SliverAppBar en la pantalla de ajustes
+          SliverAppBar(
+            pinned: true,
+            expandedHeight: 150,
+            flexibleSpace: const FlexibleSpaceBar(
+              centerTitle: true,
+              title: Text("Ajustes"),
             ),
-          ],
-        ),
+          ),
+          // Contenido de la pantalla de ajustes
+          SliverFillRemaining(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Text(
+                        'App theme:',
+                        style: TextStyle(fontFamily: 'Poppins', fontSize: 16),
+                      ),
+                      const SizedBox(width: 80),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedTheme = ThemeMode.light;
+                            });
+                            context
+                                .findAncestorStateOfType<_MyAppState>()
+                                ?._updateTheme(_selectedTheme);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: _selectedTheme == ThemeMode.light
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Colors.grey,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.wb_sunny,
+                              size: 20,
+                              color: _selectedTheme == ThemeMode.light
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedTheme = ThemeMode.dark;
+                            });
+                            context
+                                .findAncestorStateOfType<_MyAppState>()
+                                ?._updateTheme(_selectedTheme);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: _selectedTheme == ThemeMode.dark
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Colors.grey,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.nightlight_round,
+                              size: 20,
+                              color: _selectedTheme == ThemeMode.dark
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
