@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../settings/settings_screen.dart';
+import '../calculator/calculator_screen.dart'; // Add this import
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
@@ -26,6 +27,15 @@ class _MyHomePageState extends State<MyHomePage> {
     if (selectedTheme != null) {
       widget.onThemeChanged(selectedTheme);
     }
+  }
+  
+  void _openCalculator() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CalculatorScreen(),
+      ),
+    );
   }
 
   @override
@@ -59,9 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               IconButton(
                 icon: const Icon(Icons.calculate),
-                onPressed: () {
-                  // Acción del botón Calculator
-                },
+                onPressed: _openCalculator, // Updated to use the new method
               ),
               IconButton(
                 icon: const Icon(Icons.people),
