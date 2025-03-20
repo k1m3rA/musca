@@ -128,43 +128,45 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         title: const Text('Calculadora'),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          children: [
-            DistanceInput(
-              controller: _distanceController,
-              scrollStep: _scrollStep,
-              onUpdateDistance: _updateDistance,
-            ),
-            const SizedBox(height: 20),
-            AngleInput(
-              controller: _angleController,
-              scrollStep: 1.0,
-              onUpdateAngle: _updateAngle,
-            ),
-            const SizedBox(height: 20),
-            WindSpeedInput(
-              controller: _windSpeedController,
-              scrollStep: 0.5,
-              onUpdateWindSpeed: _updateWindSpeed,
-            ),
-            const SizedBox(height: 20),
-            WindDirectionInput(
-              controller: _windDirectionController,
-              scrollStep: 5.0,
-              onUpdateWindDirection: _updateWindDirection,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 20),
-                ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            children: [
+              DistanceInput(
+                controller: _distanceController,
+                scrollStep: _scrollStep,
+                onUpdateDistance: _updateDistance,
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+              AngleInput(
+                controller: _angleController,
+                scrollStep: 1.0,
+                onUpdateAngle: _updateAngle,
+              ),
+              const SizedBox(height: 20),
+              WindSpeedInput(
+                controller: _windSpeedController,
+                scrollStep: 0.5,
+                onUpdateWindSpeed: _updateWindSpeed,
+              ),
+              const SizedBox(height: 20),
+              WindDirectionInput(
+                controller: _windDirectionController,
+                scrollStep: 5.0,
+                onUpdateWindDirection: _updateWindDirection,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
