@@ -32,7 +32,7 @@ class DistanceInput extends StatelessWidget {
                 controller: controller,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
-                  labelText: 'Distancia (metros)',
+                  labelText: 'Distance (meters)',
                   border: OutlineInputBorder(),
                   suffixText: 'm',
                 ),
