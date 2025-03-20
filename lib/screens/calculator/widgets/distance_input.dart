@@ -9,7 +9,7 @@ class DistanceInput extends StatelessWidget {
   const DistanceInput({
     Key? key,
     required this.controller,
-    required this.scrollStep,
+    this.scrollStep = 1.0, // Valor predeterminado de 1.0
     required this.onUpdateDistance,
   }) : super(key: key);
 
@@ -43,11 +43,11 @@ class DistanceInput extends StatelessWidget {
               children: [
                 IconButton(
                   icon: const Icon(Icons.arrow_upward),
-                  onPressed: () => onUpdateDistance(scrollStep),
+                  onPressed: () => onUpdateDistance(1.0), // Cambiado a 1.0
                 ),
                 IconButton(
                   icon: const Icon(Icons.arrow_downward),
-                  onPressed: () => onUpdateDistance(-scrollStep),
+                  onPressed: () => onUpdateDistance(-1.0), // Cambiado a -1.0
                 ),
               ],
             ),
