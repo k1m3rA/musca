@@ -52,7 +52,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     children: [
                       const Text(
                         'App theme:',
-                        style: TextStyle(fontFamily: 'Poppins', fontSize: 16),
+                        style: TextStyle(fontSize: 16),
                       ),
                       const SizedBox(width: 80),
                       Expanded(
@@ -61,18 +61,16 @@ class _SettingsPageState extends State<SettingsPage> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
-                              border: Border.all(
-                                color: _selectedTheme == ThemeMode.light
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Colors.grey,
-                              ),
+                              color: _selectedTheme == ThemeMode.light
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.grey.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
                               Icons.wb_sunny,
                               size: 20,
                               color: _selectedTheme == ThemeMode.light
-                                  ? Theme.of(context).colorScheme.primary
+                                  ? Colors.white
                                   : Colors.grey,
                             ),
                           ),
@@ -83,22 +81,18 @@ class _SettingsPageState extends State<SettingsPage> {
                         child: GestureDetector(
                           onTap: () => _updateTheme(ThemeMode.dark),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: _selectedTheme == ThemeMode.dark
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Colors.grey,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              Icons.nightlight_round,
-                              size: 20,
-                              color: _selectedTheme == ThemeMode.dark
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Colors.grey,
-                            ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: _selectedTheme == ThemeMode.dark
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.nightlight_round,
+                            size: 20,
+                            color: Theme.of(context).colorScheme.surfaceBright,
+                          ),
                           ),
                         ),
                       ),
