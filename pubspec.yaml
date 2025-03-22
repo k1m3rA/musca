@@ -34,6 +34,8 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  sensors_plus: ^6.1.1
+  camera: ^0.11.1
   flutter_compass: ^0.8.1
 
 dev_dependencies:
@@ -47,7 +49,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
   # Dependencia agregada para generar iconos de launcher
-  flutter_launcher_icons: ^0.10.0
+  flutter_launcher_icons: ^0.14.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
