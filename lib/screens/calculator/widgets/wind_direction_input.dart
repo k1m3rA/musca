@@ -77,9 +77,22 @@ class _WindDirectionInputState extends State<WindDirectionInput> {
         padding: const EdgeInsets.all(8),
         child: Column(
           children: [
-            WindDirectionDial(
-              currentValue: currentAngle,
-              onChanged: _updateAngleFromDial, // Usamos el nuevo método para mayor claridad
+            // Wrapped in AbsorbPointer to prevent scroll from propagating
+            // while still allowing direct interactions with the dial
+            AbsorbPointer(
+              absorbing: false, // Don't actually absorb, just creating a boundary
+              child: GestureDetector(
+                // This ensures the gesture detector properly captures all touch events
+                behavior: HitTestBehavior.opaque,
+                // Block scroll events from propagating through the dial
+                onVerticalDragStart: (_) {},
+                onVerticalDragUpdate: (_) {},
+                onVerticalDragEnd: (_) {},
+                child: WindDirectionDial(
+                  currentValue: currentAngle,
+                  onChanged: _updateAngleFromDial,
+                ),
+              ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -178,13 +191,14 @@ class _WindDirectionDialState extends State<WindDirectionDial> with SingleTicker
     final center = Offset(size.width / 2, size.height / 2);
     final touchPosition = position;
 
-    // Verificamos si el toque está dentro del dial
+    // More forgiving distance check - allow touches within 20% outside of the dial radius
     final distance = (touchPosition - center).distance;
-    if (distance > size.width / 2) return; // Ignorar toques fuera del círculo
+    final maxAllowedDistance = size.width * 0.6; // 20% more than the radius
+    if (distance > maxAllowedDistance) return; // Only ignore touches far outside the dial
 
     // Calculate angle - Corregimos el cálculo para que el gesto sea natural
     final angle = math.atan2(
-      touchPosition.dy - center.dy,  // Cambiamos la inversión
+      touchPosition.dy - center.dy,
       touchPosition.dx - center.dx,
     );
     
@@ -192,19 +206,19 @@ class _WindDirectionDialState extends State<WindDirectionDial> with SingleTicker
     double degrees = (angle * 180 / math.pi + 90) % 360;  // Ajustamos para que 0 sea Norte
     if (degrees < 0) degrees += 360;  // Aseguramos valores positivos
 
-    // Solo actualizamos si el valor ha cambiado significativamente
-    if ((_direction - degrees).abs() > 0.5) {
-      setState(() {
-        _direction = degrees;
-      });
-      // Comunicar el cambio
-      widget.onChanged(degrees);
-    }
+    // Removed threshold check to make the dial more responsive
+    setState(() {
+      _direction = degrees;
+    });
+    // Comunicar el cambio
+    widget.onChanged(degrees);
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      // Making sure the gesture detector captures all events
+      behavior: HitTestBehavior.opaque,
       onPanStart: (details) {
         setState(() {
           _isDragging = true;
@@ -212,7 +226,10 @@ class _WindDirectionDialState extends State<WindDirectionDial> with SingleTicker
         _updateDirection(details.localPosition);
       },
       onPanUpdate: (details) {
-        _updateDirection(details.localPosition);
+        // Always process pan updates while dragging
+        if (_isDragging) {
+          _updateDirection(details.localPosition);
+        }
       },
       onPanEnd: (details) {
         setState(() {
