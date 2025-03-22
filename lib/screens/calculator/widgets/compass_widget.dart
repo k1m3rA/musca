@@ -103,11 +103,18 @@ class _CompassWidgetState extends State<CompassWidget> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
+        // Se cambia la construcción del widget de la brújula:
         SizedBox(
           height: 200,
+          width: 200, // ancho reducido
           child: FlutterCompass.events == null
               ? const Center(child: Text('No compass available'))
-              : _buildCompassWidget(),
+              : OverflowBox(
+                  alignment: Alignment.center,
+                  minWidth: 200,
+                  maxWidth: 200,
+                  child: _buildCompassWidget(),
+                ),
         ),
         const SizedBox(height: 10),
         Row(
@@ -126,10 +133,10 @@ class _CompassWidgetState extends State<CompassWidget> {
   Widget _buildCompassWidget() {
     return NotificationListener<ScrollNotification>(
       // Prevent scroll notifications from propagating to parent widgets
-      onNotification: (_) => true,
+      onNotification: (scrollNotification) => false,
       child: GestureDetector(
         // Explicitly handle all gestures to prevent scroll interference
-        behavior: HitTestBehavior.opaque,
+        behavior: HitTestBehavior.translucent,
         
         // Handle tap on the compass area
         onTapDown: (details) {
@@ -139,7 +146,7 @@ class _CompassWidgetState extends State<CompassWidget> {
           
           // Calculate distance from center to determine if we're inside the compass
           final double distance = (localPosition - center).distance;
-          if (distance <= 150) { // Increased from 100 to 150 for a larger detection area
+          if (distance <= 100) { // Changed from 150 to 100 for a smaller detection area
             setState(() {
               _windDirection = _calculateAngle(localPosition, center);
             });
@@ -153,7 +160,7 @@ class _CompassWidgetState extends State<CompassWidget> {
           final Offset localPosition = renderBox.globalToLocal(details.globalPosition);
           
           final double distance = (localPosition - center).distance;
-          if (distance <= 150) { // Increased from 100 to 150 for a larger detection area
+          if (distance <= 100) { // Changed from 150 to 100 for a smaller detection area
             setState(() {
               _windDirection = _calculateAngle(localPosition, center);
             });
@@ -166,9 +173,12 @@ class _CompassWidgetState extends State<CompassWidget> {
           final Offset localPosition = renderBox.globalToLocal(details.globalPosition);
           
           // Process any pan updates regardless of direction
-          setState(() {
-            _windDirection = _calculateAngle(localPosition, center);
-          });
+          final double distance = (localPosition - center).distance;
+          if (distance <= 100) { // Changed from 150 to 100 for a smaller detection area
+            setState(() {
+              _windDirection = _calculateAngle(localPosition, center);
+            });
+          }
         },
         
         // Make sure vertical drags are captured by this widget and not the parent scroll
@@ -179,9 +189,12 @@ class _CompassWidgetState extends State<CompassWidget> {
           final Offset center = Offset(renderBox.size.width / 2, renderBox.size.height / 2);
           final Offset localPosition = renderBox.globalToLocal(details.globalPosition);
           
-          setState(() {
-            _windDirection = _calculateAngle(localPosition, center);
-          });
+          final double distance = (localPosition - center).distance;
+          if (distance <= 100) { // Changed from 150 to 100 for a smaller detection area
+            setState(() {
+              _windDirection = _calculateAngle(localPosition, center);
+            });
+          }
         },
         
         child: Stack(
