@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'widgets/distance_input.dart';
 import 'widgets/angle_input.dart';
 import 'widgets/wind_speed_input.dart';
-import 'widgets/wind_direction_input.dart'; // Importamos el nuevo widget
+import 'widgets/compass_widget.dart';
+import 'widgets/wind_direction_input.dart'; // Re-added import for WindDirectionInput
+import 'package:flutter_compass/flutter_compass.dart';
 
 class CalculatorScreen extends StatefulWidget {
   const CalculatorScreen({super.key});
@@ -19,8 +21,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   double _angle = 0.0;
   final TextEditingController _windSpeedController = TextEditingController(text: '0.0');
   double _windSpeed = 0.0;
+  
+  // Re-added wind direction controller and variable
   final TextEditingController _windDirectionController = TextEditingController(text: '0.0');
   double _windDirection = 0.0;
+  
+  // New variable to track compass availability
+  bool _hasCompass = false;
 
   @override
   void initState() {
@@ -28,7 +35,27 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     _distanceController.addListener(_updateDistanceFromText);
     _angleController.addListener(_updateAngleFromText);
     _windSpeedController.addListener(_updateWindSpeedFromText);
-    _windDirectionController.addListener(_updateWindDirectionFromText);
+    _windDirectionController.addListener(_updateWindDirectionFromText); // Re-added listener
+    
+    // Check if compass is available
+    _checkCompassAvailability();
+  }
+  
+  // Method to check compass availability
+  Future<void> _checkCompassAvailability() async {
+    setState(() {
+      _hasCompass = FlutterCompass.events != null;
+    });
+  }
+
+  // Re-added method to update wind direction from text input
+  void _updateWindDirectionFromText() {
+    if (_windDirectionController.text.isNotEmpty) {
+      try {
+        final newValue = double.parse(_windDirectionController.text);
+        setState(() => _windDirection = newValue);
+      } catch (_) {}
+    }
   }
 
   void _updateDistanceFromText() {
@@ -54,18 +81,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       try {
         final newValue = double.parse(_windSpeedController.text);
         setState(() => _windSpeed = newValue);
-      } catch (_) {}
-    }
-  }
-
-  void _updateWindDirectionFromText() {
-    if (_windDirectionController.text.isNotEmpty) {
-      try {
-        double newValue = double.parse(_windDirectionController.text);
-        // Asegurar que el valor esté en el rango 0-360
-        newValue = newValue % 360;
-        if (newValue < 0) newValue += 360;
-        setState(() => _windDirection = newValue);
       } catch (_) {}
     }
   }
@@ -100,15 +115,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     }
   }
 
+  // Re-added method to update wind direction
   void _updateWindDirection(double delta) {
-    double newDirection = _windDirection + delta;
-    // Mantener la dirección del viento dentro del rango 0-360
-    newDirection = newDirection % 360;
-    if (newDirection < 0) newDirection += 360;
-    
     setState(() {
-      _windDirection = newDirection;
-      _windDirectionController.text = _windDirection.toStringAsFixed(1);
+      _windDirection = (_windDirection + delta) % 360;
+      if (_windDirection < 0) _windDirection += 360;
+      _windDirectionController.text = _windDirection.round().toString();
     });
   }
 
@@ -117,7 +129,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     _distanceController.dispose();
     _angleController.dispose();
     _windSpeedController.dispose();
-    _windDirectionController.dispose();
+    _windDirectionController.dispose(); // Re-added dispose
     super.dispose();
   }
 
@@ -151,11 +163,16 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 onUpdateWindSpeed: _updateWindSpeed,
               ),
               const SizedBox(height: 20),
-              WindDirectionInput(
-                controller: _windDirectionController,
-                scrollStep: 5.0,
-                onUpdateWindDirection: _updateWindDirection,
-              ),
+              
+              // Conditionally display CompassWidget or WindDirectionInput
+              _hasCompass 
+                ? const CompassWidget()
+                : WindDirectionInput(
+                    controller: _windDirectionController,
+                    scrollStep: 5.0,
+                    onUpdateWindDirection: _updateWindDirection,
+                  ),
+                  
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
