@@ -13,6 +13,7 @@ class CompassWidget extends StatefulWidget {
 class _CompassWidgetState extends State<CompassWidget> {
   double _direction = 0;
   double _lastStoredDirection = 0;
+  double _windDirection = 0; // Wind direction angle
   bool _isListening = true;
   StreamSubscription<CompassEvent>? _compassSubscription;
 
@@ -65,6 +66,34 @@ class _CompassWidgetState extends State<CompassWidget> {
     });
   }
 
+  // Calculate angle from drag position - fixed for natural rotation
+  double _calculateAngle(Offset position, Offset center) {
+    // Calculate angle in radians
+    final double angleRadians = math.atan2(
+      position.dx - center.dx,
+      -(position.dy - center.dy),
+    );
+    
+    // Convert to degrees and normalize to 0-360
+    // We use 360 - degrees to make the rotation direction feel natural
+    double angleDegrees = 360 - ((angleRadians * (180 / math.pi)) % 360);
+    if (angleDegrees < 0) angleDegrees += 360;
+    
+    return angleDegrees;
+  }
+
+  // Calculate wind direction relative to current north
+  double _getRelativeWindDirection() {
+    // Use current compass direction or last stored direction if paused
+    double currentNorth = _isListening ? _direction : _lastStoredDirection;
+    
+    // Calculate relative angle and normalize to 0-360
+    double relativeAngle = (currentNorth - _windDirection) % 360;
+    if (relativeAngle < 0) relativeAngle += 360;
+    
+    return relativeAngle;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -81,67 +110,154 @@ class _CompassWidgetState extends State<CompassWidget> {
               : _buildCompassWidget(),
         ),
         const SizedBox(height: 10),
-        Text(_isListening 
-            ? 'Current Direction: ${_direction.toStringAsFixed(1)}°'
-            : 'Stored Direction: ${_lastStoredDirection.toStringAsFixed(1)}°'),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Text(_isListening 
+                ? 'Compass: ${_direction.toStringAsFixed(1)}°'
+                : 'Compass: ${_lastStoredDirection.toStringAsFixed(1)}°'),
+            Text('Wind: ${_getRelativeWindDirection().toStringAsFixed(1)}°'),
+          ],
+        ),
       ],
     );
   }
 
   Widget _buildCompassWidget() {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        // Reemplazamos el GestureDetector con Material+InkWell para tener efecto de pulsación
-        Material(
-          color: Colors.transparent,
-          shape: const CircleBorder(),
-          clipBehavior: Clip.hardEdge, // Asegura que el efecto de splash se recorte en el círculo
-          child: InkWell(
-            onTap: () {
-              _toggleListening();
-              // No necesitamos código adicional aquí ya que InkWell maneja automáticamente
-              // el efecto visual de pulsación (splash) y su desaparición
-            },
-            splashColor: _isListening ? Colors.red.withOpacity(0.3) : Colors.green.withOpacity(0.3),
-            highlightColor: Colors.white.withOpacity(0.1),
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.grey[200],
-                border: Border.all(color: Colors.black, width: 1.0),
-              ),
-              child: CustomPaint(
-                painter: CompassPainter(direction: _isListening ? _direction : _lastStoredDirection),
-              ),
-            ),
-          ),
-        ),
-        const Center(
-          child: Icon(Icons.navigation, size: 40, color: Colors.red),
-        ),
-        // Botón para detener/iniciar la brújula (se mantiene como alternativa)
-        Positioned(
-          top: 0,
-          right: 0,
-          child: ElevatedButton(
-            onPressed: _toggleListening,
-            style: ElevatedButton.styleFrom(
+    return NotificationListener<ScrollNotification>(
+      // Prevent scroll notifications from propagating to parent widgets
+      onNotification: (_) => true,
+      child: GestureDetector(
+        // Explicitly handle all gestures to prevent scroll interference
+        behavior: HitTestBehavior.opaque,
+        
+        // Handle tap on the compass area
+        onTapDown: (details) {
+          final RenderBox renderBox = context.findRenderObject() as RenderBox;
+          final Offset center = Offset(renderBox.size.width / 2, renderBox.size.height / 2);
+          final Offset localPosition = renderBox.globalToLocal(details.globalPosition);
+          
+          // Calculate distance from center to determine if we're inside the compass
+          final double distance = (localPosition - center).distance;
+          if (distance <= 150) { // Increased from 100 to 150 for a larger detection area
+            setState(() {
+              _windDirection = _calculateAngle(localPosition, center);
+            });
+          }
+        },
+        
+        // Add pan gesture handling for better dragging experience
+        onPanStart: (details) {
+          final RenderBox renderBox = context.findRenderObject() as RenderBox;
+          final Offset center = Offset(renderBox.size.width / 2, renderBox.size.height / 2);
+          final Offset localPosition = renderBox.globalToLocal(details.globalPosition);
+          
+          final double distance = (localPosition - center).distance;
+          if (distance <= 150) { // Increased from 100 to 150 for a larger detection area
+            setState(() {
+              _windDirection = _calculateAngle(localPosition, center);
+            });
+          }
+        },
+        
+        onPanUpdate: (details) {
+          final RenderBox renderBox = context.findRenderObject() as RenderBox;
+          final Offset center = Offset(renderBox.size.width / 2, renderBox.size.height / 2);
+          final Offset localPosition = renderBox.globalToLocal(details.globalPosition);
+          
+          // Process any pan updates regardless of direction
+          setState(() {
+            _windDirection = _calculateAngle(localPosition, center);
+          });
+        },
+        
+        // Make sure vertical drags are captured by this widget and not the parent scroll
+        onVerticalDragStart: (_) {},
+        onVerticalDragUpdate: (details) {
+          // Handle vertical drag as part of pan gesture
+          final RenderBox renderBox = context.findRenderObject() as RenderBox;
+          final Offset center = Offset(renderBox.size.width / 2, renderBox.size.height / 2);
+          final Offset localPosition = renderBox.globalToLocal(details.globalPosition);
+          
+          setState(() {
+            _windDirection = _calculateAngle(localPosition, center);
+          });
+        },
+        
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Compass background
+            Material(
+              color: Colors.transparent,
               shape: const CircleBorder(),
-              padding: const EdgeInsets.all(16),
-              minimumSize: const Size(48, 48),
-              elevation: 4,
+              clipBehavior: Clip.hardEdge,
+              child: Container(
+                width: 200,
+                height: 200,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.grey[200],
+                  border: Border.all(color: Colors.black, width: 1.0),
+                ),
+                child: CustomPaint(
+                  painter: CompassPainter(direction: _isListening ? _direction : _lastStoredDirection),
+                ),
+              ),
             ),
-            child: Icon(
-              _isListening ? Icons.pause : Icons.play_arrow,
-              color: _isListening ? Colors.red : Colors.green,
-              size: 28,
+
+            // Compass direction arrow (red)
+            const Center(
+              child: Icon(Icons.navigation, size: 40, color: Colors.red),
             ),
-          ),
+            
+            // Wind direction arrow (blue, rotatable by user) - removed redundant GestureDetector
+            Transform.rotate(
+              angle: -_windDirection * (math.pi / 180),
+              child: SizedBox(
+                width: 40,
+                height: 180,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min, 
+                  children: [
+                    CustomPaint(
+                      size: const Size(20, 20),
+                      painter: ArrowHeadPainter(color: Colors.blue.shade800),
+                    ),
+                    Expanded(
+                      child: Container(
+                        width: 4,
+                        color: Colors.blue.shade800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            // Pause/play button
+            Positioned(
+              top: 0,
+              right: 0,
+              child: ElevatedButton(
+                onPressed: _toggleListening,
+                style: ElevatedButton.styleFrom(
+                  shape: const CircleBorder(),
+                  padding: const EdgeInsets.all(16),
+                  minimumSize: const Size(48, 48),
+                  elevation: 4,
+                ),
+                child: Icon(
+                  _isListening ? Icons.pause : Icons.play_arrow,
+                  color: _isListening ? Colors.red : Colors.green,
+                  size: 28,
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -220,4 +336,32 @@ class CompassPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CompassPainter oldDelegate) => oldDelegate.direction != direction;
+}
+
+// Add this new painter class at the end of the file
+class ArrowHeadPainter extends CustomPainter {
+  final Color color;
+  
+  ArrowHeadPainter({required this.color});
+  
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+      
+    final double centerX = size.width / 2;
+    
+    // Create a triangle path for the arrow head
+    final Path path = Path();
+    path.moveTo(centerX, 0); // Top center
+    path.lineTo(centerX - 10, 20); // Bottom left
+    path.lineTo(centerX + 10, 20); // Bottom right
+    path.close();
+    
+    canvas.drawPath(path, paint);
+  }
+  
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
