@@ -4,6 +4,7 @@ import 'widgets/angle_input.dart';
 import 'widgets/wind_speed_input.dart';
 import 'widgets/compass_widget.dart';
 import 'widgets/wind_direction_input.dart'; // Re-added import for WindDirectionInput
+import 'widgets/camera_angle_screen.dart'; // Add this import
 import 'package:flutter_compass/flutter_compass.dart';
 
 class CalculatorScreen extends StatefulWidget {
@@ -124,6 +125,21 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     });
   }
 
+  // Add method to open camera for angle measurement
+  Future<void> _openCameraForAngle() async {
+    final measuredAngle = await Navigator.push<double>(
+      context,
+      MaterialPageRoute(builder: (context) => const CameraAngleScreen()),
+    );
+    
+    if (measuredAngle != null) {
+      setState(() {
+        _angle = measuredAngle;
+        _angleController.text = _angle.toStringAsFixed(1);
+      });
+    }
+  }
+
   @override
   void dispose() {
     _distanceController.dispose();
@@ -155,6 +171,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 controller: _angleController,
                 scrollStep: 1.0,
                 onUpdateAngle: _updateAngle,
+                onCameraPressed: _openCameraForAngle, // Add this line
               ),
               const SizedBox(height: 20),
               WindSpeedInput(

@@ -5,12 +5,14 @@ class AngleInput extends StatelessWidget {
   final TextEditingController controller;
   final double scrollStep;
   final Function(double) onUpdateAngle;
+  final VoidCallback? onCameraPressed;
 
   const AngleInput({
     super.key,
     required this.controller,
-    this.scrollStep = 1.0, // Valor predeterminado de 1.0
+    this.scrollStep = 1.0,
     required this.onUpdateAngle,
+    this.onCameraPressed,
   });
 
   @override
@@ -47,6 +49,12 @@ class AngleInput extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.arrow_downward),
                   onPressed: () => onUpdateAngle(-scrollStep),
+                ),
+                const SizedBox(height: 5), // Add some spacing
+                IconButton(
+                  icon: const Icon(Icons.camera_alt),
+                  onPressed: onCameraPressed,
+                  tooltip: 'Measure angle with camera',
                 ),
               ],
             ),
