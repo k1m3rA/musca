@@ -12,6 +12,8 @@ class CompassWidget extends StatefulWidget {
 
 class _CompassWidgetState extends State<CompassWidget> {
   double _direction = 0;
+  double _lastStoredDirection = 0;
+  bool _isListening = true;
   StreamSubscription<CompassEvent>? _compassSubscription;
 
   @override
@@ -33,6 +35,8 @@ class _CompassWidgetState extends State<CompassWidget> {
     }
 
     _compassSubscription = FlutterCompass.events!.listen((event) {
+      if (!_isListening) return;
+      
       setState(() {
         // Asegurar que la dirección siempre sea un valor positivo entre 0 y 360
         double heading = event.heading ?? 0;
@@ -49,6 +53,16 @@ class _CompassWidgetState extends State<CompassWidget> {
   void _stopListening() {
     _compassSubscription?.cancel();
     _compassSubscription = null;
+  }
+  
+  void _toggleListening() {
+    setState(() {
+      _isListening = !_isListening;
+      if (!_isListening) {
+        // Almacenar la última dirección cuando se detiene
+        _lastStoredDirection = _direction;
+      }
+    });
   }
 
   @override
@@ -67,7 +81,9 @@ class _CompassWidgetState extends State<CompassWidget> {
               : _buildCompassWidget(),
         ),
         const SizedBox(height: 10),
-        Text('Direction: ${_direction.toStringAsFixed(1)}°'),
+        Text(_isListening 
+            ? 'Current Direction: ${_direction.toStringAsFixed(1)}°'
+            : 'Stored Direction: ${_lastStoredDirection.toStringAsFixed(1)}°'),
       ],
     );
   }
@@ -76,20 +92,54 @@ class _CompassWidgetState extends State<CompassWidget> {
     return Stack(
       alignment: Alignment.center,
       children: [
-        Container(
-          width: 200,
-          height: 200,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.grey[200],
-            border: Border.all(color: Colors.black, width: 1.0),
-          ),
-          child: CustomPaint(
-            painter: CompassPainter(direction: _direction),
+        // Reemplazamos el GestureDetector con Material+InkWell para tener efecto de pulsación
+        Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.hardEdge, // Asegura que el efecto de splash se recorte en el círculo
+          child: InkWell(
+            onTap: () {
+              _toggleListening();
+              // No necesitamos código adicional aquí ya que InkWell maneja automáticamente
+              // el efecto visual de pulsación (splash) y su desaparición
+            },
+            splashColor: _isListening ? Colors.red.withOpacity(0.3) : Colors.green.withOpacity(0.3),
+            highlightColor: Colors.white.withOpacity(0.1),
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.grey[200],
+                border: Border.all(color: Colors.black, width: 1.0),
+              ),
+              child: CustomPaint(
+                painter: CompassPainter(direction: _isListening ? _direction : _lastStoredDirection),
+              ),
+            ),
           ),
         ),
         const Center(
           child: Icon(Icons.navigation, size: 40, color: Colors.red),
+        ),
+        // Botón para detener/iniciar la brújula (se mantiene como alternativa)
+        Positioned(
+          top: 0,
+          right: 0,
+          child: ElevatedButton(
+            onPressed: _toggleListening,
+            style: ElevatedButton.styleFrom(
+              shape: const CircleBorder(),
+              padding: const EdgeInsets.all(16),
+              minimumSize: const Size(48, 48),
+              elevation: 4,
+            ),
+            child: Icon(
+              _isListening ? Icons.pause : Icons.play_arrow,
+              color: _isListening ? Colors.red : Colors.green,
+              size: 28,
+            ),
+          ),
         ),
       ],
     );
@@ -111,8 +161,7 @@ class CompassPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
 
-    // Dibujar círculo exterior
-    canvas.drawCircle(center, radius * 0.95, paint);
+    // Removed the circle drawing here for a cleaner design
 
     // Dibujar marcas y direcciones
     final textPainter = TextPainter(
@@ -125,9 +174,9 @@ class CompassPainter extends CustomPainter {
     for (int i = 0; i < 4; i++) {
       final angle = (i * 90 - direction) * (math.pi / 180);
       
-      // Posición para el texto
-      final labelX = center.dx + radius * 0.65 * math.sin(angle);
-      final labelY = center.dy - radius * 0.65 * math.cos(angle);
+      // Posición para el texto - changed from 0.65 to 0.55 to move labels inward
+      final labelX = center.dx + radius * 0.55 * math.sin(angle);
+      final labelY = center.dy - radius * 0.55 * math.cos(angle);
       
       // Dibujar marca
       paint.color = directions[i] == 'N' ? Colors.red : Colors.black;
