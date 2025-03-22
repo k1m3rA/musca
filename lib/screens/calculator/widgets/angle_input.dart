@@ -7,11 +7,11 @@ class AngleInput extends StatelessWidget {
   final Function(double) onUpdateAngle;
 
   const AngleInput({
-    Key? key,
+    super.key,
     required this.controller,
     this.scrollStep = 1.0, // Valor predeterminado de 1.0
     required this.onUpdateAngle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

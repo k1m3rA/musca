@@ -7,11 +7,11 @@ class WindSpeedInput extends StatelessWidget {
   final Function(double) onUpdateWindSpeed;
 
   const WindSpeedInput({
-    Key? key,
+    super.key,
     required this.controller,
     this.scrollStep = 0.5,
     required this.onUpdateWindSpeed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
