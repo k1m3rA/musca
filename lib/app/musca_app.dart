@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../screens/home/home_screen.dart';
+import '../navigation/navigation_container.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -30,7 +30,10 @@ class _MyAppState extends State<MyApp> {
         scaffoldBackgroundColor: Colors.grey[900],
       ),
       themeMode: _themeMode,
-      home: MyHomePage(title: 'Musca Calculator', onThemeChanged: _updateTheme),
+      home: NavigationContainer(
+        title: 'Musca Calculator', 
+        onThemeChanged: _updateTheme
+      ),
     );
   }
 }

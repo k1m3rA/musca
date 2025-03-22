@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import '../settings/settings_screen.dart';
-import '../calculator/calculator_screen.dart'; // Add this import
 
+// Main widget - kept for backwards compatibility
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
     super.key,
@@ -17,26 +16,20 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  Future<void> _openSettings() async {
-    final ThemeMode? selectedTheme = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SettingsPage(onThemeChanged: widget.onThemeChanged),
-      ),
-    );
-    if (selectedTheme != null) {
-      widget.onThemeChanged(selectedTheme);
-    }
+  @override
+  Widget build(BuildContext context) {
+    return HomeContent(title: widget.title);
   }
+}
+
+// New widget for just the content
+class HomeContent extends StatelessWidget {
+  final String title;
   
-  void _openCalculator() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const CalculatorScreen(),
-      ),
-    );
-  }
+  const HomeContent({
+    super.key,
+    required this.title,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +41,7 @@ class _MyHomePageState extends State<MyHomePage> {
             expandedHeight: 200,
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
-              title: Text(widget.title),
+              title: Text(title),
             ),
           ),
           SliverFillRemaining(
@@ -60,30 +53,6 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
         ],
-      ),
-      bottomNavigationBar: BottomAppBar(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.calculate),
-                onPressed: _openCalculator, // Updated to use the new method
-              ),
-              IconButton(
-                icon: const Icon(Icons.people),
-                onPressed: () {
-                  // Acción del botón Profiles
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.settings),
-                onPressed: _openSettings,
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
