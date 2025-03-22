@@ -140,6 +140,18 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     }
   }
 
+  // Add a method to handle the save action
+  void _saveCalculation() {
+    // TODO: Implement save functionality
+    final snackBar = SnackBar(
+      content: const Text('Saved'),
+      backgroundColor: Colors.black,
+      behavior: SnackBarBehavior.floating, // Makes the snackbar appear above the button
+      margin: const EdgeInsets.only(left: 16.0, right: 100.0), // Aligns the snackbar to the left
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
   @override
   void dispose() {
     _distanceController.dispose();
@@ -201,6 +213,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               ),
             ],
           ),
+        ),
+      ),
+      // Add floating action button for saving
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 0.0, right: 10.0), // Move the button slightly upwards and to the left
+        child: FloatingActionButton(
+          onPressed: _saveCalculation,
+          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.8), // Reduce brightness by lowering opacity
+          child: const Icon(Icons.save, color: Colors.white),
         ),
       ),
     );
