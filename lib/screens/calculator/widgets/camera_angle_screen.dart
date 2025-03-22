@@ -25,17 +25,11 @@ class _CameraAngleScreenState extends State<CameraAngleScreen> {
       // Calculate angle from accelerometer data
       if (mounted) {
         setState(() {
-          // Calculate pitch (vertical angle)
-          // atan2 gives angle in radians, convert to degrees and adjust range
-          double x = event.x;
-          double y = event.y;
+          // Calculate inclination based only on the z-axis
           double z = event.z;
-          
-          // Calculate pitch (vertical angle) in degrees
-          double pitch = math.atan2(y, math.sqrt(x * x + z * z)) * (180 / math.pi);
-          
-          // Adjust sign so that tilting device upward gives positive angles
-          _verticalAngle = -pitch;
+
+          // Map z-axis value to a vertical angle range (-90 to 90 degrees)
+          _verticalAngle =  - math.atan2(z, 9.8) * (180 / math.pi);
         });
       }
     });
