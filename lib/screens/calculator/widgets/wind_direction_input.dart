@@ -8,11 +8,11 @@ class WindDirectionInput extends StatefulWidget {
   final Function(double) onUpdateWindDirection;
 
   const WindDirectionInput({
-    Key? key,
+    super.key,
     required this.controller,
     this.scrollStep = 5.0,
     required this.onUpdateWindDirection,
-  }) : super(key: key);
+  });
 
   @override
   State<WindDirectionInput> createState() => _WindDirectionInputState();
@@ -145,10 +145,10 @@ class WindDirectionDial extends StatefulWidget {
   final ValueChanged<double> onChanged;
 
   const WindDirectionDial({
-    Key? key,
+    super.key,
     required this.currentValue,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<WindDirectionDial> createState() => _WindDirectionDialState();

@@ -5,7 +5,7 @@ import 'widgets/wind_speed_input.dart';
 import 'widgets/wind_direction_input.dart'; // Importamos el nuevo widget
 
 class CalculatorScreen extends StatefulWidget {
-  const CalculatorScreen({Key? key}) : super(key: key);
+  const CalculatorScreen({super.key});
 
   @override
   State<CalculatorScreen> createState() => _CalculatorScreenState();
