@@ -258,95 +258,19 @@ class _WindDirectionDialState extends State<WindDirectionDial> with SingleTicker
             width: 1.0,
           ),
           color: Colors.white,
-          // Eliminamos las sombras condicionales
         ),
         child: Stack(
           children: [
-            // Removing the visual interaction indicator that changes color when pressing
-            // Compass markings
-            ...List.generate(12, (index) {
-              final angle = index * 30 * math.pi / 180;
-              return Transform.rotate(
-                angle: angle,
-                origin: const Offset(0, 0),
-                child: Center(
-                  child: Container(
-                    height: 200,
-                    width: 2,
-                    color: index % 3 == 0 ? Colors.black : Colors.grey.shade300,
-                    margin: const EdgeInsets.only(bottom: 100),
-                  ),
-                ),
-              );
-            }),
-            
-            // Direction labels
-            Positioned(
-              top: 5,
-              left: 0,
-              right: 0,
-                child: Center(
-                child: Text(
-                  'N',
-                  style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                    color: Colors.black,
-                  backgroundColor: Colors.white,
-                  ),
-                ),
+            // Compass Rose Background
+            Positioned.fill(
+              child: CustomPaint(
+                painter: CompassRosePainter(
+                  primaryColor: Theme.of(context).primaryColor,
                 ),
               ),
-              Positioned(
-                bottom: 5,
-                left: 0,
-                right: 0,
-                child: Center(
-                child: Text(
-                  'S',
-                  style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: Colors.black,
-                  backgroundColor: Colors.white,
-                  ),
-                ),
-                ),
-              ),
-              Positioned(
-                right: 5,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                child: Text(
-                  'E',
-                  style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: Colors.black,
-                  backgroundColor: Colors.white,
-                  ),
-                ),
-                ),
-              ),
-              Positioned(
-                left: 5,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                child: Text(
-                  'W',
-                  style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: Colors.black,
-                  backgroundColor: Colors.white,
-                  ),
-                ),
-                ),
-              ),
-            
-            // Pointer con flecha para indicar de dónde viene el viento - ahora centrado
+            ),
+
+            // Wind Direction Arrow - positioned on top of the compass
             Positioned.fill(
               child: Center(
                 child: Transform.rotate(
@@ -377,6 +301,199 @@ class _WindDirectionDialState extends State<WindDirectionDial> with SingleTicker
       ),
     );
   }
+}
+
+// New class for drawing the compass rose
+class CompassRosePainter extends CustomPainter {
+  final Color primaryColor;
+  
+  CompassRosePainter({required this.primaryColor});
+  
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+    
+    // Paint for the main directions (N, E, S, W)
+    final mainDirectionPaint = Paint()
+      ..color = primaryColor
+      ..strokeWidth = 2.5
+      ..style = PaintingStyle.stroke;
+    
+    // Paint for the secondary directions (NE, SE, SW, NW)
+    final secondaryDirectionPaint = Paint()
+      ..color = Colors.black87
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+    
+    // Paint for the tertiary directions
+    final tertiaryDirectionPaint = Paint()
+      ..color = Colors.grey.shade400
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
+      
+    // Draw outer circle
+    canvas.drawCircle(center, radius - 2, mainDirectionPaint);
+    
+    // Draw inner circle
+    canvas.drawCircle(center, radius * 0.7, secondaryDirectionPaint);
+    
+    // Draw cardinal directions (N, E, S, W)
+    for (int i = 0; i < 4; i++) {
+      final angle = i * 90 * math.pi / 180;
+      
+      // Draw main direction lines
+      final outer = Offset(
+        center.dx + radius * math.cos(angle),
+        center.dy + radius * math.sin(angle)
+      );
+      final inner = Offset(
+        center.dx + radius * 0.6 * math.cos(angle),
+        center.dy + radius * 0.6 * math.sin(angle)
+      );
+      
+      canvas.drawLine(inner, outer, mainDirectionPaint);
+      
+      // Draw small tick for degree value
+      final tickStart = Offset(
+        center.dx + radius * 0.9 * math.cos(angle),
+        center.dy + radius * 0.9 * math.sin(angle)
+      );
+      canvas.drawLine(tickStart, outer, mainDirectionPaint);
+    }
+    
+    // Draw intercardinal directions (NE, SE, SW, NW)
+    for (int i = 0; i < 4; i++) {
+      final angle = (i * 90 + 45) * math.pi / 180;
+      
+      final outer = Offset(
+        center.dx + radius * math.cos(angle),
+        center.dy + radius * math.sin(angle)
+      );
+      final inner = Offset(
+        center.dx + radius * 0.65 * math.cos(angle),
+        center.dy + radius * 0.65 * math.sin(angle)
+      );
+      
+      canvas.drawLine(inner, outer, secondaryDirectionPaint);
+    }
+    
+    // Draw secondary ticks (every 30 degrees)
+    for (int i = 0; i < 12; i++) {
+      if (i % 3 != 0) { // Skip the main cardinal points already drawn
+        final angle = i * 30 * math.pi / 180;
+        
+        final outer = Offset(
+          center.dx + radius * math.cos(angle),
+          center.dy + radius * math.sin(angle)
+        );
+        final inner = Offset(
+          center.dx + radius * 0.85 * math.cos(angle),
+          center.dy + radius * 0.85 * math.sin(angle)
+        );
+        
+        canvas.drawLine(inner, outer, tertiaryDirectionPaint);
+      }
+    }
+    
+    // Draw minor ticks (every 10 degrees)
+    for (int i = 0; i < 36; i++) {
+      if (i % 3 != 0) { // Skip the points already drawn
+        final angle = i * 10 * math.pi / 180;
+        
+        final outer = Offset(
+          center.dx + radius * math.cos(angle),
+          center.dy + radius * math.sin(angle)
+        );
+        final inner = Offset(
+          center.dx + radius * 0.92 * math.cos(angle),
+          center.dy + radius * 0.92 * math.sin(angle)
+        );
+        
+        canvas.drawLine(inner, outer, tertiaryDirectionPaint);
+      }
+    }
+    
+    // Add cardinal direction labels
+    final textStyle = TextStyle(
+      color: Colors.black,
+      fontSize: 20,
+      fontWeight: FontWeight.bold,
+    );
+    
+    _drawCompassText(canvas, center, radius, 'N', 0, textStyle);
+    _drawCompassText(canvas, center, radius, 'E', 90, textStyle);
+    _drawCompassText(canvas, center, radius, 'S', 180, textStyle);
+    _drawCompassText(canvas, center, radius, 'W', 270, textStyle);
+    
+    // Add intercardinal direction labels with smaller size
+    final smallerTextStyle = TextStyle(
+      color: Colors.black87,
+      fontSize: 16,
+      fontWeight: FontWeight.w500,
+    );
+    
+    _drawCompassText(canvas, center, radius, 'NE', 45, smallerTextStyle);
+    _drawCompassText(canvas, center, radius, 'SE', 135, smallerTextStyle);
+    _drawCompassText(canvas, center, radius, 'SW', 225, smallerTextStyle);
+    _drawCompassText(canvas, center, radius, 'NW', 315, smallerTextStyle);
+  }
+  
+  void _drawCompassText(Canvas canvas, Offset center, double radius, 
+      String text, double angleDegrees, TextStyle style) {
+    final angleRadians = angleDegrees * math.pi / 180;
+    
+    // Position text slightly inside the outer edge
+    final textRadius = radius * 0.78;
+    final textPosition = Offset(
+      center.dx + textRadius * math.sin(angleRadians),
+      center.dy - textRadius * math.cos(angleRadians)
+    );
+    
+    final textSpan = TextSpan(
+      text: text,
+      style: style,
+    );
+    
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    );
+    
+    textPainter.layout();
+    
+    // Center the text on the point
+    final textOffset = Offset(
+      textPosition.dx - textPainter.width / 2,
+      textPosition.dy - textPainter.height / 2,
+    );
+    
+    // Draw the background
+    final backgroundPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    
+    // Add padding around the text
+    final padding = 4.0;
+    final rect = Rect.fromLTWH(
+      textOffset.dx - padding,
+      textOffset.dy - padding,
+      textPainter.width + (padding * 2),
+      textPainter.height + (padding * 2),
+    );
+    
+    // Draw a rounded rectangle as background
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, Radius.circular(4.0)),
+      backgroundPaint,
+    );
+    
+    textPainter.paint(canvas, textOffset);
+  }
+  
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 // Pintor personalizado para dibujar la flecha del viento - mejorado para centrado
