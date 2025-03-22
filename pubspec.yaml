@@ -37,6 +37,8 @@ dependencies:
   sensors_plus: ^6.1.1
   camera: ^0.11.1
   flutter_compass: ^0.8.1
+  shared_preferences: ^2.5.2
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

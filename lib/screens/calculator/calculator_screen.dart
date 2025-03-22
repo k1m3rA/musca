@@ -6,6 +6,8 @@ import 'widgets/compass_widget.dart';
 import 'widgets/wind_direction_input.dart'; // Re-added import for WindDirectionInput
 import 'widgets/camera_angle_screen.dart'; // Add this import
 import 'package:flutter_compass/flutter_compass.dart';
+import '../../models/calculation.dart';
+import '../../services/calculation_storage.dart';
 
 class CalculatorScreen extends StatefulWidget {
   const CalculatorScreen({super.key});
@@ -141,13 +143,27 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   }
 
   // Add a method to handle the save action
-  void _saveCalculation() {
-    // TODO: Implement save functionality
+  Future<void> _saveCalculation() async {
+    // Create a new calculation from current values
+    final calculation = Calculation(
+      distance: _distance,
+      angle: _angle,
+      windSpeed: _windSpeed,
+      windDirection: _windDirection,
+    );
+    
+    // Save the calculation
+    await CalculationStorage.saveCalculation(calculation);
+    
+    // Show feedback to user
+    if (!mounted) return;
+    
     final snackBar = SnackBar(
-      content: const Text('Saved'),
-      backgroundColor: Colors.black,
-      behavior: SnackBarBehavior.floating, // Makes the snackbar appear above the button
-      margin: const EdgeInsets.only(left: 16.0, right: 100.0), // Aligns the snackbar to the left
+      content: const Text('Calculation saved!'),
+      backgroundColor: Colors.green,
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.only(left: 16.0, right: 100.0),
+      duration: const Duration(seconds: 2),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
