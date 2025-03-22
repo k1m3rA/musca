@@ -262,17 +262,7 @@ class _WindDirectionDialState extends State<WindDirectionDial> with SingleTicker
         ),
         child: Stack(
           children: [
-            // Indicador visual de interacción (opcional)
-            if (_isDragging)
-              Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Theme.of(context).primaryColor.withOpacity(0.05),
-                ),
-              ),
-              
+            // Removing the visual interaction indicator that changes color when pressing
             // Compass markings
             ...List.generate(12, (index) {
               final angle = index * 30 * math.pi / 180;
