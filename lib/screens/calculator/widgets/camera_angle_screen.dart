@@ -135,7 +135,7 @@ class _CameraAngleScreenState extends State<CameraAngleScreen> {
                     ),
                     child: Center(
                       child: Text(
-                        'Vertical Angle: ${_verticalAngle.toStringAsFixed(1)}°',
+                        'Inclination: ${_verticalAngle.toStringAsFixed(1)}°',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -146,22 +146,6 @@ class _CameraAngleScreenState extends State<CameraAngleScreen> {
                   ),
                 ),
                 
-                // Instructions text
-                const Positioned(
-                  bottom: 120,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: Text(
-                      'Align with target and press Capture',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
               ],
             )
           : const Center(
@@ -169,11 +153,11 @@ class _CameraAngleScreenState extends State<CameraAngleScreen> {
             ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: _isCameraInitialized
-          ? FloatingActionButton.extended(
+            ? FloatingActionButton.extended(
               onPressed: _captureAngle,
               icon: const Icon(Icons.camera),
               label: const Text('Capture Angle'),
-              backgroundColor: Colors.red,
+                backgroundColor: const Color.fromARGB(255, 115, 59, 126),
             )
           : null,
     );
