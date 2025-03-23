@@ -89,9 +89,14 @@ class _SettingsPageState extends State<SettingsPage> {
             pinned: true,
             expandedHeight: 100,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            flexibleSpace: const FlexibleSpaceBar(
+            flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
-              title: Text("Ajustes"),
+              title: Text(
+              "Settings",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              ),
             ),
           ),
           SliverFillRemaining(
@@ -101,10 +106,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 8),
-                  const Text(
-                    'App theme:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
                   const SizedBox(height: 12),
                   Row(
                     children: [

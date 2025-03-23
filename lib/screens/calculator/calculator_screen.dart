@@ -187,64 +187,80 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Field Data'),
-        centerTitle: true,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            children: [
-              DistanceInput(
-                controller: _distanceController,
-                scrollStep: _scrollStep,
-                onUpdateDistance: _updateDistance,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            expandedHeight: 100,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: true,
+              title: Text(
+                "Field Data",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
-              const SizedBox(height: 20),
-              AngleInput(
-                controller: _angleController,
-                scrollStep: 1.0,
-                onUpdateAngle: _updateAngle,
-                onCameraPressed: _openCameraForAngle, // Add this line
-              ),
-              const SizedBox(height: 20),
-              WindSpeedInput(
-                controller: _windSpeedController,
-                scrollStep: 0.5,
-                onUpdateWindSpeed: _updateWindSpeed,
-              ),
-              const SizedBox(height: 20),
-              
-              // Update the CompassWidget to include the callback
-              _hasCompass 
-                ? CompassWidget(
-                    onWindDirectionChanged: (direction) {
-                      setState(() {
-                        _windDirection = direction;
-                        _windDirectionController.text = _windDirection.round().toString();
-                      });
-                    },
-                  )
-                : WindDirectionInput(
-                    controller: _windDirectionController,
-                    scrollStep: 5.0,
-                    onUpdateWindDirection: _updateWindDirection,
-                  ),
-                  
-              Padding(
-                padding: const EdgeInsets.all(16.0),
+            ),
+          ),
+          SliverFillRemaining(
+            hasScrollBody: true,
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    DistanceInput(
+                      controller: _distanceController,
+                      scrollStep: _scrollStep,
+                      onUpdateDistance: _updateDistance,
+                    ),
                     const SizedBox(height: 20),
+                    AngleInput(
+                      controller: _angleController,
+                      scrollStep: 1.0,
+                      onUpdateAngle: _updateAngle,
+                      onCameraPressed: _openCameraForAngle, // Add this line
+                    ),
+                    const SizedBox(height: 20),
+                    WindSpeedInput(
+                      controller: _windSpeedController,
+                      scrollStep: 0.5,
+                      onUpdateWindSpeed: _updateWindSpeed,
+                    ),
+                    const SizedBox(height: 20),
+                    
+                    // Update the CompassWidget to include the callback
+                    _hasCompass 
+                      ? CompassWidget(
+                          onWindDirectionChanged: (direction) {
+                            setState(() {
+                              _windDirection = direction;
+                              _windDirectionController.text = _windDirection.round().toString();
+                            });
+                          },
+                        )
+                      : WindDirectionInput(
+                          controller: _windDirectionController,
+                          scrollStep: 5.0,
+                          onUpdateWindDirection: _updateWindDirection,
+                        ),
+                        
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 20),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
       // Add floating action button for saving
       floatingActionButton: Padding(
