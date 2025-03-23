@@ -10,7 +10,9 @@ import '../../models/calculation.dart';
 import '../../services/calculation_storage.dart';
 
 class CalculatorScreen extends StatefulWidget {
-  const CalculatorScreen({super.key});
+  final Function(int)? onNavigate; // Add navigation callback
+  
+  const CalculatorScreen({super.key, this.onNavigate});
 
   @override
   State<CalculatorScreen> createState() => _CalculatorScreenState();
@@ -142,7 +144,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     }
   }
 
-  // Add a method to handle the save action
+  // Updated save method to navigate to home after saving
   Future<void> _saveCalculation() async {
     // Create a new calculation from current values
     final calculation = Calculation(
@@ -166,6 +168,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       duration: const Duration(seconds: 2),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    
+    // Navigate to home screen (index 0) after saving
+    if (widget.onNavigate != null) {
+      widget.onNavigate!(0);
+    }
   }
 
   @override

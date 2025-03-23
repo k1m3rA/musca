@@ -39,7 +39,7 @@ class _NavigationContainerState extends State<NavigationContainer> {
         title: widget.title,
         onNavigateTo: _changeScreen,
       ),
-      const CalculatorScreen(),
+      CalculatorScreen(onNavigate: _changeScreen), // Pass the navigation callback
       SettingsPage(onThemeChanged: widget.onThemeChanged),
     ];
 
