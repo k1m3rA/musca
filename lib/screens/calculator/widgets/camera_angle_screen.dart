@@ -78,8 +78,9 @@ class _CameraAngleScreenState extends State<CameraAngleScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Measure Angle'),
-        backgroundColor: Colors.black,
+        title: const Text('Inclination', style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color.fromARGB(255, 51, 43, 54),
+        iconTheme: const IconThemeData(color: Colors.white), // Make back arrow white
       ),
       backgroundColor: Colors.black,
       body: _isCameraInitialized
@@ -128,14 +129,14 @@ class _CameraAngleScreenState extends State<CameraAngleScreen> {
                   right: 0,
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                    margin: const EdgeInsets.symmetric(horizontal: 40),
+                    margin: const EdgeInsets.symmetric(horizontal: 100),
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.6),
                       borderRadius: BorderRadius.circular(30),
                     ),
                     child: Center(
                       child: Text(
-                        'Inclination: ${_verticalAngle.toStringAsFixed(1)}°',
+                        '${_verticalAngle.toStringAsFixed(1)}°',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -156,8 +157,9 @@ class _CameraAngleScreenState extends State<CameraAngleScreen> {
             ? FloatingActionButton.extended(
               onPressed: _captureAngle,
               icon: const Icon(Icons.camera),
-              label: const Text('Capture Angle'),
-                backgroundColor: const Color.fromARGB(255, 115, 59, 126),
+              label: const Text('Save Angle'),
+              backgroundColor: const Color.fromARGB(255, 115, 59, 126),
+              foregroundColor: Colors.white,
             )
           : null,
     );
