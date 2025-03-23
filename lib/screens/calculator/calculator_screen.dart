@@ -181,8 +181,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Calculadora'),
+        title: const Text('Field Data'),
         centerTitle: true,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -233,7 +234,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       ),
       // Add floating action button for saving
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 0.0, right: 10.0), // Move the button slightly upwards and to the left
+        padding: const EdgeInsets.only(bottom: 0.0, right: 7.0), // Move the button slightly upwards and to the left
         child: FloatingActionButton(
           onPressed: _saveCalculation,
           backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.8), // Reduce brightness by lowering opacity

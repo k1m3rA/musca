@@ -123,6 +123,13 @@ class _CompassWidgetState extends State<CompassWidget> {
             Text(_isListening 
                 ? 'Compass: ${_direction.toStringAsFixed(1)}°'
                 : 'Compass: ${_lastStoredDirection.toStringAsFixed(1)}°'),
+          
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            
             Text('Wind: ${_getRelativeWindDirection().toStringAsFixed(1)}°'),
           ],
         ),
@@ -249,10 +256,10 @@ class _CompassWidgetState extends State<CompassWidget> {
               ),
             ),
             
-            // Pause/play button
+            // Pause/play button - moved from right to left
             Positioned(
               top: 0,
-              right: 0,
+              left: -20, // Changed from right: 0 to left: 0
               child: ElevatedButton(
                 onPressed: _toggleListening,
                 style: ElevatedButton.styleFrom(
