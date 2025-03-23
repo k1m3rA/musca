@@ -210,9 +210,16 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               ),
               const SizedBox(height: 20),
               
-              // Conditionally display CompassWidget or WindDirectionInput
+              // Update the CompassWidget to include the callback
               _hasCompass 
-                ? const CompassWidget()
+                ? CompassWidget(
+                    onWindDirectionChanged: (direction) {
+                      setState(() {
+                        _windDirection = direction;
+                        _windDirectionController.text = _windDirection.round().toString();
+                      });
+                    },
+                  )
                 : WindDirectionInput(
                     controller: _windDirectionController,
                     scrollStep: 5.0,

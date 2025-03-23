@@ -4,7 +4,12 @@ import 'package:flutter_compass/flutter_compass.dart';
 import 'dart:async';
 
 class CompassWidget extends StatefulWidget {
-  const CompassWidget({super.key});
+  final Function(double)? onWindDirectionChanged; // Add callback function
+  
+  const CompassWidget({
+    super.key,
+    this.onWindDirectionChanged, // Add parameter
+  });
 
   @override
   State<CompassWidget> createState() => _CompassWidgetState();
@@ -82,6 +87,18 @@ class _CompassWidgetState extends State<CompassWidget> {
     return angleDegrees;
   }
 
+  // Add method to update wind direction and notify parent
+  void _updateWindDirectionValue(double newDirection) {
+    setState(() {
+      _windDirection = newDirection;
+    });
+    
+    // Call the callback function with the relative wind direction
+    if (widget.onWindDirectionChanged != null) {
+      widget.onWindDirectionChanged!(_getRelativeWindDirection());
+    }
+  }
+
   // Calculate wind direction relative to current north
   double _getRelativeWindDirection() {
     // Use current compass direction or last stored direction if paused
@@ -154,9 +171,7 @@ class _CompassWidgetState extends State<CompassWidget> {
           // Calculate distance from center to determine if we're inside the compass
           final double distance = (localPosition - center).distance;
           if (distance <= 100) { // Changed from 150 to 100 for a smaller detection area
-            setState(() {
-              _windDirection = _calculateAngle(localPosition, center);
-            });
+            _updateWindDirectionValue(_calculateAngle(localPosition, center));
           }
         },
         
@@ -168,9 +183,7 @@ class _CompassWidgetState extends State<CompassWidget> {
           
           final double distance = (localPosition - center).distance;
           if (distance <= 100) { // Changed from 150 to 100 for a smaller detection area
-            setState(() {
-              _windDirection = _calculateAngle(localPosition, center);
-            });
+            _updateWindDirectionValue(_calculateAngle(localPosition, center));
           }
         },
         
@@ -182,9 +195,7 @@ class _CompassWidgetState extends State<CompassWidget> {
           // Process any pan updates regardless of direction
           final double distance = (localPosition - center).distance;
           if (distance <= 100) { // Changed from 150 to 100 for a smaller detection area
-            setState(() {
-              _windDirection = _calculateAngle(localPosition, center);
-            });
+            _updateWindDirectionValue(_calculateAngle(localPosition, center));
           }
         },
         
@@ -198,9 +209,7 @@ class _CompassWidgetState extends State<CompassWidget> {
           
           final double distance = (localPosition - center).distance;
           if (distance <= 100) { // Changed from 150 to 100 for a smaller detection area
-            setState(() {
-              _windDirection = _calculateAngle(localPosition, center);
-            });
+            _updateWindDirectionValue(_calculateAngle(localPosition, center));
           }
         },
         
