@@ -9,7 +9,7 @@ class DistanceInput extends StatelessWidget {
   const DistanceInput({
     super.key,
     required this.controller,
-    this.scrollStep = 1.0, // Valor predeterminado de 1.0
+    this.scrollStep = 1.0,
     required this.onUpdateDistance,
   });
 
@@ -23,7 +23,6 @@ class DistanceInput extends StatelessWidget {
         }
       },
       child: Container(
-        
         padding: const EdgeInsets.all(8),
         child: Row(
           children: [
@@ -39,17 +38,63 @@ class DistanceInput extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            Column(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_upward),
-                  onPressed: () => onUpdateDistance(1.0), // Cambiado a 1.0
+            // Rueda scrolleable mejorada con interacción táctil
+            GestureDetector(
+              onVerticalDragUpdate: (details) {
+                // Actualizar según la dirección del arrastre (negativo hacia arriba, positivo hacia abajo)
+                double delta = -details.delta.dy * 0.1; // Factor para controlar la sensibilidad
+                onUpdateDistance(delta);
+              },
+              child: Container(
+                width: 40,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.arrow_downward),
-                  onPressed: () => onUpdateDistance(-1.0), // Cambiado a -1.0
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Área táctil superior
+                    InkWell(
+                      onTap: () => onUpdateDistance(scrollStep),
+                      child: Container(
+                        height: 30,
+                        width: 40,
+                        alignment: Alignment.center,
+                        child: Icon(Icons.keyboard_arrow_up, color: Colors.grey.shade600),
+                      ),
+                    ),
+                    // Indicador central
+                    Container(
+                      width: 30,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.rectangle,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.3),
+                            blurRadius: 2,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Área táctil inferior
+                    InkWell(
+                      onTap: () => onUpdateDistance(-scrollStep),
+                      child: Container(
+                        height: 30,
+                        width: 40,
+                        alignment: Alignment.center,
+                        child: Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade600),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ],
         ),
