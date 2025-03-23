@@ -55,11 +55,18 @@ class _HomeContentState extends State<HomeContent> {
           slivers: [
             SliverAppBar(
               pinned: true,
-              expandedHeight: 80,
+              floating: _calculations.isNotEmpty, // Make it floating when there are calculations
+              snap: _calculations.isNotEmpty,     // Enable snapping when there are calculations
+              expandedHeight: 100, // Larger expanded height when there are calculations
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               flexibleSpace: FlexibleSpaceBar(
                 centerTitle: true,
-                title: Text(widget.title),
+                title: Text(
+                  widget.title,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
                 background: Container(
                   color: Theme.of(context).scaffoldBackgroundColor,
                 ),

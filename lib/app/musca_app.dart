@@ -31,7 +31,7 @@ class _MyAppState extends State<MyApp> {
       ),
       themeMode: _themeMode,
       home: NavigationContainer(
-        title: 'Musca Ballistics', 
+        title: 'Musca Shots', 
         onThemeChanged: _updateTheme
       ),
     );
