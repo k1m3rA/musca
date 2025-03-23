@@ -6,10 +6,12 @@ import 'package:intl/intl.dart';
 // New widget for just the content
 class HomeContent extends StatefulWidget {
   final String title;
+  final Function(int)? onNavigateTo; // Add this parameter
   
   const HomeContent({
     super.key,
     required this.title,
+    this.onNavigateTo, // Add this parameter
   });
 
   @override
@@ -73,20 +75,48 @@ class _HomeContentState extends State<HomeContent> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.calculate_outlined, 
-                            size: 64, 
-                            color: Colors.grey[400]
+                          GestureDetector(
+                            onTap: () {
+                              print('Tapped on calculator icon'); // Debug print
+                              final navigateTo = widget.onNavigateTo;
+                              if (navigateTo != null) {
+                                print('Navigation callback is not null');
+                                navigateTo(1); // Navigate to calculator (index 1)
+                              } else {
+                                print('Navigation callback is null');
+                              }
+                            },
+                            // Replace the entire child with a simpler, more focused tap target
+                            child: Card(
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.calculate_outlined,
+                                      size: 64,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'New shot',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).colorScheme.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'No saved calculations yet',
+                            'No saved shots yet',
                             style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Go to the calculator to create one',
-                            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                           ),
                         ],
                       ),
@@ -104,6 +134,49 @@ class _HomeContentState extends State<HomeContent> {
                       childCount: _calculations.length,
                     ),
                   ),
+            // Add a new SliverToBoxAdapter to show the "New Shot" button after the list
+            if (_calculations.isNotEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        final navigateTo = widget.onNavigateTo;
+                        if (navigateTo != null) {
+                          navigateTo(1); // Navigate to calculator (index 1)
+                        }
+                      },
+                      child: Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.add_circle_outline,
+                                size: 48,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Add New Shot',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

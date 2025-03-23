@@ -19,19 +19,14 @@ class NavigationContainer extends StatefulWidget {
 
 class _NavigationContainerState extends State<NavigationContainer> {
   int _currentIndex = 0;
-  late final List<Widget> _screens;
 
   @override
   void initState() {
     super.initState();
-    _screens = [
-      HomeContent(title: widget.title),
-      const CalculatorScreen(),
-      SettingsPage(onThemeChanged: widget.onThemeChanged),
-    ];
   }
 
   void _changeScreen(int index) {
+    print('Navigation requested to screen index: $index'); // Debug print
     setState(() {
       _currentIndex = index;
     });
@@ -39,8 +34,17 @@ class _NavigationContainerState extends State<NavigationContainer> {
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> screens = [
+      HomeContent(
+        title: widget.title,
+        onNavigateTo: _changeScreen,
+      ),
+      const CalculatorScreen(),
+      SettingsPage(onThemeChanged: widget.onThemeChanged),
+    ];
+
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: screens[_currentIndex],
       bottomNavigationBar: BottomAppBar(
         color: Theme.of(context).scaffoldBackgroundColor,
         child: Padding(
