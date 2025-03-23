@@ -3,28 +3,6 @@ import '../../models/calculation.dart';
 import '../../services/calculation_storage.dart';
 import 'package:intl/intl.dart';
 
-// Main widget - kept for backwards compatibility
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({
-    super.key,
-    required this.title,
-    required this.onThemeChanged,
-  });
-
-  final String title;
-  final Function(ThemeMode) onThemeChanged;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  @override
-  Widget build(BuildContext context) {
-    return HomeContent(title: widget.title);
-  }
-}
-
 // New widget for just the content
 class HomeContent extends StatefulWidget {
   final String title;
@@ -41,7 +19,6 @@ class HomeContent extends StatefulWidget {
 class _HomeContentState extends State<HomeContent> {
   List<Calculation> _calculations = [];
   bool _isLoading = true;
-  bool _isMenuExpanded = false; // New state variable to track menu expansion
   
   @override
   void initState() {
@@ -85,7 +62,6 @@ class _HomeContentState extends State<HomeContent> {
                   color: Theme.of(context).scaffoldBackgroundColor,
                 ),
               ),
-              // Removed the actions array with delete button
             ),
             _isLoading 
               ? const SliverFillRemaining(
@@ -131,104 +107,7 @@ class _HomeContentState extends State<HomeContent> {
           ],
         ),
       ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          // Add button - visible only when menu is expanded
-          if (_isMenuExpanded)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: FloatingActionButton(
-                heroTag: 'addButton',
-                mini: true,
-                onPressed: () {
-                  // Functionality to be added later
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Add functionality coming soon'),
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
-                },
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                child: const Icon(Icons.add),
-              ),
-            ),
-          
-          // Delete button - visible only when menu is expanded
-          if (_isMenuExpanded)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: FloatingActionButton(
-                heroTag: 'deleteButton',
-                mini: true,
-                onPressed: _calculations.isEmpty ? null : () => _showClearConfirmationDialog(context),
-                backgroundColor: _calculations.isEmpty 
-                  ? Colors.grey
-                  : Theme.of(context).colorScheme.error,
-                child: const Icon(Icons.delete),
-              ),
-            ),
-          
-          // Main menu button - always visible
-          FloatingActionButton(
-            heroTag: 'menuButton',
-            onPressed: () {
-              setState(() {
-                _isMenuExpanded = !_isMenuExpanded;
-              });
-            },
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            child: Icon(
-              _isMenuExpanded ? Icons.close : Icons.menu,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
     );
-  }
-  
-  // Show confirmation dialog before clearing calculations
-  Future<void> _showClearConfirmationDialog(BuildContext context) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Clear All Calculations?'),
-          content: const Text(
-            'This will permanently delete all your saved calculations. '
-            'This action cannot be undone.',
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-            ),
-            TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
-              child: const Text('Delete All'),
-              onPressed: () async {
-                Navigator.of(dialogContext).pop();
-                await _clearAllCalculations();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-  
-  // Method to clear all calculations
-  Future<void> _clearAllCalculations() async {
-    await CalculationStorage.clearAllCalculations();
-    _loadCalculations(); // Reload the screen to show empty state
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/calculation_storage.dart';
 
 class SettingsPage extends StatefulWidget {
   final ValueChanged<ThemeMode> onThemeChanged;
@@ -29,14 +30,65 @@ class _SettingsPageState extends State<SettingsPage> {
     widget.onThemeChanged(theme);
   }
 
+  // Add method to clear all calculations with confirmation dialog
+  Future<void> _showClearConfirmationDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Clear All Calculations?'),
+          content: const Text(
+            'Ths will permanently delete all your saved calculations. '
+            'This action cannot be undone.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Delete All'),
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                await _clearAllCalculations();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  // Method to clear all calculations
+  Future<void> _clearAllCalculations() async {
+    await CalculationStorage.clearAllCalculations();
+    
+    // Show confirmation to user
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('All calculations have been deleted'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
+            SliverAppBar(
             pinned: true,
-            expandedHeight: 150,
+            expandedHeight: 100,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             flexibleSpace: const FlexibleSpaceBar(
               centerTitle: true,
               title: Text("Ajustes"),
@@ -46,15 +98,16 @@ class _SettingsPageState extends State<SettingsPage> {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 8),
+                  const Text(
+                    'App theme:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
-                      const Text(
-                        'App theme:',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      const SizedBox(width: 80),
                       Expanded(
                         child: GestureDetector(
                           onTap: () => _updateTheme(ThemeMode.light),
@@ -96,9 +149,42 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 10),
                     ],
                   ),
+                  
+                  const SizedBox(height: 32),
+                  
+                  // Data Management Section
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  
+                    // Clear Calculations Button
+                    Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ElevatedButton.icon(
+                      onPressed: _showClearConfirmationDialog,
+                      icon: Icon(
+                        Icons.delete_forever,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      label: Text(
+                        'Clear All Calculations',
+                        style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.errorContainer.withOpacity(0.3),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      ),
+                    ],
+                    ),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
