@@ -161,10 +161,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     if (!mounted) return;
     
     final snackBar = SnackBar(
-      content: const Text('Calculation saved!'),
+      content: const Text('Shot saved!'),
       backgroundColor: Colors.green,
       behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.only(left: 16.0, right: 100.0),
+      margin: const EdgeInsets.only(left: 16.0, right: 16.0),
       duration: const Duration(seconds: 2),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
