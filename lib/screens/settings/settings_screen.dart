@@ -37,9 +37,9 @@ class _SettingsPageState extends State<SettingsPage> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Clear All Calculations?'),
+          title: const Text('Delete all shots?'),
           content: const Text(
-            'Ths will permanently delete all your saved calculations. '
+            'Ths will permanently delete all your saved shots. '
             'This action cannot be undone.',
           ),
           actions: <Widget>[
@@ -158,32 +158,41 @@ class _SettingsPageState extends State<SettingsPage> {
                   const Divider(),
                   const SizedBox(height: 16),
                   
-                    // Clear Calculations Button
-                    Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                  // Clear Calculations Button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ElevatedButton.icon(
-                      onPressed: _showClearConfirmationDialog,
-                      icon: Icon(
-                        Icons.delete_forever,
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                      label: Text(
-                        'Clear All Calculations',
-                        style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
+                      GestureDetector(
+                        onTap: _showClearConfirmationDialog,
+                        child: Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.delete_forever,
+                                  size: 32,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Clear Saved Shots',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.errorContainer.withOpacity(0.3),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
                       ),
                     ],
-                    ),
+                  ),
                   const SizedBox(height: 8),
                 ],
               ),
