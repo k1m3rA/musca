@@ -31,7 +31,7 @@ class _MyAppState extends State<MyApp> {
       ),
       themeMode: _themeMode,
       home: NavigationContainer(
-        title: 'Musca Calculator', 
+        title: 'Musca Ballistics', 
         onThemeChanged: _updateTheme
       ),
     );

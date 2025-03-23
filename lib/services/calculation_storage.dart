@@ -42,4 +42,40 @@ class CalculationStorage {
       return [];
     }
   }
+
+  // Clear all saved calculations
+  static Future<void> clearAllCalculations() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_storageKey, '');
+  }
+
+  // Delete a specific calculation by matching properties
+  static Future<bool> deleteCalculation(Calculation calculationToDelete) async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // Get existing calculations
+    List<Calculation> calculations = await getCalculations();
+    
+    // Find and remove the calculation
+    final initialCount = calculations.length;
+    calculations.removeWhere((calc) => 
+      calc.distance == calculationToDelete.distance &&
+      calc.angle == calculationToDelete.angle &&
+      calc.windSpeed == calculationToDelete.windSpeed &&
+      calc.windDirection == calculationToDelete.windDirection &&
+      calc.timestamp.isAtSameMomentAs(calculationToDelete.timestamp)
+    );
+    
+    // Check if we removed anything
+    if (calculations.length == initialCount) {
+      return false; // Nothing was deleted
+    }
+    
+    // Convert to list of JSON objects
+    final jsonList = calculations.map((calc) => calc.toJson()).toList();
+    
+    // Save the updated list
+    await prefs.setString(_storageKey, jsonEncode(jsonList));
+    return true; // Successfully deleted
+  }
 }
