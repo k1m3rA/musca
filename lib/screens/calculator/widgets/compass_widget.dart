@@ -129,7 +129,7 @@ class _CompassWidgetState extends State<CompassWidget> {
               : OverflowBox(
                   alignment: Alignment.center,
                   minWidth: 200,
-                  maxWidth: 200,
+                  maxWidth: 300,
                   child: _buildCompassWidget(),
                 ),
         ),
@@ -268,7 +268,7 @@ class _CompassWidgetState extends State<CompassWidget> {
             // Pause/play button - moved from right to left
             Positioned(
               top: 0,
-              left: -20, // Changed from right: 0 to left: 0
+              left: 20, // Changed from right: 0 to left: 0
               child: ElevatedButton(
                 onPressed: _toggleListening,
                 style: ElevatedButton.styleFrom(
