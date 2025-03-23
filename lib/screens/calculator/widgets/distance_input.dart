@@ -15,10 +15,21 @@ class DistanceInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Obtener el tema actual y verificar si es oscuro
+    final ThemeData theme = Theme.of(context);
+    final bool isDarkTheme = theme.brightness == Brightness.dark;
+    
+    // Definir colores según el tema
+    final backgroundColor = isDarkTheme ? Colors.grey.shade800 : Colors.grey.shade200;
+    final iconColor = isDarkTheme ? Colors.grey.shade300 : Colors.grey.shade600;
+    final indicatorColor = isDarkTheme ? Colors.grey.shade700 : Colors.white;
+    final shadowColor = isDarkTheme ? Colors.black.withOpacity(0.5) : Colors.grey.withOpacity(0.3);
+
     return Listener(
       onPointerSignal: (pointerSignal) {
         if (pointerSignal is PointerScrollEvent) {
-          final delta = pointerSignal.scrollDelta.dy > 0 ? -scrollStep : scrollStep;
+          // Aumentar el factor de sensibilidad multiplicando por 5
+          final delta = pointerSignal.scrollDelta.dy > 0 ? -scrollStep * 5 : scrollStep * 5;
           onUpdateDistance(delta);
         }
       },
@@ -41,15 +52,15 @@ class DistanceInput extends StatelessWidget {
             // Rueda scrolleable mejorada con interacción táctil
             GestureDetector(
               onVerticalDragUpdate: (details) {
-                // Actualizar según la dirección del arrastre (negativo hacia arriba, positivo hacia abajo)
-                double delta = -details.delta.dy * 0.1; // Factor para controlar la sensibilidad
+                // Aumentar el factor de sensibilidad de 0.1 a 0.5
+                double delta = -details.delta.dy * 0.5; // Factor para controlar la sensibilidad
                 onUpdateDistance(delta);
               },
               child: Container(
                 width: 40,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
+                  color: backgroundColor,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
@@ -57,12 +68,12 @@ class DistanceInput extends StatelessWidget {
                   children: [
                     // Área táctil superior
                     InkWell(
-                      onTap: () => onUpdateDistance(scrollStep),
+                      onTap: () => onUpdateDistance(scrollStep * 5),
                       child: Container(
                         height: 30,
                         width: 40,
                         alignment: Alignment.center,
-                        child: Icon(Icons.keyboard_arrow_up, color: Colors.grey.shade600),
+                        child: Icon(Icons.keyboard_arrow_up, color: iconColor),
                       ),
                     ),
                     // Indicador central
@@ -70,12 +81,12 @@ class DistanceInput extends StatelessWidget {
                       width: 30,
                       height: 20,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: indicatorColor,
                         shape: BoxShape.rectangle,
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.3),
+                            color: shadowColor,
                             blurRadius: 2,
                             offset: const Offset(0, 1),
                           ),
@@ -84,12 +95,12 @@ class DistanceInput extends StatelessWidget {
                     ),
                     // Área táctil inferior
                     InkWell(
-                      onTap: () => onUpdateDistance(-scrollStep),
+                      onTap: () => onUpdateDistance(-scrollStep * 5),
                       child: Container(
                         height: 30,
                         width: 40,
                         alignment: Alignment.center,
-                        child: Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade600),
+                        child: Icon(Icons.keyboard_arrow_down, color: iconColor),
                       ),
                     ),
                   ],
