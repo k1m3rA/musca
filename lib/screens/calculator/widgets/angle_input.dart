@@ -40,23 +40,10 @@ class AngleInput extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            Column(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_upward),
-                  onPressed: () => onUpdateAngle(scrollStep),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.arrow_downward),
-                  onPressed: () => onUpdateAngle(-scrollStep),
-                ),
-                const SizedBox(height: 5), // Add some spacing
-                IconButton(
-                  icon: const Icon(Icons.camera_alt),
-                  onPressed: onCameraPressed,
-                  tooltip: 'Measure angle with camera',
-                ),
-              ],
+            IconButton(
+              icon: const Icon(Icons.camera_alt),
+              onPressed: onCameraPressed,
+              tooltip: 'Measure angle with camera',
             ),
           ],
         ),
