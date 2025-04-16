@@ -56,7 +56,7 @@ class _NavigationContainerState extends State<NavigationContainer> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(0, Icons.home),
-              _buildNavItem(1, Icons.calculate),
+              _buildNavItem(1, null, svgAsset: 'assets/icon/shoot.svg'),
               _buildNavItem(2, null, svgAsset: 'assets/icon/rifle.svg'),
               _buildNavItem(3, Icons.settings),
             ],
