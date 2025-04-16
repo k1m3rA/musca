@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/calculator/calculator_screen.dart';
 import '../screens/settings/settings_screen.dart';
@@ -56,7 +57,7 @@ class _NavigationContainerState extends State<NavigationContainer> {
             children: [
               _buildNavItem(0, Icons.home),
               _buildNavItem(1, Icons.calculate),
-              _buildNavItem(2, Icons.fingerprint),
+              _buildNavItem(2, null, svgAsset: 'assets/icon/rifle.svg'),
               _buildNavItem(3, Icons.settings),
             ],
           ),
@@ -64,9 +65,13 @@ class _NavigationContainerState extends State<NavigationContainer> {
       ),
     );
   }
-  
-  Widget _buildNavItem(int index, IconData icon) {
+
+  Widget _buildNavItem(int index, IconData? icon, {String? svgAsset}) {
     final isSelected = _currentIndex == index;
+    final iconColor = isSelected 
+        ? Theme.of(context).colorScheme.primary
+        : Theme.of(context).colorScheme.onSurface;
+        
     return Container(
       width: 70, // Added a wider width
       decoration: BoxDecoration(
@@ -76,7 +81,17 @@ class _NavigationContainerState extends State<NavigationContainer> {
         borderRadius: BorderRadius.circular(30),
       ),
       child: IconButton(
-        icon: Icon(icon),
+        icon: icon != null 
+            ? Icon(icon, color: iconColor)
+            : svgAsset != null 
+                ? SvgPicture.asset(
+                    svgAsset,
+                    colorFilter: ColorFilter.mode(
+                      iconColor,
+                      BlendMode.srcIn,
+                    ),
+                  )
+                : Icon(Icons.error, color: iconColor),
         onPressed: () => _changeScreen(index),
       ),
     );

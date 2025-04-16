@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'screens/gun/gun_settings_screen.dart';
 import 'screens/scope/scope_settings_screen.dart';
 import 'screens/cartidge/cartidge_settings_screen.dart';
@@ -57,9 +58,10 @@ class ProfileScreen extends StatelessWidget {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              Icons.settings,
-                              size: 64,
+                            SvgPicture.asset(
+                              'assets/icon/rifle.svg',
+                              height: 50,
+                              width: 50,
                               color: Theme.of(context).colorScheme.primary,
                             ),
                             const SizedBox(height: 16),
@@ -94,9 +96,10 @@ class ProfileScreen extends StatelessWidget {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              Icons.settings,
-                              size: 64,
+                            SvgPicture.asset(
+                              'assets/icon/scope.svg',
+                              height: 50,
+                              width: 50,
                               color: Theme.of(context).colorScheme.primary,
                             ),
                             const SizedBox(height: 16),
@@ -131,9 +134,10 @@ class ProfileScreen extends StatelessWidget {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              Icons.info_outline,
-                              size: 64,
+                            SvgPicture.asset(
+                              'assets/icon/bullet.svg',
+                              height: 50,
+                              width: 50,
                               color: Theme.of(context).colorScheme.primary,
                             ),
                             const SizedBox(height: 16),
