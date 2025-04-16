@@ -72,6 +72,48 @@ class _HomeContentState extends State<HomeContent> {
                 ),
               ),
             ),
+            // Make "New Shot" button full width and taller
+            if (_calculations.isNotEmpty && !_isLoading)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      final navigateTo = widget.onNavigateTo;
+                      if (navigateTo != null) {
+                        navigateTo(1); // Navigate to calculator (index 1)
+                      }
+                    },
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      child: Container(
+                        height: 100, // Set a specific height for the button
+                        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_circle_outline,
+                              size: 40, // Increased icon size
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(width: 16),
+                            Text(
+                              'Add New Shot',
+                              style: TextStyle(
+                                fontSize: 18, // Increased font size
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             _isLoading 
               ? const SliverFillRemaining(
                   child: Center(child: CircularProgressIndicator()),
@@ -141,49 +183,6 @@ class _HomeContentState extends State<HomeContent> {
                       childCount: _calculations.length,
                     ),
                   ),
-            // Add a new SliverToBoxAdapter to show the "New Shot" button after the list
-            if (_calculations.isNotEmpty)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        final navigateTo = widget.onNavigateTo;
-                        if (navigateTo != null) {
-                          navigateTo(1); // Navigate to calculator (index 1)
-                        }
-                      },
-                      child: Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.add_circle_outline,
-                                size: 48,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'Add New Shot',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
           ],
         ),
       ),
