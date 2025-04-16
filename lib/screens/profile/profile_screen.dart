@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'gun_settings_screen.dart';
-import 'scope_settings_screen.dart';
-import 'cartidge_settings_screen.dart';
+import 'screens/gun/gun_settings_screen.dart';
+import 'screens/scope/scope_settings_screen.dart';
+import 'screens/cartidge/cartidge_settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final Function(int) onNavigate;
