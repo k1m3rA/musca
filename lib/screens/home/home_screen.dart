@@ -103,7 +103,7 @@ class _HomeContentState extends State<HomeContent> {
                                   children: [
                                     Icon(
                                       Icons.calculate_outlined,
-                                      size: 64,
+                                      size: 150,
                                       color: Theme.of(context).colorScheme.primary,
                                     ),
                                     const SizedBox(height: 16),
