@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'gun_settings_screen.dart';
+import 'scope_settings_screen.dart';
+import 'cartidge_settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final Function(int) onNavigate;
@@ -20,7 +23,7 @@ class ProfileScreen extends StatelessWidget {
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               title: Text(
-                "Profile",
+                "Profile Settings",
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                 ),
@@ -39,8 +42,12 @@ class ProfileScreen extends StatelessWidget {
                   // First button - Gun Settings
                   GestureDetector(
                     onTap: () {
-                      // Handle settings tap
-                      print('Gun settings tapped');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const GunSettingsScreen(),
+                        ),
+                      );
                     },
                     child: Card(
                       elevation: 4,
@@ -57,7 +64,7 @@ class ProfileScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'Gun Settings',
+                              'Gun',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -72,8 +79,12 @@ class ProfileScreen extends StatelessWidget {
                   // Second button - Scope Settings
                   GestureDetector(
                     onTap: () {
-                      // Handle settings tap
-                      print('Scope settings tapped');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ScopeSettingsScreen(),
+                        ),
+                      );
                     },
                     child: Card(
                       elevation: 4,
@@ -90,7 +101,7 @@ class ProfileScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'Scope Settings',
+                              'Scope',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -105,8 +116,12 @@ class ProfileScreen extends StatelessWidget {
                   // Third button - Cartidge settings
                   GestureDetector(
                     onTap: () {
-                      // Handle button tap
-                      print('Cartidge settings tapped');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CartidgeSettingsScreen(),
+                        ),
+                      );
                     },
                     child: Card(
                       elevation: 4,
@@ -123,7 +138,7 @@ class ProfileScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'Cartidge Settings',
+                              'Cartidge',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
