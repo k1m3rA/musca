@@ -203,60 +203,49 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               ),
             ),
           ),
-          SliverFillRemaining(
-            hasScrollBody: true,
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  children: [
-                    DistanceInput(
-                      controller: _distanceController,
-                      scrollStep: _scrollStep,
-                      onUpdateDistance: _updateDistance,
-                    ),
-                    const SizedBox(height: 20),
-                    AngleInput(
-                      controller: _angleController,
-                      scrollStep: 1.0,
-                      onUpdateAngle: _updateAngle,
-                      onCameraPressed: _openCameraForAngle, // Add this line
-                    ),
-                    const SizedBox(height: 20),
-                    WindSpeedInput(
-                      controller: _windSpeedController,
-                      scrollStep: 0.5,
-                      onUpdateWindSpeed: _updateWindSpeed,
-                    ),
-                    const SizedBox(height: 20),
-                    
-                    // Update the CompassWidget to include the callback
-                    _hasCompass 
-                      ? CompassWidget(
-                          onWindDirectionChanged: (direction) {
-                            setState(() {
-                              _windDirection = direction;
-                              _windDirectionController.text = _windDirection.round().toString();
-                            });
-                          },
-                        )
-                      : WindDirectionInput(
-                          controller: _windDirectionController,
-                          scrollStep: 5.0,
-                          onUpdateWindDirection: _updateWindDirection,
-                        ),
-                        
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const SizedBox(height: 20),
-                        ],
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DistanceInput(
+                    controller: _distanceController,
+                    scrollStep: _scrollStep,
+                    onUpdateDistance: _updateDistance,
+                  ),
+                  const SizedBox(height: 20),
+                  AngleInput(
+                    controller: _angleController,
+                    scrollStep: 1.0,
+                    onUpdateAngle: _updateAngle,
+                    onCameraPressed: _openCameraForAngle,
+                  ),
+                  const SizedBox(height: 20),
+                  WindSpeedInput(
+                    controller: _windSpeedController,
+                    scrollStep: 0.5,
+                    onUpdateWindSpeed: _updateWindSpeed,
+                  ),
+                  const SizedBox(height: 20),
+                  
+                  _hasCompass 
+                    ? CompassWidget(
+                        onWindDirectionChanged: (direction) {
+                          setState(() {
+                            _windDirection = direction;
+                            _windDirectionController.text = _windDirection.round().toString();
+                          });
+                        },
+                      )
+                    : WindDirectionInput(
+                        controller: _windDirectionController,
+                        scrollStep: 5.0,
+                        onUpdateWindDirection: _updateWindDirection,
                       ),
-                    ),
-                  ],
-                ),
+                      
+                  const SizedBox(height: 20),
+                ],
               ),
             ),
           ),
