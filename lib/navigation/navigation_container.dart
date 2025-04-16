@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/calculator/calculator_screen.dart';
 import '../screens/settings/settings_screen.dart';
+import '../screens/profile/profile_screen.dart';
 
 class NavigationContainer extends StatefulWidget {
   final String title;
@@ -40,6 +41,7 @@ class _NavigationContainerState extends State<NavigationContainer> {
         onNavigateTo: _changeScreen,
       ),
       CalculatorScreen(onNavigate: _changeScreen), // Pass the navigation callback
+      ProfileScreen(onNavigate: _changeScreen), // Add the new profile screen
       SettingsPage(onThemeChanged: widget.onThemeChanged),
     ];
 
@@ -54,7 +56,8 @@ class _NavigationContainerState extends State<NavigationContainer> {
             children: [
               _buildNavItem(0, Icons.home),
               _buildNavItem(1, Icons.calculate),
-              _buildNavItem(2, Icons.settings),
+              _buildNavItem(2, Icons.fingerprint),
+              _buildNavItem(3, Icons.settings),
             ],
           ),
         ),
