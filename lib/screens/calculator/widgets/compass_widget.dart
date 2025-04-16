@@ -17,9 +17,7 @@ class CompassWidget extends StatefulWidget {
 
 class _CompassWidgetState extends State<CompassWidget> {
   double _direction = 0;
-  double _lastStoredDirection = 0;
   double _windDirection = 0; // Wind direction angle
-  bool _isListening = true;
   StreamSubscription<CompassEvent>? _compassSubscription;
 
   @override
@@ -41,8 +39,6 @@ class _CompassWidgetState extends State<CompassWidget> {
     }
 
     _compassSubscription = FlutterCompass.events!.listen((event) {
-      if (!_isListening) return;
-      
       setState(() {
         // Asegurar que la dirección siempre sea un valor positivo entre 0 y 360
         double heading = event.heading ?? 0;
@@ -59,16 +55,6 @@ class _CompassWidgetState extends State<CompassWidget> {
   void _stopListening() {
     _compassSubscription?.cancel();
     _compassSubscription = null;
-  }
-  
-  void _toggleListening() {
-    setState(() {
-      _isListening = !_isListening;
-      if (!_isListening) {
-        // Almacenar la última dirección cuando se detiene
-        _lastStoredDirection = _direction;
-      }
-    });
   }
 
   // Calculate angle from drag position - fixed for natural rotation
@@ -101,11 +87,8 @@ class _CompassWidgetState extends State<CompassWidget> {
 
   // Calculate wind direction relative to current north
   double _getRelativeWindDirection() {
-    // Use current compass direction or last stored direction if paused
-    double currentNorth = _isListening ? _direction : _lastStoredDirection;
-    
     // Calculate relative angle and normalize to 0-360
-    double relativeAngle = (currentNorth - _windDirection) % 360;
+    double relativeAngle = (_direction - _windDirection) % 360;
     if (relativeAngle < 0) relativeAngle += 360;
     
     return relativeAngle;
@@ -137,16 +120,12 @@ class _CompassWidgetState extends State<CompassWidget> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Text(_isListening 
-                ? 'Compass: ${_direction.toStringAsFixed(1)}°'
-                : 'Compass: ${_lastStoredDirection.toStringAsFixed(1)}°'),
-          
+            Text('Compass: ${_direction.toStringAsFixed(1)}°'),
           ],
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            
             Text('Wind: ${_getRelativeWindDirection().toStringAsFixed(1)}°'),
           ],
         ),
@@ -230,7 +209,7 @@ class _CompassWidgetState extends State<CompassWidget> {
                   border: Border.all(color: Colors.black, width: 1.0),
                 ),
                 child: CustomPaint(
-                  painter: CompassPainter(direction: _isListening ? _direction : _lastStoredDirection),
+                  painter: CompassPainter(direction: _direction),
                 ),
               ),
             ),
@@ -240,7 +219,7 @@ class _CompassWidgetState extends State<CompassWidget> {
               child: Icon(Icons.navigation, size: 40, color: Colors.red),
             ),
             
-            // Wind direction arrow (blue, rotatable by user) - removed redundant GestureDetector
+            // Wind direction arrow (blue, rotatable by user)
             Transform.rotate(
               angle: -_windDirection * (math.pi / 180),
               child: SizedBox(
@@ -261,26 +240,6 @@ class _CompassWidgetState extends State<CompassWidget> {
                       ),
                     ),
                   ],
-                ),
-              ),
-            ),
-            
-            // Pause/play button - moved from right to left
-            Positioned(
-              top: 0,
-              left: 20, // Changed from right: 0 to left: 0
-              child: ElevatedButton(
-                onPressed: _toggleListening,
-                style: ElevatedButton.styleFrom(
-                  shape: const CircleBorder(),
-                  padding: const EdgeInsets.all(16),
-                  minimumSize: const Size(48, 48),
-                  elevation: 4,
-                ),
-                child: Icon(
-                  _isListening ? Icons.pause : Icons.play_arrow,
-                  color: _isListening ? Colors.red : Colors.green,
-                  size: 28,
                 ),
               ),
             ),
@@ -367,7 +326,6 @@ class CompassPainter extends CustomPainter {
   bool shouldRepaint(CompassPainter oldDelegate) => oldDelegate.direction != direction;
 }
 
-// Add this new painter class at the end of the file
 class ArrowHeadPainter extends CustomPainter {
   final Color color;
   
