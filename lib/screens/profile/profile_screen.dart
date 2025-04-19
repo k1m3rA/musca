@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'screens/gun/gun_settings_screen.dart';
 import 'screens/scope/scope_settings_screen.dart';
-import 'screens/cartidge/cartidge_settings_screen.dart';
+import 'screens/cartidge/new_gun/cartidge_settings_screen.dart';
+import 'screens/cartidge/list_cartidge_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final Function(int) onNavigate;
@@ -46,7 +46,7 @@ class ProfileScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const GunSettingsScreen(),
+                          builder: (context) => const ListGunsScreen(),
                         ),
                       );
                     },
