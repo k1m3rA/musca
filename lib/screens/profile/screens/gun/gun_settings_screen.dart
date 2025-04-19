@@ -133,12 +133,16 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
           ),
         ],
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 0.0, right: 7.0),
+      floatingActionButton: Material(
+        color: Colors.transparent,
+        elevation: 10.0,
+        borderRadius: BorderRadius.circular(30), // Para que coincida con el radio del FAB
+        shadowColor: Colors.black.withOpacity(1),
         child: FloatingActionButton(
           onPressed: _saveAndNavigateBack,
-          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.8),
-          child: Icon(Icons.save, color: Theme.of(context).scaffoldBackgroundColor),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          elevation: 0, // Configurado a 0 ya que usamos la sombra del Material
+          child: Icon(Icons.save, color: Theme.of(context).scaffoldBackgroundColor)
         ),
       ),
     );
