@@ -18,7 +18,7 @@ class ListGunsScreen extends StatefulWidget {
 
 class _ListGunsScreenState extends State<ListGunsScreen> {
   // Sample data - replace with your actual data source
-  final List<Gun> guns = [
+  List<Gun> guns = [
     Gun(id: '1', name: 'Glock 19', description: '9mm Pistol'),
     Gun(id: '2', name: 'AR-15', description: 'Rifle'),
     Gun(id: '3', name: 'Remington 870', description: 'Shotgun'),
@@ -35,6 +35,22 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
     // Here you can add what happens when a gun is selected
     // For example, navigate to detail page:
     // Navigator.push(context, MaterialPageRoute(builder: (_) => GunDetailScreen(gun: guns[index])));
+  }
+
+  void _addNewGun() async {
+    final Gun? newGun = await Navigator.push<Gun>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const GunSettingsScreen(),
+      ),
+    );
+    
+    // If a gun was returned, add it to the list
+    if (newGun != null) {
+      setState(() {
+        guns.add(newGun);
+      });
+    }
   }
 
   @override
@@ -68,14 +84,7 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10.0),
                       child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const GunSettingsScreen(),
-                            ),
-                          );
-                        },
+                        onTap: _addNewGun,
                         child: Card(
                           elevation: 4,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

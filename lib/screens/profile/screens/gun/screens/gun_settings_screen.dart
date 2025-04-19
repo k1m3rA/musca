@@ -3,6 +3,7 @@ import 'widgets/twist_rate_input.dart';
 import 'widgets/muzzle_velocity_input.dart';
 import 'widgets/zero_range_input.dart';
 import 'widgets/name_input.dart';
+import '../list_gun_screen.dart'; // Import to use Gun class
 
 class GunSettingsScreen extends StatefulWidget {
   const GunSettingsScreen({Key? key}) : super(key: key);
@@ -73,7 +74,12 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
   }
 
   void _saveAndNavigateBack() {
-    // Here you would save any changes to persistent storage if needed
+    // Create a new Gun object with the current values
+    final newGun = Gun(
+      id: DateTime.now().millisecondsSinceEpoch.toString(), // Generate a unique ID
+      name: _name,
+      description: 'Twist: 1:${_twistRate.toStringAsFixed(1)}, MV: ${_muzzleVelocity.toStringAsFixed(0)} m/s, Zero: ${_zeroRange.toStringAsFixed(0)} m',
+    );
     
     // Show feedback to user
     final snackBar = SnackBar(
@@ -85,8 +91,8 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
     
-    // Navigate back to the ProfileScreen
-    Navigator.of(context).pop();
+    // Return the new gun to the previous screen
+    Navigator.of(context).pop(newGun);
   }
 
   @override
