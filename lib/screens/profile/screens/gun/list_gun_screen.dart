@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/gun_settings_screen.dart';
+import 'package:flutter_svg/flutter_svg.dart'; // Add this import for SVG support
 
 class Gun {
   final String id;
@@ -88,106 +89,150 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
               ),
             ),
           ),
-          SliverFillRemaining(
-            hasScrollBody: true,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 0),
-              child: ListView.builder(
-                itemCount: guns.length + 1, // Add 1 for the "Add" button
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    // Add New Gun button at the beginning
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10.0),
-                      child: GestureDetector(
-                        onTap: _addNewGun,
-                        child: Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          child: Container(
-                            height: 100, 
-                            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.add_circle_outline,
-                                  size: 40,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                const SizedBox(width: 16),
-                                Text(
-                                  'Add New Gun',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+          guns.isEmpty
+              ? SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: _addNewGun,
+                          child: Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            child: Padding(
+                              padding: const EdgeInsets.all(30.0),
+                              child: Column(
+                                children: [
+                                  SvgPicture.asset(
+                                    'assets/icon/rifle.svg',
+                                    height: 100,
+                                    width: 150,
                                     color: Theme.of(context).colorScheme.primary,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Add New Gun',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  }
-
-                  // Adjust the index for the gun list (subtract 1 because of the Add button)
-                  final gunIndex = index - 1;
-                  final isSelected = _selectedIndex == gunIndex;
-                  
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: GestureDetector(
-                      onTap: () => _selectGun(gunIndex),
-                      child: Card(
-                        elevation: 4,
-                        color: isSelected 
-                          ? Theme.of(context).colorScheme.primary 
-                          : null,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No guns added yet',
+                          style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      guns[gunIndex].name,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: isSelected 
-                                          ? Theme.of(context).colorScheme.background
-                                          : Theme.of(context).colorScheme.primary,
-                                        fontSize: 16,
+                      ],
+                    ),
+                  ),
+                )
+              : SliverFillRemaining(
+                  hasScrollBody: true,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 0),
+                    child: ListView.builder(
+                      itemCount: guns.length + 1, // Add 1 for the "Add" button
+                      itemBuilder: (context, index) {
+                        if (index == 0) {
+                          // Add New Gun button at the beginning
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10.0),
+                            child: GestureDetector(
+                              onTap: _addNewGun,
+                              child: Card(
+                                elevation: 4,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                child: Container(
+                                  height: 100, 
+                                  padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.add_circle_outline,
+                                        size: 40,
+                                        color: Theme.of(context).colorScheme.primary,
                                       ),
-                                    ),
-                                    if (guns[gunIndex].description.isNotEmpty)
+                                      const SizedBox(width: 16),
                                       Text(
-                                        guns[gunIndex].description,
+                                        'Add New Gun',
                                         style: TextStyle(
-                                          color: isSelected
-                                            ? Theme.of(context).colorScheme.background.withOpacity(0.8)
-                                            : null,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context).colorScheme.primary,
                                         ),
                                       ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+
+                        // Adjust the index for the gun list (subtract 1 because of the Add button)
+                        final gunIndex = index - 1;
+                        final isSelected = _selectedIndex == gunIndex;
+                        
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 5),
+                          child: GestureDetector(
+                            onTap: () => _selectGun(gunIndex),
+                            child: Card(
+                              elevation: 4,
+                              color: isSelected 
+                                ? Theme.of(context).colorScheme.primary 
+                                : null,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            guns[gunIndex].name,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: isSelected 
+                                                ? Theme.of(context).colorScheme.background
+                                                : Theme.of(context).colorScheme.primary,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          if (guns[gunIndex].description.isNotEmpty)
+                                            Text(
+                                              guns[gunIndex].description,
+                                              style: TextStyle(
+                                                color: isSelected
+                                                  ? Theme.of(context).colorScheme.background.withOpacity(0.8)
+                                                  : null,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
-            ),
-          ),
+                  ),
+                ),
         ],
       ),
       floatingActionButton: _selectedIndex != null ? Material(
