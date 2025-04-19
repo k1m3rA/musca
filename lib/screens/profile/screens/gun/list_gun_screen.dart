@@ -101,18 +101,18 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
                             elevation: 4,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             child: Padding(
-                              padding: const EdgeInsets.all(30.0),
+                              padding: const EdgeInsets.all(40.0),
                               child: Column(
                                 children: [
                                   SvgPicture.asset(
                                     'assets/icon/rifle.svg',
-                                    height: 100,
-                                    width: 150,
+                                    height: 110,
+                                    width: 110,
                                     color: Theme.of(context).colorScheme.primary,
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
-                                    'Add New Gun',
+                                    'Add first Gun',
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,

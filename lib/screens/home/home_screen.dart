@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/calculation.dart';
 import '../../services/calculation_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_svg/flutter_svg.dart'; // Add this import for SVG support
 
 // New widget for just the content
 class HomeContent extends StatefulWidget {
@@ -140,17 +141,18 @@ class _HomeContentState extends State<HomeContent> {
                               elevation: 4,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               child: Padding(
-                                padding: const EdgeInsets.all(16.0),
+                                padding: const EdgeInsets.all(40.0),
                                 child: Column(
                                   children: [
-                                    Icon(
-                                      Icons.calculate_outlined,
-                                      size: 150,
+                                    SvgPicture.asset(
+                                      'assets/icon/shoot.svg',
+                                      height: 110,
+                                      width: 110,
                                       color: Theme.of(context).colorScheme.primary,
                                     ),
                                     const SizedBox(height: 16),
                                     Text(
-                                      'New shot',
+                                      'Add first shot',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
