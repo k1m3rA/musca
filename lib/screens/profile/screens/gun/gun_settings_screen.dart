@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'widgets/twist_rate_input.dart';
 import 'widgets/muzzle_velocity_input.dart';
 import 'widgets/zero_range_input.dart';
+import 'widgets/name_input.dart';
 
 class GunSettingsScreen extends StatefulWidget {
   const GunSettingsScreen({Key? key}) : super(key: key);
@@ -11,6 +12,9 @@ class GunSettingsScreen extends StatefulWidget {
 }
 
 class _GunSettingsScreenState extends State<GunSettingsScreen> {
+  late TextEditingController _nameController;
+  String _name = "My Gun"; // Default value for gun name
+
   late TextEditingController _twistRateController;
   double _twistRate = 10.0; // Default value for twist rate (1:10)
   
@@ -23,6 +27,7 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
   @override
   void initState() {
     super.initState();
+    _nameController = TextEditingController(text: _name);
     _twistRateController = TextEditingController(text: _twistRate.toStringAsFixed(1));
     _muzzleVelocityController = TextEditingController(text: _muzzleVelocity.toStringAsFixed(0));
     _zeroRangeController = TextEditingController(text: _zeroRange.toStringAsFixed(0));
@@ -30,10 +35,17 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _twistRateController.dispose();
     _muzzleVelocityController.dispose();
     _zeroRangeController.dispose();
     super.dispose();
+  }
+
+  void _updateName(String newName) {
+    setState(() {
+      _name = newName;
+    });
   }
 
   void _updateTwistRate(double delta) {
@@ -103,14 +115,17 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
-          SliverFillRemaining(
-            hasScrollBody: true,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+          SliverPadding(
+            padding: const EdgeInsets.all(16.0),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate(
+                [
                   const SizedBox(height: 10),
+                  NameInput(
+                    controller: _nameController,
+                    onUpdateName: _updateName,
+                  ),
+                  const SizedBox(height: 16),
                   MuzzleVelocityInput(
                     controller: _muzzleVelocityController,
                     onUpdateMuzzleVelocity: _updateMuzzleVelocity,
@@ -136,12 +151,12 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
       floatingActionButton: Material(
         color: Colors.transparent,
         elevation: 10.0,
-        borderRadius: BorderRadius.circular(30), // Para que coincida con el radio del FAB
+        borderRadius: BorderRadius.circular(30),
         shadowColor: Colors.black.withOpacity(1),
         child: FloatingActionButton(
           onPressed: _saveAndNavigateBack,
           backgroundColor: Theme.of(context).colorScheme.primary,
-          elevation: 0, // Configurado a 0 ya que usamos la sombra del Material
+          elevation: 0,
           child: Icon(Icons.save, color: Theme.of(context).scaffoldBackgroundColor)
         ),
       ),
