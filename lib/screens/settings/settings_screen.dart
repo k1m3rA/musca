@@ -80,6 +80,56 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  // Add method to clear all guns with confirmation dialog
+  Future<void> _showClearGunsConfirmationDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Delete all guns?'),
+          content: const Text(
+            'This will permanently delete all your saved guns. '
+            'This action cannot be undone.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Delete All'),
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                await _clearAllGuns();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  // Method to clear all guns
+  Future<void> _clearAllGuns() async {
+    await CalculationStorage.clearAllGuns();
+    
+    // Show confirmation to user
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('All guns have been deleted'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -179,6 +229,39 @@ class _SettingsPageState extends State<SettingsPage> {
                             const SizedBox(height: 6),
                             Text(
                               'Clear Saved Shots',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Clear Guns Button
+                  GestureDetector(
+                    onTap: _showClearGunsConfirmationDialog,
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.delete_forever,
+                              size: 32,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Clear Saved Guns',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,

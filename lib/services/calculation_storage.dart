@@ -4,6 +4,7 @@ import '../models/calculation.dart';
 
 class CalculationStorage {
   static const String _storageKey = 'saved_calculations';
+  static const String _gunsStorageKey = 'saved_guns'; // New constant for guns storage
 
   // Save a calculation to storage
   static Future<void> saveCalculation(Calculation calculation) async {
@@ -47,6 +48,12 @@ class CalculationStorage {
   static Future<void> clearAllCalculations() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_storageKey, '');
+  }
+
+  // Clear all saved guns
+  static Future<void> clearAllGuns() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_gunsStorageKey, '');
   }
 
   // Delete a specific calculation by matching properties
