@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'dart:async';
+import 'package:flutter_svg/flutter_svg.dart';  // Add this import
 
 class CompassWidget extends StatefulWidget {
   final Function(double)? onWindDirectionChanged; // Add callback function
@@ -98,9 +99,13 @@ class _CompassWidgetState extends State<CompassWidget> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Text(
+        Text(
           'Wind Direction',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
         ),
         const SizedBox(height: 10),
         // Se cambia la construcción del widget de la brújula:
@@ -205,38 +210,49 @@ class _CompassWidgetState extends State<CompassWidget> {
                 height: 200,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.grey[200],
-                  border: Border.all(color: Colors.black, width: 1.0),
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  border: Border.all(color: Theme.of(context).colorScheme.primary, width: 4),
                 ),
                 child: CustomPaint(
-                  painter: CompassPainter(direction: _direction),
+                  painter: CompassPainter(
+                    direction: _direction,
+                    isDarkMode: Theme.of(context).brightness == Brightness.dark,
+                  ),
                 ),
               ),
             ),
 
-            // Compass direction arrow (red)
-            const Center(
-              child: Icon(Icons.navigation, size: 40, color: Colors.red),
+            // Replace the compass direction arrow with SVG bullet and rotate it 30 degrees counterclockwise
+            Center(
+              child: Transform.rotate(
+                angle: - math.pi / 4, // 30 degrees counterclockwise
+                child: SvgPicture.asset(
+                  'assets/icon/bullet.svg',
+                  height: 50,
+                  width: 50,
+                  colorFilter: const ColorFilter.mode(Colors.red, BlendMode.srcIn),
+                ),
+              ),
             ),
             
             // Wind direction arrow (blue, rotatable by user)
             Transform.rotate(
               angle: -_windDirection * (math.pi / 180),
               child: SizedBox(
-                width: 40,
-                height: 180,
+                width: 35, // Reduced from 40
+                height: 145, // Reduced from 180
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min, 
                   children: [
                     CustomPaint(
-                      size: const Size(20, 20),
-                      painter: ArrowHeadPainter(color: Colors.blue.shade800),
+                      size: const Size(15, 15), // Reduced from 20x20
+                      painter: ArrowHeadPainter(color: const Color.fromARGB(192, 21, 101, 192)),
                     ),
                     Expanded(
                       child: Container(
-                        width: 4,
-                        color: Colors.blue.shade800,
+                        width: 6, // Reduced from 6
+                        color: const Color.fromARGB(192, 21, 101, 192),
                       ),
                     ),
                   ],
@@ -252,15 +268,16 @@ class _CompassWidgetState extends State<CompassWidget> {
 
 class CompassPainter extends CustomPainter {
   final double direction;
+  final bool isDarkMode;
 
-  CompassPainter({required this.direction});
+  CompassPainter({required this.direction, required this.isDarkMode});
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0
-      ..color = Colors.black;
+      ..color = isDarkMode ? const Color.fromARGB(255, 255, 255, 255) : Colors.black;
 
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
@@ -283,7 +300,8 @@ class CompassPainter extends CustomPainter {
       final labelY = center.dy - radius * 0.55 * math.cos(angle);
       
       // Dibujar marca
-      paint.color = directions[i] == 'N' ? Colors.red : Colors.black;
+      paint.color = directions[i] == 'N' ? Colors.red : 
+                    (isDarkMode ? const Color.fromARGB(255, 255, 255, 255) : Colors.black);
       paint.strokeWidth = directions[i] == 'N' ? 3.0 : 2.0;
       canvas.drawLine(
         Offset(center.dx + radius * 0.7 * math.sin(angle), center.dy - radius * 0.7 * math.cos(angle)),
@@ -295,7 +313,8 @@ class CompassPainter extends CustomPainter {
       textPainter.text = TextSpan(
         text: directions[i],
         style: TextStyle(
-          color: directions[i] == 'N' ? Colors.red : Colors.black, 
+          color: directions[i] == 'N' ? Colors.red : 
+                (isDarkMode ? const Color.fromARGB(255, 255, 255, 255) : Colors.black), 
           fontSize: 16,
           fontWeight: FontWeight.bold,
         ),
@@ -308,7 +327,7 @@ class CompassPainter extends CustomPainter {
     }
 
     // Marcas menores cada 30 grados
-    paint.color = Colors.black;
+    paint.color = isDarkMode ? const Color.fromARGB(255, 255, 255, 255) : Colors.black;
     paint.strokeWidth = 1.5;
     for (int i = 0; i < 12; i++) {
       if (i % 3 != 0) {  // Saltamos los puntos cardinales principales
@@ -323,7 +342,8 @@ class CompassPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(CompassPainter oldDelegate) => oldDelegate.direction != direction;
+  bool shouldRepaint(CompassPainter oldDelegate) => 
+      oldDelegate.direction != direction || oldDelegate.isDarkMode != isDarkMode;
 }
 
 class ArrowHeadPainter extends CustomPainter {
@@ -342,8 +362,8 @@ class ArrowHeadPainter extends CustomPainter {
     // Create a triangle path for the arrow head
     final Path path = Path();
     path.moveTo(centerX, 0); // Top center
-    path.lineTo(centerX - 10, 20); // Bottom left
-    path.lineTo(centerX + 10, 20); // Bottom right
+    path.lineTo(centerX - 8, 15); // Bottom left (reduced from 10,20)
+    path.lineTo(centerX + 8, 15); // Bottom right (reduced from 10,20)
     path.close();
     
     canvas.drawPath(path, paint);

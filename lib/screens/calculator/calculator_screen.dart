@@ -257,7 +257,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         child: FloatingActionButton(
           onPressed: _saveCalculation,
           backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.8), // Reduce brightness by lowering opacity
-          child: const Icon(Icons.save, color: Colors.white),
+          child: Icon(Icons.save, color: Theme.of(context).scaffoldBackgroundColor),
         ),
       ),
     );

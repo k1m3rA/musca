@@ -15,15 +15,9 @@ class DistanceInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Obtener el tema actual y verificar si es oscuro
-    final ThemeData theme = Theme.of(context);
-    final bool isDarkTheme = theme.brightness == Brightness.dark;
     
     // Definir colores según el tema
-    final backgroundColor = isDarkTheme ? Colors.grey.shade800 : Colors.grey.shade200;
-    final iconColor = isDarkTheme ? Colors.grey.shade300 : Colors.grey.shade600;
-    final indicatorColor = isDarkTheme ? Colors.grey.shade700 : Colors.white;
-    final shadowColor = isDarkTheme ? Colors.black.withOpacity(0.5) : Colors.grey.withOpacity(0.3);
+    final iconColor = Theme.of(context).colorScheme.primary;
 
     return Listener(
       onPointerSignal: (pointerSignal) {
@@ -34,16 +28,31 @@ class DistanceInput extends StatelessWidget {
         }
       },
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(10),
         child: Row(
           children: [
             Expanded(
               child: TextField(
                 controller: controller,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Distance (meters)',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: 'Distance',
+                  labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+                  border: const OutlineInputBorder(
+                    borderSide: BorderSide(width: 2.0),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      width: 2.0,
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      width: 2.0,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
                   suffixText: 'm',
                 ),
               ),
@@ -60,7 +69,7 @@ class DistanceInput extends StatelessWidget {
                 width: 40,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: backgroundColor,
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
@@ -81,16 +90,10 @@ class DistanceInput extends StatelessWidget {
                       width: 30,
                       height: 20,
                       decoration: BoxDecoration(
-                        color: indicatorColor,
+                        color: Theme.of(context).colorScheme.primary,
                         shape: BoxShape.rectangle,
                         borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: shadowColor,
-                            blurRadius: 2,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
+                        
                       ),
                     ),
                     // Área táctil inferior

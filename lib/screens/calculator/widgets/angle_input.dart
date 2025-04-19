@@ -17,6 +17,8 @@ class AngleInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final iconColor = Theme.of(context).colorScheme.primary;
+
     return Listener(
       onPointerSignal: (pointerSignal) {
         if (pointerSignal is PointerScrollEvent) {
@@ -25,25 +27,47 @@ class AngleInput extends StatelessWidget {
         }
       },
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(10),
         child: Row(
           children: [
             Expanded(
               child: TextField(
                 controller: controller,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Vertical angle (degrees)',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: 'Vertical angle',
+                  labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+                  border: const OutlineInputBorder(
+                    borderSide: BorderSide(width: 2.0),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      width: 2.0,
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      width: 2.0,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
                   suffixText: '°',
                 ),
               ),
             ),
             const SizedBox(width: 10),
-            IconButton(
-              icon: const Icon(Icons.camera_alt),
-              onPressed: onCameraPressed,
-              tooltip: 'Measure angle with camera',
+            GestureDetector(
+              onTap: onCameraPressed,
+              child: Container(
+                width: 40,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(Icons.camera_alt, color: iconColor),
+              ),
             ),
           ],
         ),
