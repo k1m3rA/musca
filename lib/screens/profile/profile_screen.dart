@@ -4,13 +4,20 @@ import 'screens/scope/scope_settings_screen.dart';
 import 'screens/cartidge/cartidge_settings_screen.dart';
 import 'screens/gun/list_gun_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   final Function(int) onNavigate;
 
   const ProfileScreen({
     Key? key,
     required this.onNavigate,
   }) : super(key: key);
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  Gun? selectedGun;
 
   @override
   Widget build(BuildContext context) {
@@ -42,13 +49,19 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 25),
                   // First button - Gun Settings
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      final Gun? result = await Navigator.push<Gun>(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ListGunsScreen(),
+                          builder: (context) => ListGunsScreen(selectedGun: selectedGun),
                         ),
                       );
+                      
+                      if (result != null) {
+                        setState(() {
+                          selectedGun = result;
+                        });
+                      }
                     },
                     child: Card(
                       elevation: 4,
@@ -66,7 +79,7 @@ class ProfileScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'Gun',
+                              selectedGun?.name ?? 'Gun',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,

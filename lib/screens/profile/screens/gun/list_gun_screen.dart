@@ -10,7 +10,9 @@ class Gun {
 }
 
 class ListGunsScreen extends StatefulWidget {
-  const ListGunsScreen({Key? key}) : super(key: key);
+  final Gun? selectedGun;
+  
+  const ListGunsScreen({Key? key, this.selectedGun}) : super(key: key);
 
   @override
   State<ListGunsScreen> createState() => _ListGunsScreenState();
@@ -19,22 +21,36 @@ class ListGunsScreen extends StatefulWidget {
 class _ListGunsScreenState extends State<ListGunsScreen> {
   // Sample data - replace with your actual data source
   List<Gun> guns = [
-    Gun(id: '1', name: 'Glock 19', description: '9mm Pistol'),
-    Gun(id: '2', name: 'AR-15', description: 'Rifle'),
-    Gun(id: '3', name: 'Remington 870', description: 'Shotgun'),
-    Gun(id: '4', name: 'Sig Sauer P320', description: 'Pistol'),
-    Gun(id: '5', name: 'Ruger 10/22', description: 'Rifle'),
   ];
 
   int? _selectedIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // If we have a pre-selected gun, find and select it
+    if (widget.selectedGun != null) {
+      for (int i = 0; i < guns.length; i++) {
+        if (guns[i].id == widget.selectedGun!.id) {
+          _selectedIndex = i;
+          break;
+        }
+      }
+    }
+  }
 
   void _selectGun(int index) {
     setState(() {
       _selectedIndex = index;
     });
-    // Here you can add what happens when a gun is selected
-    // For example, navigate to detail page:
-    // Navigator.push(context, MaterialPageRoute(builder: (_) => GunDetailScreen(gun: guns[index])));
+  }
+
+  void _confirmSelection() {
+    if (_selectedIndex != null) {
+      // Return the selected gun to the previous screen
+      Navigator.of(context).pop(guns[_selectedIndex!]);
+    }
   }
 
   void _addNewGun() async {
@@ -65,7 +81,7 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               title: Text(
-                "Mis Armas",
+                "Your Guns",
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                 ),
@@ -162,13 +178,6 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
                                   ],
                                 ),
                               ),
-                              Icon(
-                                Icons.arrow_forward_ios,
-                                color: isSelected 
-                                  ? Theme.of(context).colorScheme.background
-                                  : Theme.of(context).colorScheme.primary,
-                                size: 18,
-                              ),
                             ],
                           ),
                         ),
@@ -181,6 +190,18 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
           ),
         ],
       ),
+      floatingActionButton: _selectedIndex != null ? Material(
+        color: Colors.transparent,
+        elevation: 10.0,
+        borderRadius: BorderRadius.circular(30),
+        shadowColor: Colors.black.withOpacity(1),
+        child: FloatingActionButton(
+          onPressed: _confirmSelection,
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          elevation: 0,
+          child: Icon(Icons.check, color: Theme.of(context).scaffoldBackgroundColor)
+        ),
+      ) : null,
     );
   }
 }
