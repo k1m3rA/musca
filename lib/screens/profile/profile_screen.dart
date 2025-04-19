@@ -39,7 +39,7 @@ class ProfileScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 25),
                   // First button - Gun Settings
                   GestureDetector(
                     onTap: () {
@@ -78,6 +78,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 25),
                   // Second button - Scope Settings
                   GestureDetector(
                     onTap: () {
@@ -116,6 +117,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 25),
                   // Third button - Cartidge settings
                   GestureDetector(
                     onTap: () {
