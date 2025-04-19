@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'screens/scope/scope_settings_screen.dart';
-import 'screens/cartidge/new_gun/cartidge_settings_screen.dart';
+import 'screens/cartidge/screens/cartidge_settings_screen.dart';
 import 'screens/cartidge/list_cartidge_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
