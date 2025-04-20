@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'screens/scope/scope_settings_screen.dart';
-import 'screens/cartidge/cartidge_settings_screen.dart';
+import 'screens/cartridge/list_cartridge_screen.dart';
 import 'screens/gun/list_gun_screen.dart';
 import '../../models/gun_model.dart'; // Import the new Gun model
 
@@ -167,7 +167,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'Cartidge',
+                              'Cartridge',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
