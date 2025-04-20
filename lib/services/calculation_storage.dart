@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/calculation.dart';
 import '../screens/profile/screens/gun/list_gun_screen.dart'; // Import the Gun class
+import '../models/gun_model.dart';
 
 class CalculationStorage {
   static const String _storageKey = 'saved_calculations';
   static const String _gunsStorageKey = 'saved_guns';
+  static const String _gunsKey = 'guns';
 
   // Save a calculation to storage
   static Future<void> saveCalculation(Calculation calculation) async {
@@ -90,31 +92,24 @@ class CalculationStorage {
   // Save all guns
   static Future<void> saveGuns(List<Gun> guns) async {
     final prefs = await SharedPreferences.getInstance();
-    
-    // Convert to list of JSON objects
-    final jsonList = guns.map((gun) => gun.toJson()).toList();
-    
-    // Save as JSON string
-    await prefs.setString(_gunsStorageKey, jsonEncode(jsonList));
+    final jsonList = guns.map((gun) => gun.toMap()).toList();
+    await prefs.setString(_gunsKey, jsonEncode(jsonList));
   }
   
   // Get all saved guns
   static Future<List<Gun>> getGuns() async {
     final prefs = await SharedPreferences.getInstance();
-    
-    // Get JSON string
-    final jsonString = prefs.getString(_gunsStorageKey);
+    final jsonString = prefs.getString(_gunsKey);
     
     if (jsonString == null || jsonString.isEmpty) {
       return [];
     }
     
-    // Parse JSON and convert to guns
     try {
-      final jsonList = jsonDecode(jsonString) as List;
-      return jsonList.map((json) => Gun.fromJson(json as Map<String, dynamic>)).toList();
+      final List<dynamic> jsonList = jsonDecode(jsonString);
+      return jsonList.map((json) => Gun.fromMap(json)).toList();
     } catch (e) {
-      print('Error parsing saved guns: $e');
+      print('Error loading guns: $e');
       return [];
     }
   }

@@ -2,31 +2,7 @@ import 'package:flutter/material.dart';
 import 'screens/gun_settings_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../services/calculation_storage.dart'; // Import the storage service
-
-class Gun {
-  final String id;
-  final String name;
-  final String description;
-
-  Gun({required this.id, required this.name, this.description = ''});
-  
-  // Add serialization methods
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'description': description,
-    };
-  }
-  
-  factory Gun.fromJson(Map<String, dynamic> json) {
-    return Gun(
-      id: json['id'],
-      name: json['name'],
-      description: json['description'] ?? '',
-    );
-  }
-}
+import '../../../../models/gun_model.dart'; // Import the new Gun model
 
 class ListGunsScreen extends StatefulWidget {
   final Gun? selectedGun;
@@ -277,6 +253,7 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
                         // Adjust the index for the gun list (subtract 1 because of the Add button)
                         final gunIndex = index - 1;
                         final isSelected = _selectedIndex == gunIndex;
+                        final gun = guns[gunIndex];
                         
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 5),
@@ -299,7 +276,7 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            guns[gunIndex].name,
+                                            gun.name,
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               color: isSelected 
@@ -308,15 +285,14 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
                                               fontSize: 16,
                                             ),
                                           ),
-                                          if (guns[gunIndex].description.isNotEmpty)
-                                            Text(
-                                              guns[gunIndex].description,
-                                              style: TextStyle(
-                                                color: isSelected
-                                                  ? Theme.of(context).colorScheme.background.withOpacity(0.8)
-                                                  : null,
-                                              ),
+                                          Text(
+                                            gun.getDescription(),
+                                            style: TextStyle(
+                                              color: isSelected
+                                                ? Theme.of(context).colorScheme.background.withOpacity(0.8)
+                                                : null,
                                             ),
+                                          ),
                                         ],
                                       ),
                                     ),

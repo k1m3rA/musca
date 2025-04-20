@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'screens/scope/scope_settings_screen.dart';
 import 'screens/cartidge/cartidge_settings_screen.dart';
 import 'screens/gun/list_gun_screen.dart';
+import '../../models/gun_model.dart'; // Import the new Gun model
 
 class ProfileScreen extends StatefulWidget {
   final Function(int) onNavigate;
@@ -86,6 +87,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
+                            if (selectedGun != null)
+                              Text(
+                                selectedGun!.getDescription(),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
                           ],
                         ),
                       ),
