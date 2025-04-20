@@ -285,13 +285,27 @@ class _ListCartridgeScreenState extends State<ListCartridgeScreen> {
                                               fontSize: 16,
                                             ),
                                           ),
-                                          Text(
-                                            cartridge.getDescription(),
-                                            style: TextStyle(
-                                              color: isSelected
-                                                ? Theme.of(context).colorScheme.background.withOpacity(0.8)
-                                                : null,
-                                            ),
+                                          const SizedBox(height: 4),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Diameter: ${cartridge.diameter} in · Weight: ${cartridge.bulletWeight} gr',
+                                                style: TextStyle(
+                                                  color: isSelected
+                                                    ? Theme.of(context).colorScheme.background.withOpacity(0.8)
+                                                    : null,
+                                                ),
+                                              ),
+                                              Text(
+                                                'Length: ${cartridge.bulletLength.toStringAsFixed(3)} in · BC: ${cartridge.ballisticCoefficient.toStringAsFixed(3)} ${cartridge.bcModelType == 0 ? "G1" : "G7"}',
+                                                style: TextStyle(
+                                                  color: isSelected
+                                                    ? Theme.of(context).colorScheme.background.withOpacity(0.8)
+                                                    : null,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),

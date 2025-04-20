@@ -237,9 +237,9 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
                   BCTypeInput(
                     controller: _ballisticCoefficientController,
                     scrollStep: 0.001,
-                    onUpdateBCType: (int value) => _updateBCDelta(value.toDouble()),
+                    onUpdateBCType: _updateBCModelType, // Fix this parameter
                     initialBCType: _bcModelType,
-                    onUpdateBCValue: (double value) => _updateBCModelType(value.toInt()),
+                    onUpdateBCValue: _updateBCDelta, // Fix this parameter
                   ),
                   
                   const SizedBox(height: 24),
