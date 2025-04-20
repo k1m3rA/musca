@@ -4,6 +4,7 @@ import '../../../../../models/cartridge_model.dart'; // Import the proper Cartri
 import 'widgets/bc_input.dart'; // Import the BC input widget
 import 'widgets/name_input.dart'; // Import the name input widget
 import 'widgets/diameter_input.dart'; // Import the diameter input widget
+import 'widgets/weight_input.dart'; // Import the weight input widget
 
 class CartridgeSettingsScreen extends StatefulWidget {
   final Cartridge? cartridge;
@@ -76,23 +77,17 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
     });
   }
 
-  void _updateBulletWeight(String value) {
-    final weight = double.tryParse(value);
-    if (weight != null) {
-      setState(() {
-        _bulletWeight = weight;
-      });
-    }
-  }
   
-  void _updateMuzzleVelocity(String value) {
-    final velocity = double.tryParse(value);
-    if (velocity != null) {
-      setState(() {
-        _muzzleVelocity = velocity;
-      });
-    }
+  // Add method to handle weight delta updates
+  void _updateBulletWeightDelta(double delta) {
+    final currentWeight = double.tryParse(_bulletWeightController.text) ?? _bulletWeight;
+    final newWeight = (currentWeight + delta).clamp(1.0, 1000.0); // Reasonable range for bullet weights
+    setState(() {
+      _bulletWeight = newWeight;
+      _bulletWeightController.text = newWeight.toStringAsFixed(1);
+    });
   }
+
     
   void _updateBCDelta(double delta) {
     final currentValue = double.tryParse(_ballisticCoefficientController.text) ?? _ballisticCoefficient;
@@ -204,29 +199,11 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
                   ),
                   const SizedBox(height: 16),
                   
-                  // Bullet Weight Input
-                  TextField(
+                  // Replace TextField with WeightInput widget
+                  WeightInput(
                     controller: _bulletWeightController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Bullet Weight',
-                      border: OutlineInputBorder(),
-                      suffixText: 'gr',
-                    ),
-                    onChanged: _updateBulletWeight,
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Muzzle Velocity Input
-                  TextField(
-                    controller: _muzzleVelocityController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Muzzle Velocity',
-                      border: OutlineInputBorder(),
-                      suffixText: 'fps',
-                    ),
-                    onChanged: _updateMuzzleVelocity,
+                    scrollStep: 0.5,
+                    onUpdateWeight: _updateBulletWeightDelta,
                   ),
                   const SizedBox(height: 16),
                   

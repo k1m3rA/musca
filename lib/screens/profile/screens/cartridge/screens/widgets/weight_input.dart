@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 
-class ZeroRangeInput extends StatelessWidget {
+class WeightInput extends StatelessWidget {
   final TextEditingController controller;
   final double scrollStep;
-  final Function(double) onUpdateZeroRange;
+  final Function(double) onUpdateWeight;
 
-  const ZeroRangeInput({
+  const WeightInput({
     super.key,
     required this.controller,
-    this.scrollStep = 10.0,
-    required this.onUpdateZeroRange,
+    this.scrollStep = 1.0,
+    required this.onUpdateWeight,
   });
 
   @override
@@ -21,8 +21,8 @@ class ZeroRangeInput extends StatelessWidget {
     return Listener(
       onPointerSignal: (pointerSignal) {
         if (pointerSignal is PointerScrollEvent) {
-          final delta = pointerSignal.scrollDelta.dy > 0 ? -scrollStep * 5 : scrollStep * 5;
-          onUpdateZeroRange(delta);
+          final delta = pointerSignal.scrollDelta.dy > 0 ? -scrollStep * 1 : scrollStep * 1;
+          onUpdateWeight(delta);
         }
       },
       child: Container(
@@ -34,7 +34,7 @@ class ZeroRangeInput extends StatelessWidget {
                 controller: controller,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: 'Zero Range',
+                  labelText: 'Weight',
                   labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
                   border: const OutlineInputBorder(
                     borderSide: BorderSide(width: 2.0),
@@ -51,15 +51,15 @@ class ZeroRangeInput extends StatelessWidget {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
-                  suffixText: 'm',
+                  suffixText: 'gr',
                 ),
               ),
             ),
             const SizedBox(width: 10),
             GestureDetector(
               onVerticalDragUpdate: (details) {
-                double delta = -details.delta.dy * 0.5;
-                onUpdateZeroRange(delta);
+                double delta = -details.delta.dy * 1;
+                onUpdateWeight(delta);
               },
               child: Container(
                 width: 40,
@@ -72,7 +72,7 @@ class ZeroRangeInput extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     InkWell(
-                      onTap: () => onUpdateZeroRange(scrollStep * 5),
+                      onTap: () => onUpdateWeight(scrollStep * 1),
                       child: Container(
                         height: 30,
                         width: 40,
@@ -90,7 +90,7 @@ class ZeroRangeInput extends StatelessWidget {
                       ),
                     ),
                     InkWell(
-                      onTap: () => onUpdateZeroRange(-scrollStep * 5),
+                      onTap: () => onUpdateWeight(-scrollStep * 1),
                       child: Container(
                         height: 30,
                         width: 40,
