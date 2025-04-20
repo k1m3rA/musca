@@ -219,17 +219,6 @@ class _BCTypeInputState extends State<BCTypeInput> {
                                 : Theme.of(context).colorScheme.primary,
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'G1',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: _selectedButtonIndex == 0
-                                ? Theme.of(context).colorScheme.background
-                                : Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -261,17 +250,6 @@ class _BCTypeInputState extends State<BCTypeInput> {
                             'G7',
                             style: TextStyle(
                               fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: _selectedButtonIndex == 1
-                                ? Theme.of(context).colorScheme.background
-                                : Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'G7',
-                            style: TextStyle(
-                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: _selectedButtonIndex == 1
                                 ? Theme.of(context).colorScheme.background
