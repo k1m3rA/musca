@@ -3,7 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/calculator/calculator_screen.dart';
 import '../screens/settings/settings_screen.dart';
-import '../screens/profile/profile_screen.dart';
+import '../screens/profile/armory_screen.dart';
 
 class NavigationContainer extends StatefulWidget {
   final String title;

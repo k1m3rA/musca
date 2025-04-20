@@ -31,7 +31,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               title: Text(
-                "Profile Settings",
+                "Armory",
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                 ),
