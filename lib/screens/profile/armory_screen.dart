@@ -141,13 +141,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 25),
-                  // Third button - Cartidge settings
+                  // Third button - Cartridge settings
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const CartidgeSettingsScreen(),
+                          builder: (context) => const ListCartridgeScreen(),
                         ),
                       );
                     },
