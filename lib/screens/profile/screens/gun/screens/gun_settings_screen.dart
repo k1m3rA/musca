@@ -130,7 +130,11 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
       content: Text(widget.gun != null ? 'Gun updated!' : 'Gun created!'),
       backgroundColor: Colors.green,
       behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.only(left: 16.0, right: 16.0),
+      margin: const EdgeInsets.only(
+        left: 20, 
+        bottom: 20.0,
+        right: 20.0, // Increased right margin to avoid FAB buttons
+      ),
       duration: const Duration(seconds: 2),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
