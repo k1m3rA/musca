@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 
-class MuzzleVelocityInput extends StatelessWidget {
+class DiameterInput extends StatelessWidget {
   final TextEditingController controller;
   final double scrollStep;
-  final Function(double) onUpdateMuzzleVelocity;
+  final Function(double) onUpdateDiameter;
 
-  const MuzzleVelocityInput({
+  const DiameterInput({
     super.key,
     required this.controller,
-    this.scrollStep = 5.0,
-    required this.onUpdateMuzzleVelocity,
+    this.scrollStep = 0.001,
+    required this.onUpdateDiameter,
   });
 
   @override
@@ -21,8 +21,8 @@ class MuzzleVelocityInput extends StatelessWidget {
     return Listener(
       onPointerSignal: (pointerSignal) {
         if (pointerSignal is PointerScrollEvent) {
-          final delta = pointerSignal.scrollDelta.dy > 0 ? -scrollStep * 5 : scrollStep * 5;
-          onUpdateMuzzleVelocity(delta);
+          final delta = pointerSignal.scrollDelta.dy > 0 ? -scrollStep : scrollStep;
+          onUpdateDiameter(delta);
         }
       },
       child: Container(
@@ -34,7 +34,7 @@ class MuzzleVelocityInput extends StatelessWidget {
                 controller: controller,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: 'Muzzle Velocity',
+                  labelText: 'Diameter',
                   labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
                   border: const OutlineInputBorder(
                     borderSide: BorderSide(width: 2.0),
@@ -51,15 +51,15 @@ class MuzzleVelocityInput extends StatelessWidget {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
-                  suffixText: 'm/s',
+                  suffixText: 'cm',
                 ),
               ),
             ),
             const SizedBox(width: 10),
             GestureDetector(
               onVerticalDragUpdate: (details) {
-                double delta = -details.delta.dy * 0.5;
-                onUpdateMuzzleVelocity(delta);
+                double delta = -details.delta.dy * 0.001; // Smaller multiplier for more precise control
+                onUpdateDiameter(delta);
               },
               child: Container(
                 width: 40,
@@ -72,7 +72,7 @@ class MuzzleVelocityInput extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     InkWell(
-                      onTap: () => onUpdateMuzzleVelocity(scrollStep * 5),
+                      onTap: () => onUpdateDiameter(scrollStep),
                       child: Container(
                         height: 30,
                         width: 40,
@@ -90,7 +90,7 @@ class MuzzleVelocityInput extends StatelessWidget {
                       ),
                     ),
                     InkWell(
-                      onTap: () => onUpdateMuzzleVelocity(-scrollStep * 5),
+                      onTap: () => onUpdateDiameter(-scrollStep),
                       child: Container(
                         height: 30,
                         width: 40,

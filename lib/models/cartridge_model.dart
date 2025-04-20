@@ -3,7 +3,7 @@ import 'package:uuid/uuid.dart';
 class Cartridge {
   final String id;
   final String name;
-  final String caliber;
+  final String diameter;
   final double bulletWeight; // in grains
   final double muzzleVelocity; // in fps
   final double ballisticCoefficient;
@@ -12,7 +12,7 @@ class Cartridge {
   Cartridge({
     required this.id,
     required this.name,
-    required this.caliber,
+    required this.diameter,
     required this.bulletWeight,
     required this.muzzleVelocity,
     required this.ballisticCoefficient,
@@ -20,7 +20,7 @@ class Cartridge {
   });
 
   String getDescription() {
-    return '$caliber - ${bulletWeight}gr - ${muzzleVelocity}fps';
+    return '$diameter - ${bulletWeight}gr - ${muzzleVelocity}fps';
   }
 
   // Factory constructor for creating from JSON
@@ -28,7 +28,7 @@ class Cartridge {
     return Cartridge(
       id: json['id'] ?? Uuid().v4(),
       name: json['name'] ?? '',
-      caliber: json['caliber'] ?? '',
+      diameter: json['diameter'] ?? '',
       bulletWeight: json['bulletWeight']?.toDouble() ?? 0.0,
       muzzleVelocity: json['muzzleVelocity']?.toDouble() ?? 0.0,
       ballisticCoefficient: json['ballisticCoefficient']?.toDouble() ?? 0.0,
@@ -41,7 +41,7 @@ class Cartridge {
     return {
       'id': id,
       'name': name,
-      'caliber': caliber,
+      'diameter': diameter,
       'bulletWeight': bulletWeight,
       'muzzleVelocity': muzzleVelocity,
       'ballisticCoefficient': ballisticCoefficient,
@@ -53,7 +53,7 @@ class Cartridge {
   Cartridge copyWith({
     String? id,
     String? name,
-    String? caliber,
+    String? diameter,
     double? bulletWeight,
     double? muzzleVelocity,
     double? ballisticCoefficient,
@@ -62,7 +62,7 @@ class Cartridge {
     return Cartridge(
       id: id ?? this.id,
       name: name ?? this.name,
-      caliber: caliber ?? this.caliber,
+      diameter: diameter ?? this.diameter,
       bulletWeight: bulletWeight ?? this.bulletWeight,
       muzzleVelocity: muzzleVelocity ?? this.muzzleVelocity,
       ballisticCoefficient: ballisticCoefficient ?? this.ballisticCoefficient,

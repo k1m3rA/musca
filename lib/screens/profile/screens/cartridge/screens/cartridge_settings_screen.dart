@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../../models/cartridge_model.dart'; // Import the proper Cartridge model
 import 'widgets/bc_input.dart'; // Import the BC input widget
+import 'widgets/name_input.dart'; // Import the name input widget
+import 'widgets/diameter_input.dart'; // Import the diameter input widget
 
 class CartridgeSettingsScreen extends StatefulWidget {
   final Cartridge? cartridge;
@@ -14,13 +16,13 @@ class CartridgeSettingsScreen extends StatefulWidget {
 
 class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
   late TextEditingController _nameController;
-  late TextEditingController _caliberController;
+  late TextEditingController _diameterController;
   late TextEditingController _bulletWeightController;
   late TextEditingController _muzzleVelocityController;
   late TextEditingController _ballisticCoefficientController;
   
   late String _name;
-  late String _caliber;
+  late String _diameter;
   late double _bulletWeight;
   late double _muzzleVelocity;
   late double _ballisticCoefficient;
@@ -36,7 +38,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
     if (widget.cartridge != null) {
       _cartridgeId = widget.cartridge!.id;
       _name = widget.cartridge!.name;
-      _caliber = widget.cartridge!.caliber;
+      _diameter = widget.cartridge!.diameter;
       _bulletWeight = widget.cartridge!.bulletWeight;
       _muzzleVelocity = widget.cartridge!.muzzleVelocity;
       _ballisticCoefficient = widget.cartridge!.ballisticCoefficient;
@@ -44,7 +46,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
     } else {
       // Default values for new cartridge
       _name = "My Cartridge";
-      _caliber = ".308";
+      _diameter = "0.356";
       _bulletWeight = 168.0;
       _muzzleVelocity = 2700.0;
       _ballisticCoefficient = 0.5;
@@ -52,7 +54,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
     }
     
     _nameController = TextEditingController(text: _name);
-    _caliberController = TextEditingController(text: _caliber);
+    _diameterController = TextEditingController(text: _diameter);
     _bulletWeightController = TextEditingController(text: _bulletWeight.toStringAsFixed(1));
     _muzzleVelocityController = TextEditingController(text: _muzzleVelocity.toStringAsFixed(0));
     _ballisticCoefficientController = TextEditingController(text: _ballisticCoefficient.toStringAsFixed(3));
@@ -61,7 +63,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _caliberController.dispose();
+    _diameterController.dispose();
     _bulletWeightController.dispose();
     _muzzleVelocityController.dispose();
     _ballisticCoefficientController.dispose();
@@ -71,12 +73,6 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
   void _updateName(String value) {
     setState(() {
       _name = value;
-    });
-  }
-
-  void _updateCaliber(String value) {
-    setState(() {
-      _caliber = value;
     });
   }
 
@@ -113,12 +109,29 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
     });
   }
 
+  void _updateDiameterDelta(double delta) {
+    double currentValue;
+    try {
+      // Try to parse the controller text first
+      currentValue = double.tryParse(_diameterController.text) ?? 0.356;
+    } catch (e) {
+      // Fallback to a default value if parsing fails
+      currentValue = 0.356;
+    }
+    
+    final newValue = (currentValue + delta).clamp(0.01, 20.0); // Reasonable range for bullet diameters in cm
+    setState(() {
+      _diameter = newValue.toStringAsFixed(3);
+      _diameterController.text = _diameter;
+    });
+  }
+
   void _saveAndNavigateBack() {
     // Create a Cartridge object with the current values
     final cartridge = Cartridge(
       id: _cartridgeId ?? Uuid().v4(),
       name: _name,
-      caliber: _caliber,
+      diameter: _diameter,
       bulletWeight: _bulletWeight,
       muzzleVelocity: _muzzleVelocity,
       ballisticCoefficient: _ballisticCoefficient,
@@ -177,24 +190,17 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
                   const SizedBox(height: 10),
                   
                   // Name Input
-                  TextField(
+                  NameInput(
                     controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: 'Cartridge Name',
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: _updateName,
+                    onUpdateName: _updateName,
                   ),
                   const SizedBox(height: 16),
                   
-                  // Caliber Input
-                  TextField(
-                    controller: _caliberController,
-                    decoration: InputDecoration(
-                      labelText: 'Caliber',
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: _updateCaliber,
+                  // Diameter Input - using our updated DiameterInput widget
+                  DiameterInput(
+                    controller: _diameterController,
+                    scrollStep: 0.001,
+                    onUpdateDiameter: _updateDiameterDelta,
                   ),
                   const SizedBox(height: 16),
                   

@@ -20,7 +20,7 @@ class NameInput extends StatelessWidget {
             child: TextField(
               controller: controller,
               decoration: InputDecoration(
-                labelText: 'Gun Name',
+                labelText: 'Cartridge Name',
                 labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
                 border: const OutlineInputBorder(
                   borderSide: BorderSide(width: 2.0),
