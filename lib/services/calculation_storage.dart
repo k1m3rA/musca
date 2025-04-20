@@ -7,6 +7,7 @@ class CalculationStorage {
   static const String _storageKey = 'saved_calculations';
   static const String _gunsStorageKey = 'saved_guns';
   static const String _gunsKey = 'guns';
+  static const String _selectedGunKey = 'selected_gun';
 
   // Save a calculation to storage
   static Future<void> saveCalculation(Calculation calculation) async {
@@ -141,5 +142,39 @@ class CalculationStorage {
     
     await saveGuns(guns);
     return true;
+  }
+
+  // Save selected gun ID
+  static Future<void> saveSelectedGunId(String? gunId) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (gunId == null) {
+      await prefs.remove(_selectedGunKey);
+    } else {
+      await prefs.setString(_selectedGunKey, gunId);
+    }
+  }
+  
+  // Get selected gun ID
+  static Future<String?> getSelectedGunId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_selectedGunKey);
+  }
+  
+  // Get selected gun object
+  static Future<Gun?> getSelectedGun() async {
+    final selectedId = await getSelectedGunId();
+    if (selectedId == null) {
+      return null;
+    }
+    
+    final guns = await getGuns();
+    try {
+      return guns.firstWhere(
+        (gun) => gun.id == selectedId,
+      );
+    } catch (e) {
+      // If no gun matches the ID, return null
+      return null;
+    }
   }
 }

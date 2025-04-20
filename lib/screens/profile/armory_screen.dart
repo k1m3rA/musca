@@ -4,7 +4,9 @@ import 'screens/scope/scope_settings_screen.dart';
 import 'screens/cartridge/list_cartridge_screen.dart';
 import 'screens/gun/list_gun_screen.dart';
 import '../../models/gun_model.dart';
-import '../../models/cartridge_model.dart'; // Add import for Cartridge model
+import '../../models/cartridge_model.dart';
+import '../../services/calculation_storage.dart'; // Add import for CalculationStorage
+import '../../services/cartridge_storage.dart'; // Add import for CartridgeStorage
 
 class ProfileScreen extends StatefulWidget {
   final Function(int) onNavigate;
@@ -20,10 +22,61 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   Gun? selectedGun;
-  Cartridge? selectedCartridge; // Add variable for selected cartridge
+  Cartridge? selectedCartridge;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedSelections();
+  }
+
+  Future<void> _loadSavedSelections() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    // Load saved gun
+    try {
+      final Gun? gun = await CalculationStorage.getSelectedGun();
+      if (gun != null) {
+        setState(() {
+          selectedGun = gun;
+        });
+      }
+    } catch (e) {
+      print('Error loading selected gun: $e');
+    }
+
+    // Load saved cartridge
+    try {
+      final Cartridge? cartridge = await CartridgeStorage.getSelectedCartridge();
+      if (cartridge != null) {
+        setState(() {
+          selectedCartridge = cartridge;
+        });
+      }
+    } catch (e) {
+      print('Error loading selected cartridge: $e');
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -60,6 +113,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       setState(() {
                         selectedGun = result;
                       });
+                      // Save the selected gun
+                      await CalculationStorage.saveSelectedGunId(result.id);
                     }
                   },
                   child: Card(
@@ -153,6 +208,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       setState(() {
                         selectedCartridge = result;
                       });
+                      // Save the selected cartridge
+                      await CartridgeStorage.saveSelectedCartridgeId(result.id);
                     }
                   },
                   child: Card(

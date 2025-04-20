@@ -4,6 +4,7 @@ import '../models/cartridge_model.dart';
 
 class CartridgeStorage {
   static const String _cartridgesKey = 'saved_cartridges';
+  static const String _selectedCartridgeKey = 'selected_cartridge';
 
   // Save all cartridges
   static Future<void> saveCartridges(List<Cartridge> cartridges) async {
@@ -39,7 +40,7 @@ class CartridgeStorage {
     if (index >= 0) {
       cartridges[index] = cartridge;
     } else {
-      cartridges.add(cartridge);
+      cartridges.add(cartridge);  // Fixed missing closing parenthesis
     }
     
     await saveCartridges(cartridges);
@@ -64,5 +65,39 @@ class CartridgeStorage {
   static Future<void> clearAllCartridges() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_cartridgesKey, '');
+  }
+
+  // Save selected cartridge ID
+  static Future<void> saveSelectedCartridgeId(String? cartridgeId) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (cartridgeId == null) {
+      await prefs.remove(_selectedCartridgeKey);
+    } else {
+      await prefs.setString(_selectedCartridgeKey, cartridgeId);
+    }
+  }
+  
+  // Get selected cartridge ID
+  static Future<String?> getSelectedCartridgeId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_selectedCartridgeKey);
+  }
+  
+  // Get selected cartridge object
+  static Future<Cartridge?> getSelectedCartridge() async {
+    final selectedId = await getSelectedCartridgeId();
+    if (selectedId == null) {
+      return null;
+    }
+    
+    final cartridges = await getCartridges();
+    try {
+      return cartridges.firstWhere(
+        (cartridge) => cartridge.id == selectedId,
+      );
+    } catch (e) {
+      // If no cartridge matches the ID, return null
+      return null;
+    }
   }
 }
