@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/gun_settings_screen.dart';
-import 'package:flutter_svg/flutter_svg.dart'; // Add this import for SVG support
+import 'package:flutter_svg/flutter_svg.dart';
+import '../../../../services/calculation_storage.dart'; // Import the storage service
 
 class Gun {
   final String id;
@@ -8,6 +9,23 @@ class Gun {
   final String description;
 
   Gun({required this.id, required this.name, this.description = ''});
+  
+  // Add serialization methods
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+    };
+  }
+  
+  factory Gun.fromJson(Map<String, dynamic> json) {
+    return Gun(
+      id: json['id'],
+      name: json['name'],
+      description: json['description'] ?? '',
+    );
+  }
 }
 
 class ListGunsScreen extends StatefulWidget {
@@ -20,25 +38,37 @@ class ListGunsScreen extends StatefulWidget {
 }
 
 class _ListGunsScreenState extends State<ListGunsScreen> {
-  // Sample data - replace with your actual data source
-  List<Gun> guns = [
-  ];
-
+  List<Gun> guns = [];
   int? _selectedIndex;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _loadGuns();
+  }
+  
+  Future<void> _loadGuns() async {
+    setState(() {
+      _isLoading = true;
+    });
     
-    // If we have a pre-selected gun, find and select it
-    if (widget.selectedGun != null) {
-      for (int i = 0; i < guns.length; i++) {
-        if (guns[i].id == widget.selectedGun!.id) {
-          _selectedIndex = i;
-          break;
+    final loadedGuns = await CalculationStorage.getGuns();
+    
+    setState(() {
+      guns = loadedGuns;
+      _isLoading = false;
+      
+      // If we have a pre-selected gun, find and select it
+      if (widget.selectedGun != null) {
+        for (int i = 0; i < guns.length; i++) {
+          if (guns[i].id == widget.selectedGun!.id) {
+            _selectedIndex = i;
+            break;
+          }
         }
       }
-    }
+    });
   }
 
   void _selectGun(int index) {
@@ -62,16 +92,83 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
       ),
     );
     
-    // If a gun was returned, add it to the list
+    // If a gun was returned, add it to the list and save
     if (newGun != null) {
       setState(() {
         guns.add(newGun);
       });
+      // Save the updated list
+      await CalculationStorage.saveGuns(guns);
+    }
+  }
+
+  void _editSelectedGun() {
+    if (_selectedIndex != null) {
+      Navigator.push<Gun>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => GunSettingsScreen(gun: guns[_selectedIndex!]),
+        ),
+      ).then((updatedGun) async {
+        if (updatedGun != null) {
+          setState(() {
+            guns[_selectedIndex!] = updatedGun;
+          });
+          // Save the updated list
+          await CalculationStorage.saveGuns(guns);
+        }
+      });
+    }
+  }
+  
+  void _deleteSelectedGun() async {
+    if (_selectedIndex != null) {
+      final gunToDelete = guns[_selectedIndex!];
+      
+      // Show confirmation dialog
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Delete Gun'),
+          content: Text('Are you sure you want to delete ${gunToDelete.name}?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
+      ) ?? false;
+      
+      if (confirmed) {
+        setState(() {
+          guns.removeAt(_selectedIndex!);
+          _selectedIndex = null;
+        });
+        
+        // Save the updated list
+        await CalculationStorage.saveGuns(guns);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Show a loading indicator while fetching guns
+    if (_isLoading) {
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      );
+    }
+    
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -235,18 +332,55 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
                 ),
         ],
       ),
-      floatingActionButton: _selectedIndex != null ? Material(
-        color: Colors.transparent,
-        elevation: 10.0,
-        borderRadius: BorderRadius.circular(30),
-        shadowColor: Colors.black.withOpacity(1),
-        child: FloatingActionButton(
-          onPressed: _confirmSelection,
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          elevation: 0,
-          child: Icon(Icons.check, color: Theme.of(context).scaffoldBackgroundColor)
-        ),
-      ) : null,
+      floatingActionButton: _selectedIndex != null 
+        ? Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              const SizedBox(width: 30), // Push the buttons to the right
+              Material(
+                color: Colors.transparent,
+                elevation: 10.0,
+                borderRadius: BorderRadius.circular(30),
+                shadowColor: Colors.black.withOpacity(1),
+                child: FloatingActionButton(
+                  heroTag: "delete_button",
+                  onPressed: _deleteSelectedGun,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  elevation: 0,
+                  child: Icon(Icons.delete, color: Theme.of(context).scaffoldBackgroundColor)
+                ),
+              ),
+              const SizedBox(width: 16),
+              Material(
+                color: Colors.transparent,
+                elevation: 10.0,
+                borderRadius: BorderRadius.circular(30),
+                shadowColor: Colors.black.withOpacity(1),
+                child: FloatingActionButton(
+                  heroTag: "edit_button",
+                  onPressed: _editSelectedGun,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  elevation: 0,
+                  child: Icon(Icons.edit, color: Theme.of(context).scaffoldBackgroundColor)
+                ),
+              ),
+              const SizedBox(width: 16),
+              Material(
+                color: Colors.transparent,
+                elevation: 10.0,
+                borderRadius: BorderRadius.circular(30),
+                shadowColor: Colors.black.withOpacity(1),
+                child: FloatingActionButton(
+                  heroTag: "select_button",
+                  onPressed: _confirmSelection,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  elevation: 0,
+                  child: Icon(Icons.check, color: Theme.of(context).scaffoldBackgroundColor)
+                ),
+              ),
+            ],
+          )
+        : null,
     );
   }
 }

@@ -6,7 +6,9 @@ import 'widgets/name_input.dart';
 import '../list_gun_screen.dart'; // Import to use Gun class
 
 class GunSettingsScreen extends StatefulWidget {
-  const GunSettingsScreen({Key? key}) : super(key: key);
+  final Gun? gun; // Add parameter to accept an existing gun for editing
+  
+  const GunSettingsScreen({Key? key, this.gun}) : super(key: key);
 
   @override
   State<GunSettingsScreen> createState() => _GunSettingsScreenState();
@@ -14,20 +16,55 @@ class GunSettingsScreen extends StatefulWidget {
 
 class _GunSettingsScreenState extends State<GunSettingsScreen> {
   late TextEditingController _nameController;
-  String _name = "My Gun"; // Default value for gun name
+  late String _name; // Default value for gun name
 
   late TextEditingController _twistRateController;
-  double _twistRate = 10.0; // Default value for twist rate (1:10)
+  late double _twistRate; // Default value for twist rate (1:10)
+  late int _twistDirection; // 0 for left, 1 for right
   
   late TextEditingController _muzzleVelocityController;
-  double _muzzleVelocity = 800.0; // Default value for muzzle velocity (800 m/s)
+  late double _muzzleVelocity; // Default value for muzzle velocity (800 m/s)
   
   late TextEditingController _zeroRangeController;
-  double _zeroRange = 100.0; // Default value for zero range (100 m)
+  late double _zeroRange; // Default value for zero range (100 m)
+  
+  String? _gunId; // Store the ID when editing an existing gun
 
   @override
   void initState() {
     super.initState();
+    
+    // Initialize values based on whether we're editing an existing gun
+    if (widget.gun != null) {
+      _gunId = widget.gun!.id;
+      _name = widget.gun!.name;
+      
+      // Parse values from the description
+      final description = widget.gun!.description;
+      
+      // Extract twist direction: left or right
+      _twistDirection = description.contains('Right Twist') ? 1 : 0;
+      
+      // Extract twist rate: "Twist: 1:10.0, ..."
+      final twistMatch = RegExp(r'Twist Rate: 1:(\d+\.\d+)').firstMatch(description);
+      _twistRate = twistMatch != null ? double.parse(twistMatch.group(1)!) : 10.0;
+      
+      // Extract muzzle velocity: "..., MV: 800 m/s, ..."
+      final mvMatch = RegExp(r'MV: (\d+) m/s').firstMatch(description);
+      _muzzleVelocity = mvMatch != null ? double.parse(mvMatch.group(1)!) : 800.0;
+      
+      // Extract zero range: "..., Zero: 100 m"
+      final zeroMatch = RegExp(r'Zero: (\d+) m').firstMatch(description);
+      _zeroRange = zeroMatch != null ? double.parse(zeroMatch.group(1)!) : 100.0;
+    } else {
+      // Default values for new gun
+      _name = "My Gun";
+      _twistRate = 10.0;
+      _muzzleVelocity = 800.0;
+      _zeroRange = 100.0;
+      _twistDirection = 1; // Default to right twist
+    }
+    
     _nameController = TextEditingController(text: _name);
     _twistRateController = TextEditingController(text: _twistRate.toStringAsFixed(1));
     _muzzleVelocityController = TextEditingController(text: _muzzleVelocity.toStringAsFixed(0));
@@ -57,6 +94,12 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
     });
   }
   
+  void _updateTwistDirection(int direction) {
+    setState(() {
+      _twistDirection = direction;
+    });
+  }
+  
   void _updateMuzzleVelocity(double delta) {
     setState(() {
       _muzzleVelocity += delta;
@@ -74,16 +117,17 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
   }
 
   void _saveAndNavigateBack() {
-    // Create a new Gun object with the current values
-    final newGun = Gun(
-      id: DateTime.now().millisecondsSinceEpoch.toString(), // Generate a unique ID
+    // Create a Gun object with the current values
+    final twistDirectionText = _twistDirection == 0 ? 'Left' : 'Right';
+    final gun = Gun(
+      id: _gunId ?? DateTime.now().millisecondsSinceEpoch.toString(), // Use existing ID if editing
       name: _name,
-      description: 'Twist: 1:${_twistRate.toStringAsFixed(1)}, MV: ${_muzzleVelocity.toStringAsFixed(0)} m/s, Zero: ${_zeroRange.toStringAsFixed(0)} m',
+      description: '$twistDirectionText Twist Rate: 1:${_twistRate.toStringAsFixed(1)}", MV: ${_muzzleVelocity.toStringAsFixed(0)} m/s, Zero: ${_zeroRange.toStringAsFixed(0)} m',
     );
     
     // Show feedback to user
     final snackBar = SnackBar(
-      content: const Text('Gun settings saved!'),
+      content: Text(widget.gun != null ? 'Gun updated!' : 'Gun created!'),
       backgroundColor: Colors.green,
       behavior: SnackBarBehavior.floating,
       margin: const EdgeInsets.only(left: 16.0, right: 16.0),
@@ -91,8 +135,8 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
     
-    // Return the new gun to the previous screen
-    Navigator.of(context).pop(newGun);
+    // Return the gun to the previous screen
+    Navigator.of(context).pop(gun);
   }
 
   @override
@@ -107,7 +151,7 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               title: Text(
-                "Gun Settings",
+                widget.gun != null ? "Edit Gun" : "Gun Settings",
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                 ),
@@ -145,6 +189,8 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
                   TwistRateInput(
                     controller: _twistRateController,
                     onUpdateTwistRate: _updateTwistRate,
+                    initialTwistDirection: _twistDirection,
+                    onUpdateTwistDirection: _updateTwistDirection,
                   ),
                   const SizedBox(height: 24),
                   // Additional settings can be added here

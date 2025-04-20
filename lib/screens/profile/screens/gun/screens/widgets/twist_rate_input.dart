@@ -5,12 +5,16 @@ class TwistRateInput extends StatefulWidget {
   final TextEditingController controller;
   final double scrollStep;
   final Function(double) onUpdateTwistRate;
+  final int initialTwistDirection; // -1 for unselected, 0 for left, 1 for right
+  final Function(int) onUpdateTwistDirection;
 
   const TwistRateInput({
     super.key,
     required this.controller,
     this.scrollStep = 0.1,
     required this.onUpdateTwistRate,
+    this.initialTwistDirection = -1,
+    required this.onUpdateTwistDirection,
   });
 
   @override
@@ -18,7 +22,13 @@ class TwistRateInput extends StatefulWidget {
 }
 
 class _TwistRateInputState extends State<TwistRateInput> {
-  int _selectedButtonIndex = -1;
+  late int _selectedButtonIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedButtonIndex = widget.initialTwistDirection;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -130,6 +140,7 @@ class _TwistRateInputState extends State<TwistRateInput> {
                     setState(() {
                       _selectedButtonIndex = 0;
                     });
+                    widget.onUpdateTwistDirection(0); // Report left twist selected
                   },
                   child: Card(
                     elevation: 4,
@@ -174,6 +185,7 @@ class _TwistRateInputState extends State<TwistRateInput> {
                     setState(() {
                       _selectedButtonIndex = 1;
                     });
+                    widget.onUpdateTwistDirection(1); // Report right twist selected
                   },
                   child: Card(
                     elevation: 4,
