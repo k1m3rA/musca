@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musca/screens/profile/screens/cartridge/screens/widgets/length_input.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../../models/cartridge_model.dart'; // Import the proper Cartridge model
 import 'widgets/bc_input.dart'; // Import the BC input widget
@@ -19,13 +20,13 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
   late TextEditingController _nameController;
   late TextEditingController _diameterController;
   late TextEditingController _bulletWeightController;
-  late TextEditingController _muzzleVelocityController;
+  late TextEditingController _bulletLengthController;
   late TextEditingController _ballisticCoefficientController;
   
   late String _name;
   late String _diameter;
   late double _bulletWeight;
-  late double _muzzleVelocity;
+  late String _bulletLength;
   late double _ballisticCoefficient;
   late int _bcModelType; // 0 for G1, 1 for G7
   
@@ -41,7 +42,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
       _name = widget.cartridge!.name;
       _diameter = widget.cartridge!.diameter;
       _bulletWeight = widget.cartridge!.bulletWeight;
-      _muzzleVelocity = widget.cartridge!.muzzleVelocity;
+      _bulletLength = widget.cartridge!.bulletLength.toStringAsFixed(3);
       _ballisticCoefficient = widget.cartridge!.ballisticCoefficient;
       _bcModelType = widget.cartridge!.bcModelType ?? 0; // Default to G1 if not specified
     } else {
@@ -49,7 +50,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
       _name = "My Cartridge";
       _diameter = "0.356";
       _bulletWeight = 168.0;
-      _muzzleVelocity = 2700.0;
+      _bulletLength = "3.550";
       _ballisticCoefficient = 0.5;
       _bcModelType = 0; // Default to G1
     }
@@ -57,7 +58,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
     _nameController = TextEditingController(text: _name);
     _diameterController = TextEditingController(text: _diameter);
     _bulletWeightController = TextEditingController(text: _bulletWeight.toStringAsFixed(1));
-    _muzzleVelocityController = TextEditingController(text: _muzzleVelocity.toStringAsFixed(0));
+    _bulletLengthController = TextEditingController(text: _bulletLength);
     _ballisticCoefficientController = TextEditingController(text: _ballisticCoefficient.toStringAsFixed(3));
   }
 
@@ -66,7 +67,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
     _nameController.dispose();
     _diameterController.dispose();
     _bulletWeightController.dispose();
-    _muzzleVelocityController.dispose();
+    _bulletLengthController.dispose();
     _ballisticCoefficientController.dispose();
     super.dispose();
   }
@@ -85,6 +86,23 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
     setState(() {
       _bulletWeight = newWeight;
       _bulletWeightController.text = newWeight.toStringAsFixed(1);
+    });
+  }
+
+  void _updateBulletLengthDelta(double delta) {
+    double currentValue;
+    try {
+      // Try to parse the controller text first
+      currentValue = double.tryParse(_bulletLengthController.text) ?? 0.356;
+    } catch (e) {
+      // Fallback to a default value if parsing fails
+      currentValue = 0.356;
+    }
+    
+    final newValue = (currentValue + delta).clamp(0.01, 20.0); // Reasonable range for bullet diameters in cm
+    setState(() {
+      _bulletLength = newValue.toStringAsFixed(3);
+      _bulletLengthController.text = _bulletLength;
     });
   }
 
@@ -128,7 +146,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
       name: _name,
       diameter: _diameter,
       bulletWeight: _bulletWeight,
-      muzzleVelocity: _muzzleVelocity,
+      bulletLength: double.parse(_bulletLength),
       ballisticCoefficient: _ballisticCoefficient,
       bcModelType: _bcModelType,
     );
@@ -199,6 +217,14 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
                   ),
                   const SizedBox(height: 16),
                   
+                  // Diameter Input - using our updated DiameterInput widget
+                  LengthInput(
+                    controller: _bulletLengthController,
+                    scrollStep: 0.001,
+                    onUpdateLength: _updateBulletLengthDelta,
+                  ),
+                  const SizedBox(height: 16),
+
                   // Replace TextField with WeightInput widget
                   WeightInput(
                     controller: _bulletWeightController,

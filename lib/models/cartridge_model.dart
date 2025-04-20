@@ -5,7 +5,7 @@ class Cartridge {
   final String name;
   final String diameter;
   final double bulletWeight; // in grains
-  final double muzzleVelocity; // in fps
+  final double bulletLength; // in fps
   final double ballisticCoefficient;
   final int? bcModelType; // Add bcModelType field (0 for G1, 1 for G7)
 
@@ -14,13 +14,13 @@ class Cartridge {
     required this.name,
     required this.diameter,
     required this.bulletWeight,
-    required this.muzzleVelocity,
+    required this.bulletLength,
     required this.ballisticCoefficient,
     this.bcModelType, // Add to constructor (optional with default null)
   });
 
   String getDescription() {
-    return '$diameter - ${bulletWeight}gr - ${muzzleVelocity}fps';
+    return '$diameter - ${bulletWeight}gr - ${bulletLength}fps';
   }
 
   // Factory constructor for creating from JSON
@@ -30,7 +30,7 @@ class Cartridge {
       name: json['name'] ?? '',
       diameter: json['diameter'] ?? '',
       bulletWeight: json['bulletWeight']?.toDouble() ?? 0.0,
-      muzzleVelocity: json['muzzleVelocity']?.toDouble() ?? 0.0,
+      bulletLength: json['bulletLength'] ?? '',
       ballisticCoefficient: json['ballisticCoefficient']?.toDouble() ?? 0.0,
       bcModelType: json['bcModelType'], // Add field to from JSON conversion
     );
@@ -43,7 +43,7 @@ class Cartridge {
       'name': name,
       'diameter': diameter,
       'bulletWeight': bulletWeight,
-      'muzzleVelocity': muzzleVelocity,
+      'bulletLength': bulletLength,
       'ballisticCoefficient': ballisticCoefficient,
       'bcModelType': bcModelType, // Add field to JSON conversion
     };
@@ -55,7 +55,7 @@ class Cartridge {
     String? name,
     String? diameter,
     double? bulletWeight,
-    double? muzzleVelocity,
+    double? bulletLength,
     double? ballisticCoefficient,
     int? bcModelType, // Add field to copyWith method
   }) {
@@ -64,7 +64,7 @@ class Cartridge {
       name: name ?? this.name,
       diameter: diameter ?? this.diameter,
       bulletWeight: bulletWeight ?? this.bulletWeight,
-      muzzleVelocity: muzzleVelocity ?? this.muzzleVelocity,
+      bulletLength: bulletLength ?? this.bulletLength,
       ballisticCoefficient: ballisticCoefficient ?? this.ballisticCoefficient,
       bcModelType: bcModelType ?? this.bcModelType, // Use the new field in copyWith
     );
