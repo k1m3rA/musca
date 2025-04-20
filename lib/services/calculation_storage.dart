@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/calculation.dart';
-import '../screens/profile/screens/gun/list_gun_screen.dart'; // Import the Gun class
 import '../models/gun_model.dart';
 
 class CalculationStorage {
