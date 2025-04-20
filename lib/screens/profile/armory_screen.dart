@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'screens/scope/scope_settings_screen.dart';
+import 'screens/scope/list_scope_screen.dart';
 import 'screens/cartridge/list_cartridge_screen.dart';
 import 'screens/gun/list_gun_screen.dart';
 import '../../models/gun_model.dart';
 import '../../models/cartridge_model.dart';
-import '../../services/calculation_storage.dart'; // Add import for CalculationStorage
-import '../../services/cartridge_storage.dart'; // Add import for CartridgeStorage
+import '../../models/scope_model.dart'; // Add import for Scope model
+import '../../services/calculation_storage.dart';
+import '../../services/cartridge_storage.dart';
+import '../../services/scope_storage.dart'; // Add import for ScopeStorage
 
 class ProfileScreen extends StatefulWidget {
   final Function(int) onNavigate;
@@ -23,6 +25,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   Gun? selectedGun;
   Cartridge? selectedCartridge;
+  Scope? selectedScope; // Add selected scope
   bool _isLoading = true;
 
   @override
@@ -58,6 +61,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (e) {
       print('Error loading selected cartridge: $e');
+    }
+
+    // Load saved scope
+    try {
+      final Scope? scope = await ScopeStorage.getSelectedScope();
+      if (scope != null) {
+        setState(() {
+          selectedScope = scope;
+        });
+      }
+    } catch (e) {
+      print('Error loading selected scope: $e');
     }
 
     setState(() {
@@ -157,13 +172,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 25),
                 // Second button - Scope Settings
                 GestureDetector(
-                  onTap: () {
-                    Navigator.push(
+                  onTap: () async {
+                    final Scope? result = await Navigator.push<Scope>(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const ScopeSettingsScreen(),
+                        builder: (context) => ListScopeScreen(selectedScope: selectedScope),
                       ),
                     );
+                    
+                    if (result != null) {
+                      setState(() {
+                        selectedScope = result;
+                      });
+                      // Save the selected scope
+                      await ScopeStorage.saveSelectedScopeId(result.id);
+                    }
                   },
                   child: Card(
                     elevation: 4,
@@ -181,13 +204,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Scope',
+                            selectedScope?.name ?? 'Scope',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
+                          if (selectedScope != null) 
+                            Column(
+                              children: [
+                                Text(
+                                  'Sight Height: ${selectedScope!.sightHeight.toStringAsFixed(2)} ${selectedScope!.units <= 1 ? (selectedScope!.units == 0 ? "in" : "cm") : "in"}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                Text(
+                                  'Click Units: ${selectedScope!.getUnitsDisplayName()}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
                         ],
                       ),
                     ),

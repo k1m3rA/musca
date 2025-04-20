@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/calculation_storage.dart';
+import '../../services/cartridge_storage.dart'; // Add import for CartridgeStorage
+import '../../services/scope_storage.dart'; // Add import for ScopeStorage
 
 class SettingsPage extends StatefulWidget {
   final ValueChanged<ThemeMode> onThemeChanged;
@@ -124,6 +126,106 @@ class _SettingsPageState extends State<SettingsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('All guns have been deleted'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  // Add method to clear all cartridges with confirmation dialog
+  Future<void> _showClearCartridgesConfirmationDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Delete all cartridges?'),
+          content: const Text(
+            'This will permanently delete all your saved cartridges. '
+            'This action cannot be undone.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Delete All'),
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                await _clearAllCartridges();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  // Method to clear all cartridges
+  Future<void> _clearAllCartridges() async {
+    await CartridgeStorage.clearAllCartridges();
+    
+    // Show confirmation to user
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('All cartridges have been deleted'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  // Add method to clear all scopes with confirmation dialog
+  Future<void> _showClearScopesConfirmationDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Delete all scopes?'),
+          content: const Text(
+            'This will permanently delete all your saved scopes. '
+            'This action cannot be undone.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Delete All'),
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                await _clearAllScopes();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  // Method to clear all scopes
+  Future<void> _clearAllScopes() async {
+    await ScopeStorage.clearAllScopes();
+    
+    // Show confirmation to user
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('All scopes have been deleted'),
           duration: Duration(seconds: 2),
         ),
       );
@@ -262,6 +364,72 @@ class _SettingsPageState extends State<SettingsPage> {
                             const SizedBox(height: 6),
                             Text(
                               'Clear Saved Guns',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Clear Cartridges Button
+                  GestureDetector(
+                    onTap: _showClearCartridgesConfirmationDialog,
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.delete_forever,
+                              size: 32,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Clear Saved Cartridges',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Clear Scopes Button
+                  GestureDetector(
+                    onTap: _showClearScopesConfirmationDialog,
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.delete_forever,
+                              size: 32,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Clear Saved Scopes',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
