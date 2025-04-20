@@ -3,14 +3,15 @@ import 'widgets/distance_input.dart';
 import 'widgets/angle_input.dart';
 import 'widgets/wind_speed_input.dart';
 import 'widgets/compass_widget.dart';
-import 'widgets/wind_direction_input.dart'; // Re-added import for WindDirectionInput
-import 'widgets/camera_angle_screen.dart'; // Add this import
+import 'widgets/wind_direction_input.dart';
+import 'widgets/camera_angle_screen.dart';
+import 'widgets/environmental_input.dart'; // Add this import
 import 'package:flutter_compass/flutter_compass.dart';
 import '../../models/calculation.dart';
 import '../../services/calculation_storage.dart';
 
 class CalculatorScreen extends StatefulWidget {
-  final Function(int)? onNavigate; // Add navigation callback
+  final Function(int)? onNavigate;
   
   const CalculatorScreen({super.key, this.onNavigate});
 
@@ -26,13 +27,17 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   double _angle = 0.0;
   final TextEditingController _windSpeedController = TextEditingController(text: '0.0');
   double _windSpeed = 0.0;
-  
-  // Re-added wind direction controller and variable
   final TextEditingController _windDirectionController = TextEditingController(text: '0.0');
   double _windDirection = 0.0;
-  
-  // New variable to track compass availability
   bool _hasCompass = false;
+
+  // Add new controllers and variables for environmental data
+  final TextEditingController _temperatureController = TextEditingController(text: '20.0');
+  double _temperature = 20.0;
+  final TextEditingController _pressureController = TextEditingController(text: '1013.0');
+  double _pressure = 1013.0;
+  final TextEditingController _humidityController = TextEditingController(text: '50.0');
+  double _humidity = 50.0;
 
   @override
   void initState() {
@@ -40,20 +45,23 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     _distanceController.addListener(_updateDistanceFromText);
     _angleController.addListener(_updateAngleFromText);
     _windSpeedController.addListener(_updateWindSpeedFromText);
-    _windDirectionController.addListener(_updateWindDirectionFromText); // Re-added listener
+    _windDirectionController.addListener(_updateWindDirectionFromText);
+    
+    // Add listeners for environmental data
+    _temperatureController.addListener(_updateTemperatureFromText);
+    _pressureController.addListener(_updatePressureFromText);
+    _humidityController.addListener(_updateHumidityFromText);
     
     // Check if compass is available
     _checkCompassAvailability();
   }
-  
-  // Method to check compass availability
+
   Future<void> _checkCompassAvailability() async {
     setState(() {
       _hasCompass = FlutterCompass.events != null;
     });
   }
 
-  // Re-added method to update wind direction from text input
   void _updateWindDirectionFromText() {
     if (_windDirectionController.text.isNotEmpty) {
       try {
@@ -90,6 +98,33 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     }
   }
 
+  void _updateTemperatureFromText() {
+    if (_temperatureController.text.isNotEmpty) {
+      try {
+        final newValue = double.parse(_temperatureController.text);
+        setState(() => _temperature = newValue);
+      } catch (_) {}
+    }
+  }
+
+  void _updatePressureFromText() {
+    if (_pressureController.text.isNotEmpty) {
+      try {
+        final newValue = double.parse(_pressureController.text);
+        setState(() => _pressure = newValue);
+      } catch (_) {}
+    }
+  }
+
+  void _updateHumidityFromText() {
+    if (_humidityController.text.isNotEmpty) {
+      try {
+        final newValue = double.parse(_humidityController.text);
+        setState(() => _humidity = newValue);
+      } catch (_) {}
+    }
+  }
+
   void _updateDistance(double delta) {
     final newDistance = _distance + delta;
     if (newDistance >= 0) {
@@ -120,7 +155,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     }
   }
 
-  // Re-added method to update wind direction
   void _updateWindDirection(double delta) {
     setState(() {
       _windDirection = (_windDirection + delta) % 360;
@@ -129,7 +163,34 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     });
   }
 
-  // Add method to open camera for angle measurement
+  void _updateTemperature(double delta) {
+    final newTemperature = _temperature + delta;
+    setState(() {
+      _temperature = newTemperature;
+      _temperatureController.text = _temperature.toStringAsFixed(1);
+    });
+  }
+
+  void _updatePressure(double delta) {
+    final newPressure = _pressure + delta;
+    if (newPressure > 0) {
+      setState(() {
+        _pressure = newPressure;
+        _pressureController.text = _pressure.toStringAsFixed(1);
+      });
+    }
+  }
+
+  void _updateHumidity(double delta) {
+    final newHumidity = _humidity + delta;
+    if (newHumidity >= 0 && newHumidity <= 100) {
+      setState(() {
+        _humidity = newHumidity;
+        _humidityController.text = _humidity.toStringAsFixed(1);
+      });
+    }
+  }
+
   Future<void> _openCameraForAngle() async {
     final measuredAngle = await Navigator.push<double>(
       context,
@@ -144,20 +205,19 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     }
   }
 
-  // Updated save method to navigate to home after saving
   Future<void> _saveCalculation() async {
-    // Create a new calculation from current values
     final calculation = Calculation(
       distance: _distance,
       angle: _angle,
       windSpeed: _windSpeed,
       windDirection: _windDirection,
+      temperature: _temperature,
+      pressure: _pressure,
+      humidity: _humidity,
     );
     
-    // Save the calculation
     await CalculationStorage.saveCalculation(calculation);
     
-    // Show feedback to user
     if (!mounted) return;
     
     final snackBar = SnackBar(
@@ -169,7 +229,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
     
-    // Navigate to home screen (index 0) after saving
     if (widget.onNavigate != null) {
       widget.onNavigate!(0);
     }
@@ -180,7 +239,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     _distanceController.dispose();
     _angleController.dispose();
     _windSpeedController.dispose();
-    _windDirectionController.dispose(); // Re-added dispose
+    _windDirectionController.dispose(); 
+    _temperatureController.dispose();
+    _pressureController.dispose();
+    _humidityController.dispose();
     super.dispose();
   }
 
@@ -245,18 +307,31 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                       ),
                       
                   const SizedBox(height: 20),
+                  
+                  EnvironmentalInput(
+                    temperatureController: _temperatureController,
+                    pressureController: _pressureController,
+                    humidityController: _humidityController,
+                    scrollStep: 0.5,
+                    onUpdateTemperature: _updateTemperature,
+                    onUpdatePressure: _updatePressure,
+                    onUpdateHumidity: _updateHumidity,
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  const SizedBox(height: 20),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
           ),
         ],
       ),
-      // Add floating action button for saving
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 0.0, right: 7.0), // Move the button slightly upwards and to the left
+        padding: const EdgeInsets.only(bottom: 0.0, right: 7.0),
         child: FloatingActionButton(
           onPressed: _saveCalculation,
-          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.8), // Reduce brightness by lowering opacity
+          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.8),
           child: Icon(Icons.save, color: Theme.of(context).scaffoldBackgroundColor),
         ),
       ),

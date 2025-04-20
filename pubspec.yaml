@@ -41,6 +41,8 @@ dependencies:
   intl: ^0.20.2
   flutter_svg: ^2.0.10+1  # Added for SVG support
   uuid: ^4.3.3  # Added for generating unique identifiers
+  geolocator: ^10.0.0
+  http: ^1.1.0
 
 dev_dependencies:
   flutter_test:
