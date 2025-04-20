@@ -68,7 +68,7 @@ class _NavigationContainerState extends State<NavigationContainer> {
 
   Widget _buildNavItem(int index, IconData? icon, {String? svgAsset}) {
     final isSelected = _currentIndex == index;
-    final iconColor = isSelected 
+    final iconColor = isSelected || Theme.of(context).brightness == Brightness.light
         ? Theme.of(context).colorScheme.primary
         : Theme.of(context).colorScheme.onSurface;
         
