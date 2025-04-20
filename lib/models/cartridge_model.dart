@@ -7,7 +7,8 @@ class Cartridge {
   final double bulletWeight; // in grains
   final double muzzleVelocity; // in fps
   final double ballisticCoefficient;
-  
+  final int? bcModelType; // Add bcModelType field (0 for G1, 1 for G7)
+
   Cartridge({
     required this.id,
     required this.name,
@@ -15,12 +16,13 @@ class Cartridge {
     required this.bulletWeight,
     required this.muzzleVelocity,
     required this.ballisticCoefficient,
+    this.bcModelType, // Add to constructor (optional with default null)
   });
-  
+
   String getDescription() {
     return '$caliber - ${bulletWeight}gr - ${muzzleVelocity}fps';
   }
-  
+
   // Factory constructor for creating from JSON
   factory Cartridge.fromJson(Map<String, dynamic> json) {
     return Cartridge(
@@ -30,9 +32,10 @@ class Cartridge {
       bulletWeight: json['bulletWeight']?.toDouble() ?? 0.0,
       muzzleVelocity: json['muzzleVelocity']?.toDouble() ?? 0.0,
       ballisticCoefficient: json['ballisticCoefficient']?.toDouble() ?? 0.0,
+      bcModelType: json['bcModelType'], // Add field to from JSON conversion
     );
   }
-  
+
   // Convert to JSON for storage
   Map<String, dynamic> toJson() {
     return {
@@ -42,6 +45,28 @@ class Cartridge {
       'bulletWeight': bulletWeight,
       'muzzleVelocity': muzzleVelocity,
       'ballisticCoefficient': ballisticCoefficient,
+      'bcModelType': bcModelType, // Add field to JSON conversion
     };
+  }
+
+  // Add copyWith method
+  Cartridge copyWith({
+    String? id,
+    String? name,
+    String? caliber,
+    double? bulletWeight,
+    double? muzzleVelocity,
+    double? ballisticCoefficient,
+    int? bcModelType, // Add field to copyWith method
+  }) {
+    return Cartridge(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      caliber: caliber ?? this.caliber,
+      bulletWeight: bulletWeight ?? this.bulletWeight,
+      muzzleVelocity: muzzleVelocity ?? this.muzzleVelocity,
+      ballisticCoefficient: ballisticCoefficient ?? this.ballisticCoefficient,
+      bcModelType: bcModelType ?? this.bcModelType, // Use the new field in copyWith
+    );
   }
 }

@@ -1,38 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
 
-class TwistRateInput extends StatefulWidget {
+class BCTypeInput extends StatefulWidget {
   final TextEditingController controller;
   final double scrollStep;
-  final Function(double) onUpdateTwistRate;
-  final int initialTwistDirection; // -1 for unselected, 0 for left, 1 for right
-  final Function(int) onUpdateTwistDirection;
+  final Function(double) onUpdateBCValue;
+  final int initialBCType; 
+  final Function(int) onUpdateBCType;
 
-  const TwistRateInput({
+  const BCTypeInput({
     super.key,
     required this.controller,
-    this.scrollStep = 0.1,
-    required this.onUpdateTwistRate,
-    this.initialTwistDirection = -1,
-    required this.onUpdateTwistDirection,
+    this.scrollStep = 1, 
+    required this.onUpdateBCValue,
+    this.initialBCType = -1,
+    required this.onUpdateBCType,
   });
 
   @override
-  State<TwistRateInput> createState() => _TwistRateInputState();
+  State<BCTypeInput> createState() => _BCTypeInputState();
 }
 
-class _TwistRateInputState extends State<TwistRateInput> {
+class _BCTypeInputState extends State<BCTypeInput> {
   late int _selectedButtonIndex;
+  late FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
-    _selectedButtonIndex = widget.initialTwistDirection;
+    _selectedButtonIndex = widget.initialBCType;
+    _focusNode = FocusNode();
   }
 
   @override
+  void dispose() {
+    // Clean up the focus node when the widget is disposed
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  // Helper method to update BC value with proper formatting
+  void _updateBCValue(double delta) {
+    // Ensure we're working with a valid number
+    String currentValue = widget.controller.text;
+    double? numValue = double.tryParse(currentValue);
+    
+    if (numValue != null) {
+      double newValue = numValue + delta;
+      // Ensure we don't go below zero
+      newValue = newValue > 0 ? newValue : 0;
+      
+      // Format to 3 decimal places for better readability
+      widget.controller.text = newValue.toStringAsFixed(3);
+      widget.onUpdateBCValue(delta);
+    } else {
+      // If current value isn't a number, set a default
+      widget.controller.text = '0.500';
+      widget.onUpdateBCValue(0);
+    }
+  }
+  
+  @override
   Widget build(BuildContext context) {
-    // Define colors based on theme
     final iconColor = Theme.of(context).colorScheme.primary;
 
     return Column(
@@ -41,8 +71,9 @@ class _TwistRateInputState extends State<TwistRateInput> {
         Listener(
           onPointerSignal: (pointerSignal) {
             if (pointerSignal is PointerScrollEvent) {
-              final delta = pointerSignal.scrollDelta.dy > 0 ? -widget.scrollStep * 5 : widget.scrollStep * 5;
-              widget.onUpdateTwistRate(delta);
+              final delta = pointerSignal.scrollDelta.dy > 0 ? -0.001 : 0.001;
+              _updateBCValue(delta);
+              debugPrint('Scroll delta: $delta');
             }
           },
           child: Container(
@@ -52,9 +83,27 @@ class _TwistRateInputState extends State<TwistRateInput> {
                 Expanded(
                   child: TextField(
                     controller: widget.controller,
-                    keyboardType: TextInputType.number,
+                    focusNode: _focusNode,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,3}')),
+                    ],
+                    onTap: () {
+                      // Request unfocus and then focus to reset keyboard state
+                      _focusNode.unfocus();
+                      Future.delayed(const Duration(milliseconds: 50), () {
+                        _focusNode.requestFocus();
+                      });
+                    },
+                    onChanged: (value) {
+                      // Prevent callback loops by only triggering when actual edits happen
+                      if (value.isNotEmpty && double.tryParse(value) != null) {
+                        debugPrint('Text changed to: $value');
+                        // Don't call onUpdateBCValue here as it will create a loop
+                      }
+                    },
                     decoration: InputDecoration(
-                      labelText: 'Twist Rate',
+                      labelText: 'Ballistic Coefficient',
                       labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
                       border: const OutlineInputBorder(
                         borderSide: BorderSide(width: 2.0),
@@ -78,8 +127,9 @@ class _TwistRateInputState extends State<TwistRateInput> {
                 const SizedBox(width: 10),
                 GestureDetector(
                   onVerticalDragUpdate: (details) {
-                    double delta = -details.delta.dy * 0.5;
-                    widget.onUpdateTwistRate(delta);
+                    double delta = -details.delta.dy * 0.001;
+                    _updateBCValue(delta);
+                    debugPrint('Drag delta: $delta');
                   },
                   child: Container(
                     width: 40,
@@ -92,7 +142,10 @@ class _TwistRateInputState extends State<TwistRateInput> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         InkWell(
-                          onTap: () => widget.onUpdateTwistRate(widget.scrollStep * 5),
+                          onTap: () {
+                            _updateBCValue(0.001);
+                            debugPrint('Button up pressed: +0.001');
+                          },
                           child: Container(
                             height: 30,
                             width: 40,
@@ -110,7 +163,10 @@ class _TwistRateInputState extends State<TwistRateInput> {
                           ),
                         ),
                         InkWell(
-                          onTap: () => widget.onUpdateTwistRate(-widget.scrollStep * 5),
+                          onTap: () {
+                            _updateBCValue(-0.001);
+                            debugPrint('Button down pressed: -0.001');
+                          },
                           child: Container(
                             height: 30,
                             width: 40,
@@ -140,7 +196,7 @@ class _TwistRateInputState extends State<TwistRateInput> {
                     setState(() {
                       _selectedButtonIndex = 0;
                     });
-                    widget.onUpdateTwistDirection(0); // Report left twist selected
+                    widget.onUpdateBCType(0); // Report G1 selected
                   },
                   child: Card(
                     elevation: 4,
@@ -153,16 +209,19 @@ class _TwistRateInputState extends State<TwistRateInput> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Image.asset(
-                            'assets/icon/counterclockwise.png',
-                            height: 80,
-                            color: _selectedButtonIndex == 0
-                              ? Theme.of(context).colorScheme.background
-                              : Theme.of(context).colorScheme.primary,
+                          Text(
+                            'G1',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: _selectedButtonIndex == 0
+                                ? Theme.of(context).colorScheme.background
+                                : Theme.of(context).colorScheme.primary,
+                            ),
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Left Twist',
+                            'G1',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -185,7 +244,7 @@ class _TwistRateInputState extends State<TwistRateInput> {
                     setState(() {
                       _selectedButtonIndex = 1;
                     });
-                    widget.onUpdateTwistDirection(1); // Report right twist selected
+                    widget.onUpdateBCType(1); // Report G7 selected
                   },
                   child: Card(
                     elevation: 4,
@@ -198,16 +257,19 @@ class _TwistRateInputState extends State<TwistRateInput> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Image.asset(
-                            'assets/icon/clockwise.png',
-                            height: 80,
-                            color: _selectedButtonIndex == 1
-                              ? Theme.of(context).colorScheme.background
-                              : Theme.of(context).colorScheme.primary,
+                          Text(
+                            'G7',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: _selectedButtonIndex == 1
+                                ? Theme.of(context).colorScheme.background
+                                : Theme.of(context).colorScheme.primary,
+                            ),
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Right Twist',
+                            'G7',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

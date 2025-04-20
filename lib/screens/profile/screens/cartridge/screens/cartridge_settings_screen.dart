@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../../models/cartridge_model.dart'; // Import the proper Cartridge model
+import 'widgets/bc_input.dart'; // Import the BC input widget
 
 class CartridgeSettingsScreen extends StatefulWidget {
   final Cartridge? cartridge;
@@ -23,6 +24,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
   late double _bulletWeight;
   late double _muzzleVelocity;
   late double _ballisticCoefficient;
+  late int _bcModelType; // 0 for G1, 1 for G7
   
   String? _cartridgeId;
 
@@ -38,6 +40,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
       _bulletWeight = widget.cartridge!.bulletWeight;
       _muzzleVelocity = widget.cartridge!.muzzleVelocity;
       _ballisticCoefficient = widget.cartridge!.ballisticCoefficient;
+      _bcModelType = widget.cartridge!.bcModelType ?? 0; // Default to G1 if not specified
     } else {
       // Default values for new cartridge
       _name = "My Cartridge";
@@ -45,6 +48,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
       _bulletWeight = 168.0;
       _muzzleVelocity = 2700.0;
       _ballisticCoefficient = 0.5;
+      _bcModelType = 0; // Default to G1
     }
     
     _nameController = TextEditingController(text: _name);
@@ -93,14 +97,20 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
       });
     }
   }
+    
+  void _updateBCDelta(double delta) {
+    final currentValue = double.tryParse(_ballisticCoefficientController.text) ?? _ballisticCoefficient;
+    final newValue = (currentValue + delta).clamp(0.001, 1.0);
+    setState(() {
+      _ballisticCoefficient = newValue;
+      _ballisticCoefficientController.text = newValue.toStringAsFixed(3);
+    });
+  }
   
-  void _updateBallisticCoefficient(String value) {
-    final bc = double.tryParse(value);
-    if (bc != null) {
-      setState(() {
-        _ballisticCoefficient = bc;
-      });
-    }
+  void _updateBCModelType(int modelType) {
+    setState(() {
+      _bcModelType = modelType;
+    });
   }
 
   void _saveAndNavigateBack() {
@@ -112,6 +122,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
       bulletWeight: _bulletWeight,
       muzzleVelocity: _muzzleVelocity,
       ballisticCoefficient: _ballisticCoefficient,
+      bcModelType: _bcModelType,
     );
     
     // Show feedback to user
@@ -164,165 +175,64 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
               delegate: SliverChildListDelegate(
                 [
                   const SizedBox(height: 10),
+                  
                   // Name Input
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Cartridge Name',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _nameController,
-                            onChanged: _updateName,
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              hintText: 'Enter cartridge name',
-                            ),
-                          ),
-                        ],
-                      ),
+                  TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Cartridge Name',
+                      border: OutlineInputBorder(),
                     ),
+                    onChanged: _updateName,
                   ),
                   const SizedBox(height: 16),
+                  
                   // Caliber Input
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Caliber',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _caliberController,
-                            onChanged: _updateCaliber,
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              hintText: 'Enter caliber (e.g., .308, 6.5mm)',
-                            ),
-                          ),
-                        ],
-                      ),
+                  TextField(
+                    controller: _caliberController,
+                    decoration: InputDecoration(
+                      labelText: 'Caliber',
+                      border: OutlineInputBorder(),
                     ),
+                    onChanged: _updateCaliber,
                   ),
                   const SizedBox(height: 16),
+                  
                   // Bullet Weight Input
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Bullet Weight (grains)',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _bulletWeightController,
-                            onChanged: _updateBulletWeight,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              hintText: 'Enter bullet weight',
-                              suffixText: 'grains',
-                            ),
-                          ),
-                        ],
-                      ),
+                  TextField(
+                    controller: _bulletWeightController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Bullet Weight',
+                      border: OutlineInputBorder(),
+                      suffixText: 'gr',
                     ),
+                    onChanged: _updateBulletWeight,
                   ),
                   const SizedBox(height: 16),
+                  
                   // Muzzle Velocity Input
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Muzzle Velocity (fps)',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _muzzleVelocityController,
-                            onChanged: _updateMuzzleVelocity,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              hintText: 'Enter muzzle velocity',
-                              suffixText: 'fps',
-                            ),
-                          ),
-                        ],
-                      ),
+                  TextField(
+                    controller: _muzzleVelocityController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Muzzle Velocity',
+                      border: OutlineInputBorder(),
+                      suffixText: 'fps',
                     ),
+                    onChanged: _updateMuzzleVelocity,
                   ),
                   const SizedBox(height: 16),
+                  
                   // Ballistic Coefficient Input
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Ballistic Coefficient',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _ballisticCoefficientController,
-                            onChanged: _updateBallisticCoefficient,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              hintText: 'Enter ballistic coefficient',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  BCTypeInput(
+                    controller: _ballisticCoefficientController,
+                    scrollStep: 0.001,
+                    onUpdateBCType: (int value) => _updateBCDelta(value.toDouble()),
+                    initialBCType: _bcModelType,
+                    onUpdateBCValue: (double value) => _updateBCModelType(value.toInt()),
                   ),
+                  
                   const SizedBox(height: 24),
                 ],
               ),
