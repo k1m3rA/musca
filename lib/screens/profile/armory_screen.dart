@@ -3,7 +3,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'screens/scope/scope_settings_screen.dart';
 import 'screens/cartridge/list_cartridge_screen.dart';
 import 'screens/gun/list_gun_screen.dart';
-import '../../models/gun_model.dart'; // Import the new Gun model
+import '../../models/gun_model.dart';
+import '../../models/cartridge_model.dart'; // Add import for Cartridge model
 
 class ProfileScreen extends StatefulWidget {
   final Function(int) onNavigate;
@@ -19,6 +20,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   Gun? selectedGun;
+  Cartridge? selectedCartridge; // Add variable for selected cartridge
 
   @override
   Widget build(BuildContext context) {
@@ -39,148 +41,171 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ),
-          SliverFillRemaining(
-            hasScrollBody: true,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 25),
-                  // First button - Gun Settings
-                  GestureDetector(
-                    onTap: () async {
-                      final Gun? result = await Navigator.push<Gun>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ListGunsScreen(selectedGun: selectedGun),
-                        ),
-                      );
-                      
-                      if (result != null) {
-                        setState(() {
-                          selectedGun = result;
-                        });
-                      }
-                    },
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SvgPicture.asset(
-                              'assets/icon/rifle.svg',
-                              height: 50,
-                              width: 50,
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                const SizedBox(height: 25),
+                // First button - Gun Settings
+                GestureDetector(
+                  onTap: () async {
+                    final Gun? result = await Navigator.push<Gun>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ListGunsScreen(selectedGun: selectedGun),
+                      ),
+                    );
+                    
+                    if (result != null) {
+                      setState(() {
+                        selectedGun = result;
+                      });
+                    }
+                  },
+                  child: Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/icon/rifle.svg',
+                            height: 50,
+                            width: 50,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            selectedGun?.name ?? 'Gun',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                               color: Theme.of(context).colorScheme.primary,
                             ),
-                            const SizedBox(height: 16),
+                          ),
+                          if (selectedGun != null)
                             Text(
-                              selectedGun?.name ?? 'Gun',
+                              selectedGun!.getDescription(),
                               style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
+                                fontSize: 12,
+                                color: Colors.grey[600],
                               ),
+                              textAlign: TextAlign.center,
                             ),
-                            if (selectedGun != null)
-                              Text(
-                                selectedGun!.getDescription(),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 25),
+                // Second button - Scope Settings
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ScopeSettingsScreen(),
+                      ),
+                    );
+                  },
+                  child: Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/icon/scope.svg',
+                            height: 50,
+                            width: 50,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Scope',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 25),
+                // Third button - Cartridge settings
+                GestureDetector(
+                  onTap: () async {
+                    final Cartridge? result = await Navigator.push<Cartridge>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ListCartridgeScreen(selectedCartridge: selectedCartridge),
+                      ),
+                    );
+                    
+                    if (result != null) {
+                      setState(() {
+                        selectedCartridge = result;
+                      });
+                    }
+                  },
+                  child: Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/icon/bullet.svg',
+                            height: 50,
+                            width: 50,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            selectedCartridge?.name ?? 'Cartridge',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                          if (selectedCartridge != null)
+                            Column(
+                              children: [
+                                Text(
+                                  'Diameter: ${selectedCartridge!.diameter} in · Weight: ${selectedCartridge!.bulletWeight} gr',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                textAlign: TextAlign.center,
-                              ),
-                          ],
-                        ),
+                                Text(
+                                  'BC: ${selectedCartridge!.ballisticCoefficient.toStringAsFixed(3)} ${selectedCartridge!.bcModelType == 0 ? "G1" : "G7"}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                        ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 25),
-                  // Second button - Scope Settings
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ScopeSettingsScreen(),
-                        ),
-                      );
-                    },
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SvgPicture.asset(
-                              'assets/icon/scope.svg',
-                              height: 50,
-                              width: 50,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Scope',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 25),
-                  // Third button - Cartridge settings
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ListCartridgeScreen(),
-                        ),
-                      );
-                    },
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SvgPicture.asset(
-                              'assets/icon/bullet.svg',
-                              height: 50,
-                              width: 50,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Cartridge',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 25), // Add some padding at the bottom
+              ]),
             ),
           ),
         ],
