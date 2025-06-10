@@ -9,6 +9,7 @@ import 'widgets/environmental_input.dart'; // Add this import
 import 'package:flutter_compass/flutter_compass.dart';
 import '../../models/calculation.dart';
 import '../../services/calculation_storage.dart';
+import '../../services/ballistics_calculator.dart';
 
 class CalculatorScreen extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -204,8 +205,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       });
     }
   }
-
   Future<void> _saveCalculation() async {
+    // Calculate ballistics results
+    final ballisticsResult = BallisticsCalculator.calculate(
+      _distance,
+      _windSpeed,
+      _windDirection,
+    );
+    
     final calculation = Calculation(
       distance: _distance,
       angle: _angle,
@@ -214,6 +221,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       temperature: _temperature,
       pressure: _pressure,
       humidity: _humidity,
+      driftHorizontal: ballisticsResult.driftHorizontal,
+      dropVertical: ballisticsResult.dropVertical,
+      driftMrad: ballisticsResult.driftMrad,
+      dropMrad: ballisticsResult.dropMrad,
+      driftMoa: ballisticsResult.driftMoa,
+      dropMoa: ballisticsResult.dropMoa,
     );
     
     await CalculationStorage.saveCalculation(calculation);
@@ -221,7 +234,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     if (!mounted) return;
     
     final snackBar = SnackBar(
-      content: const Text('Shot saved!'),
+      content: const Text('Shot saved with ballistics calculations!'),
       backgroundColor: Colors.green,
       behavior: SnackBarBehavior.floating,
       margin: const EdgeInsets.only(left: 16.0, right: 16.0),

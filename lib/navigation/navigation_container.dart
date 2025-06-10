@@ -21,6 +21,7 @@ class NavigationContainer extends StatefulWidget {
 
 class _NavigationContainerState extends State<NavigationContainer> {
   int _currentIndex = 0;
+  DateTime _lastHomeRefresh = DateTime.now();
 
   @override
   void initState() {
@@ -29,15 +30,19 @@ class _NavigationContainerState extends State<NavigationContainer> {
 
   void _changeScreen(int index) {
     print('Navigation requested to screen index: $index'); // Debug print
+    final previousIndex = _currentIndex;
     setState(() {
       _currentIndex = index;
+      // Refresh home screen when navigating to it from another screen
+      if (index == 0 && previousIndex != 0) {
+        _lastHomeRefresh = DateTime.now();
+      }
     });
-  }
-
-  @override
+  }  @override
   Widget build(BuildContext context) {
     final List<Widget> screens = [
       HomeContent(
+        key: ValueKey(_lastHomeRefresh.millisecondsSinceEpoch),
         title: widget.title,
         onNavigateTo: _changeScreen,
       ),

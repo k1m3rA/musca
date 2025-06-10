@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/calculation.dart';
 import '../models/gun_model.dart';
+import 'ballistics_calculator.dart';
 
 class CalculationStorage {
   static const String _storageKey = 'saved_calculations';
@@ -13,17 +14,38 @@ class CalculationStorage {
   static Future<void> saveCalculation(Calculation calculation) async {
     final prefs = await SharedPreferences.getInstance();
     
+    try {
+      // Calculate ballistics results
+      final ballisticsResult = BallisticsCalculator.calculate(
+        calculation.distance,
+        calculation.windSpeed,
+        calculation.windDirection,
+      );
+      
+      // Create calculation with ballistics results
+      final calculationWithBallistics = calculation.copyWith(
+        driftHorizontal: ballisticsResult.driftHorizontal,
+        dropVertical: ballisticsResult.dropVertical,
+        driftMrad: ballisticsResult.driftMrad,
+        dropMrad: ballisticsResult.dropMrad,
+        driftMoa: ballisticsResult.driftMoa,
+        dropMoa: ballisticsResult.dropMoa,
+      );
+    
     // Get existing calculations
     List<Calculation> calculations = await getCalculations();
     
     // Add new calculation
-    calculations.add(calculation);
+    calculations.add(calculationWithBallistics);
     
     // Convert to list of JSON objects
     final jsonList = calculations.map((calc) => calc.toJson()).toList();
     
     // Save as JSON string
     await prefs.setString(_storageKey, jsonEncode(jsonList));
+    } catch (e) {
+      print('Error saving calculation: $e');
+    }
   }
 
   // Get all saved calculations

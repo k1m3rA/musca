@@ -192,7 +192,7 @@ class _HomeContentState extends State<HomeContent> {
   }
 }
 
-class CalculationCard extends StatelessWidget {
+class CalculationCard extends StatefulWidget {
   final Calculation calculation;
   final VoidCallback onDelete;
   
@@ -201,13 +201,20 @@ class CalculationCard extends StatelessWidget {
     required this.calculation,
     required this.onDelete,
   });
+
+  @override
+  State<CalculationCard> createState() => _CalculationCardState();
+}
+
+class _CalculationCardState extends State<CalculationCard> {
+  String _selectedUnit = 'meters'; // Default unit
   
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
     
     return Dismissible(
-      key: Key('calculation-${calculation.timestamp.toIso8601String()}'),
+      key: Key('calculation-${widget.calculation.timestamp.toIso8601String()}'),
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: AlignmentDirectional.centerEnd,
@@ -218,7 +225,7 @@ class CalculationCard extends StatelessWidget {
           color: Colors.white,
         ),
       ),
-      onDismissed: (_) => onDelete(),
+      onDismissed: (_) => widget.onDelete(),
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         elevation: 2,
@@ -231,7 +238,7 @@ class CalculationCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Calculation',
+                    'Shot Calculation',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -239,13 +246,12 @@ class CalculationCard extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        dateFormat.format(calculation.timestamp),
+                        dateFormat.format(widget.calculation.timestamp),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                       const SizedBox(width: 8),
-                      // Add delete button
                       InkWell(
-                        onTap: onDelete,
+                        onTap: widget.onDelete,
                         borderRadius: BorderRadius.circular(12),
                         child: Padding(
                           padding: const EdgeInsets.all(4.0),
@@ -261,14 +267,75 @@ class CalculationCard extends StatelessWidget {
                 ],
               ),
               const Divider(),
-              _buildDataRow(context, 'Distance', '${calculation.distance.toStringAsFixed(1)} m'),
-              _buildDataRow(context, 'Angle', '${calculation.angle.toStringAsFixed(1)}°'),
-              _buildDataRow(context, 'Wind Speed', '${calculation.windSpeed.toStringAsFixed(1)} m/s'),
-              _buildDataRow(context, 'Wind Direction', '${calculation.windDirection.toStringAsFixed(1)}°'),
+              _buildDataRow(context, 'Distance', '${widget.calculation.distance.toStringAsFixed(1)} m'),
+              _buildDataRow(context, 'Angle', '${widget.calculation.angle.toStringAsFixed(1)}°'),
+              _buildDataRow(context, 'Wind Speed', '${widget.calculation.windSpeed.toStringAsFixed(1)} m/s'),
+              _buildDataRow(context, 'Wind Direction', '${widget.calculation.windDirection.toStringAsFixed(1)}°'),
+              
+              // Add ballistics results section
+              if (widget.calculation.driftHorizontal != null) ...[
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Ballistics Results',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    DropdownButton<String>(
+                      value: _selectedUnit,
+                      underline: Container(),
+                      items: const [
+                        DropdownMenuItem(value: 'meters', child: Text('Meters')),
+                        DropdownMenuItem(value: 'mrad', child: Text('MRAD')),
+                        DropdownMenuItem(value: 'moa', child: Text('MOA')),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedUnit = value!;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                _buildBallisticsResults(),
+              ],
             ],
           ),
         ),
       ),
+    );
+  }
+  
+  Widget _buildBallisticsResults() {
+    String driftValue, dropValue, unit;
+    
+    switch (_selectedUnit) {
+      case 'mrad':
+        driftValue = widget.calculation.driftMrad?.toStringAsFixed(2) ?? '0.00';
+        dropValue = widget.calculation.dropMrad?.toStringAsFixed(2) ?? '0.00';
+        unit = 'mrad';
+        break;
+      case 'moa':
+        driftValue = widget.calculation.driftMoa?.toStringAsFixed(2) ?? '0.00';
+        dropValue = widget.calculation.dropMoa?.toStringAsFixed(2) ?? '0.00';
+        unit = 'MOA';
+        break;
+      default: // meters
+        driftValue = widget.calculation.driftHorizontal?.toStringAsFixed(3) ?? '0.000';
+        dropValue = widget.calculation.dropVertical?.toStringAsFixed(3) ?? '0.000';
+        unit = 'm';
+    }
+    
+    return Column(
+      children: [
+        _buildDataRow(context, 'Horizontal Drift', '$driftValue $unit'),
+        _buildDataRow(context, 'Vertical Drop', '$dropValue $unit'),
+      ],
     );
   }
   

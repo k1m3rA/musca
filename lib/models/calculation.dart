@@ -8,6 +8,14 @@ class Calculation {
   final double pressure;
   final double humidity;
 
+  // Add ballistics results
+  final double? driftHorizontal;
+  final double? dropVertical;
+  final double? driftMrad;
+  final double? dropMrad;
+  final double? driftMoa;
+  final double? dropMoa;
+
   Calculation({
     required this.distance,
     required this.angle,
@@ -17,6 +25,12 @@ class Calculation {
     this.temperature = 20.0,  // Default values for environmental data
     this.pressure = 1013.0,
     this.humidity = 50.0,
+    this.driftHorizontal,
+    this.dropVertical,
+    this.driftMrad,
+    this.dropMrad,
+    this.driftMoa,
+    this.dropMoa,
   }) : timestamp = timestamp ?? DateTime.now();
 
   // Convert to JSON for storage
@@ -30,6 +44,12 @@ class Calculation {
       'temperature': temperature,
       'pressure': pressure,
       'humidity': humidity,
+      'driftHorizontal': driftHorizontal,
+      'dropVertical': dropVertical,
+      'driftMrad': driftMrad,
+      'dropMrad': dropMrad,
+      'driftMoa': driftMoa,
+      'dropMoa': dropMoa,
     };
   }
 
@@ -44,6 +64,46 @@ class Calculation {
       temperature: json['temperature'] ?? 20.0,
       pressure: json['pressure'] ?? 1013.0,
       humidity: json['humidity'] ?? 50.0,
+      driftHorizontal: json['driftHorizontal']?.toDouble(),
+      dropVertical: json['dropVertical']?.toDouble(),
+      driftMrad: json['driftMrad']?.toDouble(),
+      dropMrad: json['dropMrad']?.toDouble(),
+      driftMoa: json['driftMoa']?.toDouble(),
+      dropMoa: json['dropMoa']?.toDouble(),
+    );
+  }
+
+  Calculation copyWith({
+    double? distance,
+    double? angle,
+    double? windSpeed,
+    double? windDirection,
+    DateTime? timestamp,
+    double? temperature,
+    double? pressure,
+    double? humidity,
+    double? driftHorizontal,
+    double? dropVertical,
+    double? driftMrad,
+    double? dropMrad,
+    double? driftMoa,
+    double? dropMoa,
+  }) {
+    return Calculation(
+      distance: distance ?? this.distance,
+      angle: angle ?? this.angle,
+      windSpeed: windSpeed ?? this.windSpeed,
+      windDirection: windDirection ?? this.windDirection,
+      timestamp: timestamp ?? this.timestamp,
+      temperature: temperature ?? this.temperature,
+      pressure: pressure ?? this.pressure,
+      humidity: humidity ?? this.humidity,
+      driftHorizontal: driftHorizontal ?? this.driftHorizontal,
+      dropVertical: dropVertical ?? this.dropVertical,
+      driftMrad: driftMrad ?? this.driftMrad,
+      dropMrad: dropMrad ?? this.dropMrad,
+      driftMoa: driftMoa ?? this.driftMoa,
+      dropMoa: dropMoa ?? this.dropMoa,
     );
   }
 }
