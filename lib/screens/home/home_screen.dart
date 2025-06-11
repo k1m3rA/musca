@@ -259,8 +259,7 @@ class _HomeContentState extends State<HomeContent> {
       'Centimeters',
       'Meters',
     ];
-  }
-  Map<String, dynamic> _getCorrectionsForUnit(String unit, Calculation calculation) {
+  }  Map<String, dynamic> _getCorrectionsForUnit(String unit, Calculation calculation) {
     switch (unit) {
       case 'MRAD':
         return {
@@ -269,12 +268,12 @@ class _HomeContentState extends State<HomeContent> {
           'unit': 'MRAD'
         };
       case '1/20 MRAD':
-        final driftMrad20 = ((calculation.driftMrad ?? 0.0) / 0.05).round() * 0.05;
-        final dropMrad20 = ((calculation.dropMrad ?? 0.0) / 0.05).round() * 0.05;
+        final driftClicks = ((calculation.driftMrad ?? 0.0) / 0.05).round();
+        final dropClicks = ((calculation.dropMrad ?? 0.0) / 0.05).round();
         return {
-          'drift': driftMrad20,
-          'drop': dropMrad20,
-          'unit': 'MRAD'
+          'drift': driftClicks.toDouble(),
+          'drop': dropClicks.toDouble(),
+          'unit': '1/20 MRAD'
         };
       case 'MOA':
         return {
@@ -283,37 +282,37 @@ class _HomeContentState extends State<HomeContent> {
           'unit': 'MOA'
         };
       case '1/2 MOA':
-        final driftMoa2 = ((calculation.driftMoa ?? 0.0) / 0.5).round() * 0.5;
-        final dropMoa2 = ((calculation.dropMoa ?? 0.0) / 0.5).round() * 0.5;
+        final driftClicks = ((calculation.driftMoa ?? 0.0) / 0.5).round();
+        final dropClicks = ((calculation.dropMoa ?? 0.0) / 0.5).round();
         return {
-          'drift': driftMoa2,
-          'drop': dropMoa2,
-          'unit': 'MOA'
+          'drift': driftClicks.toDouble(),
+          'drop': dropClicks.toDouble(),
+          'unit': '1/2 MOA'
         };
       case '1/3 MOA':
         const double oneThird = 1.0 / 3.0;
-        final driftMoa3 = ((calculation.driftMoa ?? 0.0) / oneThird).round() * oneThird;
-        final dropMoa3 = ((calculation.dropMoa ?? 0.0) / oneThird).round() * oneThird;
+        final driftClicks = ((calculation.driftMoa ?? 0.0) / oneThird).round();
+        final dropClicks = ((calculation.dropMoa ?? 0.0) / oneThird).round();
         return {
-          'drift': driftMoa3,
-          'drop': dropMoa3,
-          'unit': 'MOA'
+          'drift': driftClicks.toDouble(),
+          'drop': dropClicks.toDouble(),
+          'unit': '1/3 MOA'
         };
       case '1/4 MOA':
-        final driftMoa4 = ((calculation.driftMoa ?? 0.0) / 0.25).round() * 0.25;
-        final dropMoa4 = ((calculation.dropMoa ?? 0.0) / 0.25).round() * 0.25;
+        final driftClicks = ((calculation.driftMoa ?? 0.0) / 0.25).round();
+        final dropClicks = ((calculation.dropMoa ?? 0.0) / 0.25).round();
         return {
-          'drift': driftMoa4,
-          'drop': dropMoa4,
-          'unit': 'MOA'
+          'drift': driftClicks.toDouble(),
+          'drop': dropClicks.toDouble(),
+          'unit': '1/4 MOA'
         };
       case '1/8 MOA':
-        final driftMoa8 = ((calculation.driftMoa ?? 0.0) / 0.125).round() * 0.125;
-        final dropMoa8 = ((calculation.dropMoa ?? 0.0) / 0.125).round() * 0.125;
+        final driftClicks = ((calculation.driftMoa ?? 0.0) / 0.125).round();
+        final dropClicks = ((calculation.dropMoa ?? 0.0) / 0.125).round();
         return {
-          'drift': driftMoa8,
-          'drop': dropMoa8,
-          'unit': 'MOA'
+          'drift': driftClicks.toDouble(),
+          'drop': dropClicks.toDouble(),
+          'unit': '1/8 MOA'
         };
       case 'Inches':
         final driftInches = (calculation.driftHorizontal ?? 0) * 39.3701;
@@ -339,20 +338,19 @@ class _HomeContentState extends State<HomeContent> {
           'unit': 'm'
         };
     }
-  }
-  int _getPrecisionForUnit(String unit) {
+  }  int _getPrecisionForUnit(String unit) {
     switch (unit) {
       case 'MRAD':
+        return 2;
       case '1/20 MRAD':
-        return 2;
+        return 0; // Show whole clicks
       case 'MOA':
-      case '1/2 MOA':
-      case '1/4 MOA':
         return 2;
+      case '1/2 MOA':
       case '1/3 MOA':
-        return 3;
+      case '1/4 MOA':
       case '1/8 MOA':
-        return 3;
+        return 0; // Show whole clicks
       case 'in':
         return 2;
       case 'cm':
@@ -606,13 +604,17 @@ class _CalculationCardState extends State<CalculationCard> {
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.primary,
                       ),
-                    ),
-                    DropdownButton<String>(
+                    ),                    DropdownButton<String>(
                       value: _selectedUnit,
                       underline: Container(),
                       items: [
                         const DropdownMenuItem(value: 'MRAD', child: Text('MRAD')),
+                        const DropdownMenuItem(value: '1/20 MRAD', child: Text('1/20 MRAD')),
                         const DropdownMenuItem(value: 'MOA', child: Text('MOA')),
+                        const DropdownMenuItem(value: '1/2 MOA', child: Text('1/2 MOA')),
+                        const DropdownMenuItem(value: '1/3 MOA', child: Text('1/3 MOA')),
+                        const DropdownMenuItem(value: '1/4 MOA', child: Text('1/4 MOA')),
+                        const DropdownMenuItem(value: '1/8 MOA', child: Text('1/8 MOA')),
                         const DropdownMenuItem(value: 'Inches', child: Text('Inches')),
                         const DropdownMenuItem(value: 'Centimeters', child: Text('Centimeters')),
                         const DropdownMenuItem(value: 'Meters', child: Text('Meters')),
@@ -634,7 +636,6 @@ class _CalculationCardState extends State<CalculationCard> {
       ),
     );
   }
-  
   Widget _buildBallisticsResults() {
     String driftValue, dropValue, unit;
     
@@ -644,10 +645,46 @@ class _CalculationCardState extends State<CalculationCard> {
         dropValue = widget.calculation.dropMrad?.toStringAsFixed(2) ?? '0.00';
         unit = 'MRAD';
         break;
+      case '1/20 MRAD':
+        final driftClicks = ((widget.calculation.driftMrad ?? 0.0) / 0.05).round();
+        final dropClicks = ((widget.calculation.dropMrad ?? 0.0) / 0.05).round();
+        driftValue = driftClicks.toString();
+        dropValue = dropClicks.toString();
+        unit = '1/20 MRAD';
+        break;
       case 'MOA':
         driftValue = widget.calculation.driftMoa?.toStringAsFixed(2) ?? '0.00';
         dropValue = widget.calculation.dropMoa?.toStringAsFixed(2) ?? '0.00';
         unit = 'MOA';
+        break;
+      case '1/2 MOA':
+        final driftClicks = ((widget.calculation.driftMoa ?? 0.0) / 0.5).round();
+        final dropClicks = ((widget.calculation.dropMoa ?? 0.0) / 0.5).round();
+        driftValue = driftClicks.toString();
+        dropValue = dropClicks.toString();
+        unit = '1/2 MOA';
+        break;
+      case '1/3 MOA':
+        const double oneThird = 1.0 / 3.0;
+        final driftClicks = ((widget.calculation.driftMoa ?? 0.0) / oneThird).round();
+        final dropClicks = ((widget.calculation.dropMoa ?? 0.0) / oneThird).round();
+        driftValue = driftClicks.toString();
+        dropValue = dropClicks.toString();
+        unit = '1/3 MOA';
+        break;
+      case '1/4 MOA':
+        final driftClicks = ((widget.calculation.driftMoa ?? 0.0) / 0.25).round();
+        final dropClicks = ((widget.calculation.dropMoa ?? 0.0) / 0.25).round();
+        driftValue = driftClicks.toString();
+        dropValue = dropClicks.toString();
+        unit = '1/4 MOA';
+        break;
+      case '1/8 MOA':
+        final driftClicks = ((widget.calculation.driftMoa ?? 0.0) / 0.125).round();
+        final dropClicks = ((widget.calculation.dropMoa ?? 0.0) / 0.125).round();
+        driftValue = driftClicks.toString();
+        dropValue = dropClicks.toString();
+        unit = '1/8 MOA';
         break;
       case 'Inches':
         // Convert from meters to inches
