@@ -216,9 +216,9 @@ class BallisticsCalculator {
     Gun? gun,
     Cartridge? cartridge,
     Scope? scope, {
-    double? temperature,
-    double? pressure,
-    double? humidity,
+    required double temperature,  // Made required
+    required double pressure,     // Made required  
+    required double humidity,     // Made required
   }) {
     // Strict validation - no fallbacks allowed
     if (gun == null) {
@@ -235,10 +235,10 @@ class BallisticsCalculator {
       throw ArgumentError('Distance must be greater than 0');
     }
     
-    // Use provided environmental data or defaults
-    final double envTemperature = temperature ?? 15.0; // °C
-    final double envPressure = pressure ?? 1013.25; // mbar (convert to Pa below)
-    final double envHumidity = humidity ?? 50.0; // %
+    // Use strictly the provided environmental data from calculator screen
+    final double envTemperature = temperature; // °C - strictly from screen
+    final double envPressure = pressure; // mbar - strictly from screen
+    final double envHumidity = humidity; // % - strictly from screen
     
     // Convert pressure from mbar to Pa if needed
     final double pressurePa = envPressure < 10000 ? envPressure * 100 : envPressure;

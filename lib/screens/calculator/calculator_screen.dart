@@ -289,9 +289,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _selectedGun!,
         _selectedCartridge!,
         _selectedScope!,
-        temperature: _temperature,
-        pressure: _pressure,
-        humidity: _humidity,
+        temperature: _temperature,  // Always use current screen value
+        pressure: _pressure,        // Always use current screen value
+        humidity: _humidity,        // Always use current screen value
       );
       
       final calculation = Calculation(
@@ -407,9 +407,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           _selectedGun!,
           _selectedCartridge!,
           _selectedScope!,
-          temperature: _temperature,
-          pressure: _pressure,
-          humidity: _humidity,
+          temperature: _temperature,  // Always use current screen value
+          pressure: _pressure,        // Always use current screen value
+          humidity: _humidity,        // Always use current screen value
         );
         setState(() {
           _ballisticsResult = result;
