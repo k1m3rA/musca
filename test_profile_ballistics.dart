@@ -47,18 +47,46 @@ void main() {
     final windDirection = scenario['windDirection'] as double;
     final name = scenario['name'] as String;
     
-    print('SCENARIO: $name');
-    print('Distance: ${distance}m, Wind: ${windSpeed}m/s @ ${windDirection}°');
+    print('SCENARIO: $name');    print('Distance: ${distance}m, Wind: ${windSpeed}m/s @ ${windDirection}°');
     print('');
     
-    // Test with hardcoded constants (original method)
-    final resultOriginal = BallisticsCalculator.calculate(
+    // Create default profiles for comparison (similar to old hardcoded constants)
+    final defaultGun = Gun(
+      id: 'default-gun',
+      name: 'Default .308',
+      twistRate: 12.0, // 1:12 twist (default)
+      twistDirection: 1, // Right twist
+      muzzleVelocity: 820.0, // m/s (old hardcoded value)
+      zeroRange: 100.0, // 100m zero (old hardcoded value)
+    );
+    
+    final defaultCartridge = Cartridge(
+      id: 'default-cartridge',
+      name: 'Default .308 150gr',
+      diameter: '.308',
+      bulletWeight: 150.0, // grains (old hardcoded value)
+      bulletLength: 0.0,
+      ballisticCoefficient: 0.504, // G1 (old hardcoded value)
+    );
+    
+    final defaultScope = Scope(
+      id: 'default-scope',
+      name: 'Default Scope',
+      sightHeight: 2.17, // inches (old hardcoded value)
+      units: 0, // inches
+    );
+    
+    // Test with default profiles (equivalent to old hardcoded constants)
+    final resultDefault = BallisticsCalculator.calculateWithProfiles(
       distance,
       windSpeed,
       windDirection,
+      defaultGun,
+      defaultCartridge,
+      defaultScope,
     );
     
-    // Test with profiles
+    // Test with custom profiles
     final resultWithProfiles = BallisticsCalculator.calculateWithProfiles(
       distance,
       windSpeed,
@@ -68,29 +96,27 @@ void main() {
       testScope,
     );
     
-    print('ORIGINAL METHOD (hardcoded .308 150gr):');
-    print('Drift: ${resultOriginal.driftMrad.toStringAsFixed(2)} MRAD, Drop: ${resultOriginal.dropMrad.toStringAsFixed(2)} MRAD');
-    print('Drift: ${resultOriginal.driftMoa.toStringAsFixed(2)} MOA, Drop: ${resultOriginal.dropMoa.toStringAsFixed(2)} MOA');
+    print('DEFAULT PROFILES (equivalent to old hardcoded .308 150gr):');    print('Drift: ${resultDefault.driftMrad.toStringAsFixed(2)} MRAD, Drop: ${resultDefault.dropMrad.toStringAsFixed(2)} MRAD');
+    print('Drift: ${resultDefault.driftMoa.toStringAsFixed(2)} MOA, Drop: ${resultDefault.dropMoa.toStringAsFixed(2)} MOA');
     print('');
     
-    print('PROFILE-BASED METHOD (.308 175gr):');
+    print('CUSTOM PROFILE-BASED METHOD (.308 175gr):');
     print('Drift: ${resultWithProfiles.driftMrad.toStringAsFixed(2)} MRAD, Drop: ${resultWithProfiles.dropMrad.toStringAsFixed(2)} MRAD');
     print('Drift: ${resultWithProfiles.driftMoa.toStringAsFixed(2)} MOA, Drop: ${resultWithProfiles.dropMoa.toStringAsFixed(2)} MOA');
     print('');
     
     print('DIFFERENCES:');
-    final driftDiff = resultWithProfiles.driftMrad - resultOriginal.driftMrad;
-    final dropDiff = resultWithProfiles.dropMrad - resultOriginal.dropMrad;
+    final driftDiff = resultWithProfiles.driftMrad - resultDefault.driftMrad;
+    final dropDiff = resultWithProfiles.dropMrad - resultDefault.dropMrad;
     print('Drift: ${driftDiff.toStringAsFixed(3)} MRAD');
     print('Drop: ${dropDiff.toStringAsFixed(3)} MRAD');
     print('');
     print('=' * 50);
     print('');
   }
-  
-  print('NOTES:');
-  print('• Original method uses hardcoded .308 Winchester 150gr, 820 m/s');
-  print('• Profile method uses custom .308 175gr, 800 m/s, 200m zero');
+    print('NOTES:');
+  print('• Default profiles use equivalent values to old hardcoded .308 Winchester 150gr, 820 m/s');
+  print('• Custom profile method uses custom .308 175gr, 800 m/s, 200m zero');
   print('• Differences show impact of using user-configured profiles');
   print('• Heavier bullet (175gr vs 150gr) and lower velocity should show more drop');
 }

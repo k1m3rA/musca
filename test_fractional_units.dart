@@ -1,10 +1,41 @@
 import 'lib/services/ballistics_calculator.dart';
+import 'lib/models/gun_model.dart';
+import 'lib/models/cartridge_model.dart';
+import 'lib/models/scope_model.dart';
 
 void main() async {
   print('=== TESTING FRACTIONAL UNITS ON HOME SCREEN ===');
   
+  // Create test profiles
+  final testGun = Gun(
+    id: 'test-gun',
+    name: 'Test Gun',
+    twistRate: 12.0,
+    twistDirection: 1,
+    muzzleVelocity: 820.0,
+    zeroRange: 100.0,
+  );
+  
+  final testCartridge = Cartridge(
+    id: 'test-cartridge',
+    name: 'Test Cartridge',
+    diameter: '.308',
+    bulletWeight: 150.0,
+    bulletLength: 0.0,
+    ballisticCoefficient: 0.504,
+  );
+  
+  final testScope = Scope(
+    id: 'test-scope',
+    name: 'Test Scope',
+    sightHeight: 2.17,
+    units: 0,
+  );
+  
   // Create a test ballistics result
-  final result = BallisticsCalculator.calculate(200.0, 5.0, 45.0);
+  final result = BallisticsCalculator.calculateWithProfiles(
+    200.0, 5.0, 45.0, testGun, testCartridge, testScope
+  );
   
   print('Distance: 200m, Wind: 5m/s at 45°');
   print('');

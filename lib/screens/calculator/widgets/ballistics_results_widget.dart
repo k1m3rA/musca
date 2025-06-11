@@ -34,10 +34,20 @@ class _BallisticsResultsWidgetState extends State<BallisticsResultsWidget> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Ingrese los datos y presione calcular para ver los resultados',
+                'Enter data and select profiles to see ballistics calculations',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Distance must be greater than 0m',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[500],
+                  fontStyle: FontStyle.italic,
                 ),
                 textAlign: TextAlign.center,
               ),

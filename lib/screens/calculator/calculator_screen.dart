@@ -265,70 +265,167 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _angle = measuredAngle;
         _angleController.text = _angle.toStringAsFixed(1);
       });
+    }  }
+
+  Future<void> _saveCalculation() async {
+    // Validate that all required profiles are selected
+    if (_selectedGun == null || _selectedCartridge == null || _selectedScope == null) {
+      _showProfileErrorDialog();
+      return;
     }
-  }  Future<void> _saveCalculation() async {
-    // Use existing ballistics result or calculate if not available
-    final ballisticsResult = _ballisticsResult ?? BallisticsCalculator.calculateWithProfiles(
-      _distance,
-      _windSpeed,
-      _windDirection,
-      _selectedGun,
-      _selectedCartridge,
-      _selectedScope,
-    );
     
-    final calculation = Calculation(
-      distance: _distance,
-      angle: _angle,
-      windSpeed: _windSpeed,
-      windDirection: _windDirection,
-      temperature: _temperature,
-      pressure: _pressure,
-      humidity: _humidity,
-      driftHorizontal: ballisticsResult.driftHorizontal,
-      dropVertical: ballisticsResult.dropVertical,
-      driftMrad: ballisticsResult.driftMrad,
-      dropMrad: ballisticsResult.dropMrad,
-      driftMoa: ballisticsResult.driftMoa,
-      dropMoa: ballisticsResult.dropMoa,
-    );
-    
-    await CalculationStorage.saveCalculation(calculation);
-    
-    if (!mounted) return;
-    
-    final snackBar = SnackBar(
-      content: const Text('Shot saved with ballistics calculations!'),
-      backgroundColor: Colors.green,
-      behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.only(left: 16.0, right: 16.0),
-      duration: const Duration(seconds: 2),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    
-    if (widget.onNavigate != null) {
-      widget.onNavigate!(0);
+    // Validate that distance is greater than 0
+    if (_distance <= 0) {
+      _showDistanceErrorDialog();
+      return;
     }
-  }
-  void _calculateBallistics() {
-    if (_distance > 0) {
-      final result = BallisticsCalculator.calculateWithProfiles(
+    
+    try {
+      // Always calculate fresh ballistics with current form data
+      final ballisticsResult = BallisticsCalculator.calculateWithProfiles(
         _distance,
         _windSpeed,
         _windDirection,
-        _selectedGun,
-        _selectedCartridge,
-        _selectedScope,
+        _selectedGun!,
+        _selectedCartridge!,
+        _selectedScope!,
+        temperature: _temperature,
+        pressure: _pressure,
+        humidity: _humidity,
       );
-      setState(() {
-        _ballisticsResult = result;
-      });
+      
+      final calculation = Calculation(
+        distance: _distance,
+        angle: _angle,
+        windSpeed: _windSpeed,
+        windDirection: _windDirection,
+        temperature: _temperature,
+        pressure: _pressure,
+        humidity: _humidity,
+        driftHorizontal: ballisticsResult.driftHorizontal,
+        dropVertical: ballisticsResult.dropVertical,
+        driftMrad: ballisticsResult.driftMrad,
+        dropMrad: ballisticsResult.dropMrad,
+        driftMoa: ballisticsResult.driftMoa,
+        dropMoa: ballisticsResult.dropMoa,
+      );
+      
+      await CalculationStorage.saveCalculation(calculation);
+      
+      if (!mounted) return;
+      
+      final snackBar = SnackBar(
+        content: Text('Shot saved! Distance: ${_distance.toStringAsFixed(1)}m, Wind: ${_windSpeed.toStringAsFixed(1)}km/h'),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(left: 16.0, right: 16.0),
+        duration: const Duration(seconds: 3),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      
+      if (widget.onNavigate != null) {
+        widget.onNavigate!(0);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      
+      final snackBar = SnackBar(
+        content: Text('Error saving calculation: $e'),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(left: 16.0, right: 16.0),
+        duration: const Duration(seconds: 3),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+  }
+
+  void _showProfileErrorDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Profiles Required'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Please select all required profiles before saving:'),
+              const SizedBox(height: 8),
+              if (_selectedGun == null) const Text('• Gun profile missing'),
+              if (_selectedCartridge == null) const Text('• Cartridge profile missing'),
+              if (_selectedScope == null) const Text('• Scope profile missing'),
+              const SizedBox(height: 16),
+              const Text('Go to the Profiles tab to create and select profiles.'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                if (widget.onNavigate != null) {
+                  widget.onNavigate!(2); // Navigate to profiles tab
+                }
+              },
+              child: const Text('Go to Profiles'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDistanceErrorDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Invalid Distance'),
+          content: const Text('Please enter a distance greater than 0 meters before saving.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _calculateBallistics() {
+    if (_distance > 0 && _selectedGun != null && _selectedCartridge != null && _selectedScope != null) {
+      try {
+        final result = BallisticsCalculator.calculateWithProfiles(
+          _distance,
+          _windSpeed,
+          _windDirection,
+          _selectedGun!,
+          _selectedCartridge!,
+          _selectedScope!,
+          temperature: _temperature,
+          pressure: _pressure,
+          humidity: _humidity,
+        );
+        setState(() {
+          _ballisticsResult = result;
+        });
+      } catch (e) {
+        print('Error calculating ballistics: $e');
+        setState(() {
+          _ballisticsResult = null;
+        });
+      }
     } else {
       setState(() {
         _ballisticsResult = null;
       });
     }
-  }  @override
+  }@override
   void dispose() {
     // Remove profile reload listener
     widget.reloadProfilesNotifier?.removeListener(_onReloadProfilesNotification);

@@ -57,26 +57,9 @@ class BallisticsResult {
 }
 
 class BallisticsCalculator {
-  // Projectile .308 Winchester constants
-  static const double mass = 0.00972; // kg (150 grains)
-  static const double diameter = 0.00782; // m
-  static const double length = 0.02032; // m (800 grains)
-  static const double ballisticCoefficient = 0.504; // G1
-  
-  // Environment constants
-  static const double temperature = 15.0; // °C at sea level
-  static const double rhoAir = 1.225; // kg/m³
-  static const double humidity = 0.5; // fraction (50%)
-  static const double pressure = 101325.0; // Pa (sea level)
-    // Rifle constants
-  static const double twistRate = 1 / 0.3048; // rev/m (1 turn in 12")
-  static const int twistDirection = 1; // 1: clockwise (right), -1: counterclockwise (left)
+  // Fixed simulation parameters
   static const double elevationAngle = 0.0; // rad
   static const double azimuthAngle = 0.0; // rad
-  static const double visorHeight = 0.055; // m (scope height above bore)
-  static const double calibrationDistance = 100.0; // m (zeroing distance)
-  
-  // Simulation parameters
   static const double dt = 0.001; // s
   static const double omega = 7.292115e-5; // rad/s (Earth rotation)
   static const double latitude = 0.0; // degrees North
@@ -118,7 +101,6 @@ class BallisticsCalculator {
     
     return g1DragCoeffValues.last;
   }
-
   static double gravity(double latDeg, double altM) {
     const double Re = 6378137.0; // m
     final double phi = latDeg * pi / 180;
@@ -135,6 +117,26 @@ class BallisticsCalculator {
 
     final double g = gamma * pow(Re / (Re + altM), 2) + deltaGA;
     return g;
+  }
+
+  static double calculateAirDensity(double tempC, double pressurePa, double humidityPercent) {
+    // Calculate air density using the ideal gas law with humidity correction
+    final double tempK = tempC + 273.15;
+    final double humidityFraction = humidityPercent / 100.0;
+    
+    // Saturation vapor pressure (Tetens formula)
+    final double satVaporPressure = 610.78 * exp(17.27 * tempC / (tempC + 237.3));
+    final double vaporPressure = humidityFraction * satVaporPressure;
+    final double dryAirPressure = pressurePa - vaporPressure;
+    
+    // Air density calculation
+    const double dryAirConstant = 287.058; // J/(kg·K)
+    const double waterVaporConstant = 461.495; // J/(kg·K)
+    
+    final double dryAirDensity = dryAirPressure / (dryAirConstant * tempK);
+    final double waterVaporDensity = vaporPressure / (waterVaporConstant * tempK);
+    
+    return dryAirDensity + waterVaporDensity;
   }
   static double? _getDiameterFromCartridge(Cartridge? cartridge) {
     if (cartridge == null) return null;
@@ -164,45 +166,101 @@ class BallisticsCalculator {
       default:
         return 0.00782; // Default to .308
     }
-  }
-
-  static BallisticsResult calculate(double distance, double windSpeed, double windDirection) {
-    // Use hardcoded defaults when no profiles are provided (for backward compatibility)
-    return calculateWithProfiles(
-      distance, 
-      windSpeed, 
-      windDirection,
-      null, // gun
-      null, // cartridge
-      null, // scope
+  }  static BallisticsResult calculate(double distance, double windSpeed, double windDirection) {
+    // Legacy method for backward compatibility - uses default test profiles
+    // For production use, always use calculateWithProfiles with actual user profiles
+    
+    // Create default test profiles (similar to old hardcoded constants)
+    final defaultGun = Gun(
+      id: 'default-test-gun',
+      name: 'Default Test Rifle',
+      twistRate: 12.0, // 1:12 twist
+      twistDirection: 1, // Right twist
+      muzzleVelocity: 820.0, // m/s
+      zeroRange: 100.0, // 100m zero
     );
-  }
-
-  static BallisticsResult calculateWithProfiles(
+    
+    final defaultCartridge = Cartridge(
+      id: 'default-test-cartridge',
+      name: 'Default Test .308',
+      diameter: '.308',
+      bulletWeight: 150.0, // grains
+      bulletLength: 0.0,
+      ballisticCoefficient: 0.504, // G1
+      bcModelType: 0,
+    );
+    
+    final defaultScope = Scope(
+      id: 'default-test-scope',
+      name: 'Default Test Scope',
+      sightHeight: 2.17, // inches
+      units: 0, // inches
+    );
+    
+    // Use default environmental conditions (15°C, 1013 mbar, 50% humidity)
+    return calculateWithProfiles(
+      distance,
+      windSpeed,
+      windDirection,
+      defaultGun,
+      defaultCartridge,
+      defaultScope,
+      temperature: 15.0,
+      pressure: 1013.25,
+      humidity: 50.0,
+    );
+  }static BallisticsResult calculateWithProfiles(
     double distance, 
     double windSpeed, 
     double windDirection,
     Gun? gun,
     Cartridge? cartridge,
-    Scope? scope,
-  ) {
-    // Extract values from profiles with fallbacks to hardcoded constants
+    Scope? scope, {
+    double? temperature,
+    double? pressure,
+    double? humidity,
+  }) {
+    // Strict validation - no fallbacks allowed
+    if (gun == null) {
+      throw ArgumentError('Gun profile is required for ballistics calculation');
+    }
+    if (cartridge == null) {
+      throw ArgumentError('Cartridge profile is required for ballistics calculation');
+    }
+    if (scope == null) {
+      throw ArgumentError('Scope profile is required for ballistics calculation');
+    }
+    
+    if (distance <= 0) {
+      throw ArgumentError('Distance must be greater than 0');
+    }
+    
+    // Use provided environmental data or defaults
+    final double envTemperature = temperature ?? 15.0; // °C
+    final double envPressure = pressure ?? 1013.25; // mbar (convert to Pa below)
+    final double envHumidity = humidity ?? 50.0; // %
+    
+    // Convert pressure from mbar to Pa if needed
+    final double pressurePa = envPressure < 10000 ? envPressure * 100 : envPressure;
+    
+    // Calculate air density based on environmental conditions
+    final double rhoAir = calculateAirDensity(envTemperature, pressurePa, envHumidity);
+    
+    // Extract ballistics data from profiles
     
     // Projectile properties from cartridge
-    final double bulletWeightGrains = cartridge?.bulletWeight ?? 150.0; // grains
-    final double mass = bulletWeightGrains * 0.0000648; // Convert grains to kg (1 grain = 0.0648 grams)
-    final double ballisticCoefficient = cartridge?.ballisticCoefficient ?? 0.504; // G1
-    final double diameter = _getDiameterFromCartridge(cartridge) ?? 0.00782; // m (.308 default)
-    
+    final double bulletWeightGrains = cartridge.bulletWeight; // grains
+    final double mass = bulletWeightGrains * 0.0000648; // Convert grains to kg
+    final double ballisticCoefficient = cartridge.ballisticCoefficient; // G1
+    final double diameter = _getDiameterFromCartridge(cartridge) ?? 0.00782; // m
+      
     // Gun properties
-    final double muzzleVelocity = gun?.muzzleVelocity ?? 820.0; // m/s
-    final double twistRate = gun?.twistRate ?? (1 / 0.3048); // rev/m (1 turn in 12" default)
-    final int twistDirection = gun?.twistDirection ?? 1; // 1: right, 0: left
-    final double calibrationDistance = gun?.zeroRange ?? 100.0; // m
+    final double muzzleVelocity = gun.muzzleVelocity; // m/s
+    final double calibrationDistance = gun.zeroRange; // m
     
     // Scope properties
-    final double sightHeightValue = scope?.sightHeight ?? 2.17; // inches default
-    final int sightHeightUnits = scope?.units ?? 0; // 0: inches, 1: cm
+    final double sightHeightValue = scope.sightHeight; // value in units specified
+    final int sightHeightUnits = scope.units; // 0: inches, 1: cm
     final double visorHeight = sightHeightUnits == 0 
         ? sightHeightValue * 0.0254 // Convert inches to meters
         : sightHeightValue * 0.01; // Convert cm to meters
@@ -221,10 +279,9 @@ class BallisticsCalculator {
     
     // Area
     final double A = pi * (diameter / 2) * (diameter / 2);
-    
-    for (int step = 0; step < (30.0 / dt).round(); step++) {
-      // Local conditions
-      final double tLoc = temperature - 0.0065 * pos[2];
+      for (int step = 0; step < (30.0 / dt).round(); step++) {
+      // Local conditions (use dynamic temperature instead of constant)
+      final double tLoc = envTemperature - 0.0065 * pos[2];
       final double a = speedOfSound(tLoc);
       final double gLoc = gravity(latitude, pos[2]);
       
@@ -241,7 +298,7 @@ class BallisticsCalculator {
       // Updated coefficients
       final double CD = g1BallisticCoefficient(mach) * ballisticCoefficient;
       
-      // Drag force
+      // Drag force (use calculated air density instead of constant)
       final double dragMagnitude = 0.5 * rhoAir * A * CD * vMagnitude * vMagnitude;
       final List<double> dragForce = [
         -dragMagnitude * (vRel[0] / vMagnitude),

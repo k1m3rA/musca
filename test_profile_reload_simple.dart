@@ -63,14 +63,16 @@ void main() async {
   const distance = 300.0;
   const windSpeed = 5.0;
   const windDirection = 90.0;
-  
-  final result1 = BallisticsCalculator.calculateWithProfiles(
+    final result1 = BallisticsCalculator.calculateWithProfiles(
     distance,
     windSpeed, 
     windDirection,
     testGun1,
     testCartridge,
     testScope,
+    temperature: 15.0,
+    pressure: 1013.0,
+    humidity: 50.0,
   );
   
   print('   Drop: ${result1.dropMrad.toStringAsFixed(3)} MRAD');
@@ -80,14 +82,16 @@ void main() async {
   print('\n3. Testing with high velocity gun (900 m/s)...');
   await GunStorage.saveGun(testGun2);
   await GunStorage.saveSelectedGunId(testGun2.id);
-  
-  final result2 = BallisticsCalculator.calculateWithProfiles(
+    final result2 = BallisticsCalculator.calculateWithProfiles(
     distance,
     windSpeed,
     windDirection, 
     testGun2,
     testCartridge,
     testScope,
+    temperature: 15.0,
+    pressure: 1013.0,
+    humidity: 50.0,
   );
   
   print('   Drop: ${result2.dropMrad.toStringAsFixed(3)} MRAD');

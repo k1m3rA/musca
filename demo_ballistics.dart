@@ -2,10 +2,38 @@
 // Run with: dart run demo_ballistics.dart
 
 import 'lib/services/ballistics_calculator.dart';
+import 'lib/models/gun_model.dart';
+import 'lib/models/cartridge_model.dart';
+import 'lib/models/scope_model.dart';
 
 void main() {
   print('=== BALLISTICS CALCULATOR - MULTIPLE UNITS DEMO ===\n');
   
+  // Create demo profiles
+  final demoGun = Gun(
+    id: 'demo-gun',
+    name: 'Demo .308 Rifle',
+    twistRate: 12.0, // 1:12 twist
+    twistDirection: 1, // Right twist
+    muzzleVelocity: 820.0, // m/s
+    zeroRange: 100.0, // 100m zero
+  );
+  
+  final demoCartridge = Cartridge(
+    id: 'demo-cartridge',
+    name: 'Demo .308 150gr',
+    diameter: '.308',
+    bulletWeight: 150.0, // grains
+    bulletLength: 0.0,
+    ballisticCoefficient: 0.504, // G1
+  );
+    final demoScope = Scope(
+    id: 'demo-scope',
+    name: 'Demo Scope',
+    sightHeight: 2.17, // inches
+    units: 0, // inches
+  );
+
   // Example shooting scenarios
   final scenarios = [
     {'distance': 100.0, 'windSpeed': 0.0, 'windDirection': 0.0, 'name': '100m - No Wind'},
@@ -18,12 +46,17 @@ void main() {
     final distance = scenario['distance'] as double;
     final windSpeed = scenario['windSpeed'] as double;
     final windDirection = scenario['windDirection'] as double;
-    final name = scenario['name'] as String;
-
-    print('--- $name ---');
+    final name = scenario['name'] as String;    print('--- $name ---');
     print('Distance: ${distance}m, Wind: ${windSpeed}m/s at ${windDirection}°\n');
 
-    final result = BallisticsCalculator.calculate(distance, windSpeed, windDirection);
+    final result = BallisticsCalculator.calculateWithProfiles(
+      distance, 
+      windSpeed, 
+      windDirection,
+      demoGun,
+      demoCartridge,
+      demoScope,
+    );
 
     // Display results in a formatted table
     print('ANGULAR CORRECTIONS:');
@@ -56,9 +89,8 @@ void main() {
 
     print('\n' + '='*50 + '\n');
   }
-
   print('NOTES:');
-  print('• All corrections assume .308 Winchester 150gr projectile');
+  print('• All corrections use .308 Winchester 150gr projectile with demo profiles');
   print('• MRAD = Milliradian, MOA = Minute of Angle');
   print('• Fractional units (1/2, 1/3, etc.) are rounded to nearest increment');
   print('• Linear corrections show actual bullet impact displacement at target');
