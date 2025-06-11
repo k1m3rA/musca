@@ -1,20 +1,55 @@
 import 'dart:math';
 
 class BallisticsResult {
+  // Raw displacement values
   final double driftHorizontal; // meters
   final double dropVertical; // meters
+  
+  // MRAD corrections
   final double driftMrad; // milliradians
   final double dropMrad; // milliradians
+  final double driftMrad20; // 1/20 MRAD (0.05 MRAD increments)
+  final double dropMrad20; // 1/20 MRAD (0.05 MRAD increments)
+  
+  // MOA corrections
   final double driftMoa; // minutes of angle
   final double dropMoa; // minutes of angle
+  final double driftMoa2; // 1/2 MOA (0.5 MOA increments)
+  final double dropMoa2; // 1/2 MOA (0.5 MOA increments)
+  final double driftMoa3; // 1/3 MOA (0.333... MOA increments)
+  final double dropMoa3; // 1/3 MOA (0.333... MOA increments)
+  final double driftMoa4; // 1/4 MOA (0.25 MOA increments)
+  final double dropMoa4; // 1/4 MOA (0.25 MOA increments)
+  final double driftMoa8; // 1/8 MOA (0.125 MOA increments)
+  final double dropMoa8; // 1/8 MOA (0.125 MOA increments)
+  
+  // Linear distance corrections
+  final double driftInches; // inches
+  final double dropInches; // inches
+  final double driftCm; // centimeters
+  final double dropCm; // centimeters
 
   BallisticsResult({
     required this.driftHorizontal,
     required this.dropVertical,
     required this.driftMrad,
     required this.dropMrad,
+    required this.driftMrad20,
+    required this.dropMrad20,
     required this.driftMoa,
     required this.dropMoa,
+    required this.driftMoa2,
+    required this.dropMoa2,
+    required this.driftMoa3,
+    required this.dropMoa3,
+    required this.driftMoa4,
+    required this.dropMoa4,
+    required this.driftMoa8,
+    required this.dropMoa8,
+    required this.driftInches,
+    required this.dropInches,
+    required this.driftCm,
+    required this.dropCm,
   });
 }
 
@@ -30,12 +65,13 @@ class BallisticsCalculator {
   static const double rhoAir = 1.225; // kg/m³
   static const double humidity = 0.5; // fraction (50%)
   static const double pressure = 101325.0; // Pa (sea level)
-  
-  // Rifle constants
+    // Rifle constants
   static const double twistRate = 1 / 0.3048; // rev/m (1 turn in 12")
   static const int twistDirection = 1; // 1: clockwise (right), -1: counterclockwise (left)
   static const double elevationAngle = 0.0; // rad
   static const double azimuthAngle = 0.0; // rad
+  static const double visorHeight = 0.055; // m (scope height above bore)
+  static const double calibrationDistance = 100.0; // m (zeroing distance)
   
   // Simulation parameters
   static const double dt = 0.001; // s
@@ -171,24 +207,65 @@ class BallisticsCalculator {
         driftH = pos[1];
         dropZ = pos[2];
         break;
-      }
-    }
+      }    }
+      // Calculate raw corrections (referred to bore axis)
+    final double rawDriftMrad = (driftH ?? 0) / distance * 1000;
+    final double rawDropMrad = -(dropZ ?? 0) / distance * 1000; // Negative for upward correction
     
-    // Calculate adjustments
-    final double driftMrad = (driftH ?? 0) / distance * 1000;
-    final double dropMrad = (dropZ ?? 0) / distance * 1000;
+    // Calculate scope height correction angle
+    final double scopeHeightCorrectionMrad = atan(visorHeight / calibrationDistance) * 1000;
     
-    // Convert to MOA (1 MOA = 1/3.438 mrad approximately)
-    final double driftMoa = driftMrad / 0.290888;
-    final double dropMoa = dropMrad / 0.290888;
+    // Apply corrections considering scope height and calibration distance
+    final double correctedDriftMrad = rawDriftMrad; // Drift is not affected by scope height
+    final double correctedDropMrad = rawDropMrad - scopeHeightCorrectionMrad;
+    
+    // Calculate all unit variations
+    // MRAD units
+    final double driftMrad20 = (correctedDriftMrad / 0.05).round() * 0.05; // 1/20 MRAD increments
+    final double dropMrad20 = (correctedDropMrad / 0.05).round() * 0.05;
+    
+    // MOA conversions (1 MOA = 0.290888 mrad approximately)
+    const double mradToMoa = 1.0 / 0.290888;
+    final double correctedDriftMoa = correctedDriftMrad * mradToMoa;
+    final double correctedDropMoa = correctedDropMrad * mradToMoa;
+    
+    // MOA fractions
+    final double driftMoa2 = (correctedDriftMoa / 0.5).round() * 0.5; // 1/2 MOA increments
+    final double dropMoa2 = (correctedDropMoa / 0.5).round() * 0.5;
+    final double driftMoa3 = (correctedDriftMoa / (1.0/3.0)).round() * (1.0/3.0); // 1/3 MOA increments
+    final double dropMoa3 = (correctedDropMoa / (1.0/3.0)).round() * (1.0/3.0);
+    final double driftMoa4 = (correctedDriftMoa / 0.25).round() * 0.25; // 1/4 MOA increments
+    final double dropMoa4 = (correctedDropMoa / 0.25).round() * 0.25;
+    final double driftMoa8 = (correctedDriftMoa / 0.125).round() * 0.125; // 1/8 MOA increments
+    final double dropMoa8 = (correctedDropMoa / 0.125).round() * 0.125;
+    
+    // Linear distance corrections at target distance
+    final double driftInches = (driftH ?? 0) * 39.3701; // meters to inches
+    final double dropInches = -(dropZ ?? 0) * 39.3701; // meters to inches (negative for upward)
+    final double driftCm = (driftH ?? 0) * 100; // meters to centimeters
+    final double dropCm = -(dropZ ?? 0) * 100; // meters to centimeters (negative for upward)
     
     return BallisticsResult(
       driftHorizontal: driftH ?? 0,
       dropVertical: dropZ ?? 0,
-      driftMrad: driftMrad,
-      dropMrad: dropMrad,
-      driftMoa: driftMoa,
-      dropMoa: dropMoa,
+      driftMrad: correctedDriftMrad,
+      dropMrad: correctedDropMrad,
+      driftMrad20: driftMrad20,
+      dropMrad20: dropMrad20,
+      driftMoa: correctedDriftMoa,
+      dropMoa: correctedDropMoa,
+      driftMoa2: driftMoa2,
+      dropMoa2: dropMoa2,
+      driftMoa3: driftMoa3,
+      dropMoa3: dropMoa3,
+      driftMoa4: driftMoa4,
+      dropMoa4: dropMoa4,
+      driftMoa8: driftMoa8,
+      dropMoa8: dropMoa8,
+      driftInches: driftInches,
+      dropInches: dropInches,
+      driftCm: driftCm,
+      dropCm: dropCm,
     );
   }
 }

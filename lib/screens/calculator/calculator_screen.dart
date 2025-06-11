@@ -5,7 +5,8 @@ import 'widgets/wind_speed_input.dart';
 import 'widgets/compass_widget.dart';
 import 'widgets/wind_direction_input.dart';
 import 'widgets/camera_angle_screen.dart';
-import 'widgets/environmental_input.dart'; // Add this import
+import 'widgets/environmental_input.dart';
+import 'widgets/ballistics_results_widget.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import '../../models/calculation.dart';
 import '../../services/calculation_storage.dart';
@@ -28,9 +29,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   double _angle = 0.0;
   final TextEditingController _windSpeedController = TextEditingController(text: '0.0');
   double _windSpeed = 0.0;
-  final TextEditingController _windDirectionController = TextEditingController(text: '0.0');
-  double _windDirection = 0.0;
+  final TextEditingController _windDirectionController = TextEditingController(text: '0.0');  double _windDirection = 0.0;
   bool _hasCompass = false;
+  BallisticsResult? _ballisticsResult;
 
   // Add new controllers and variables for environmental data
   final TextEditingController _temperatureController = TextEditingController(text: '20.0');
@@ -62,21 +63,21 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       _hasCompass = FlutterCompass.events != null;
     });
   }
-
   void _updateWindDirectionFromText() {
     if (_windDirectionController.text.isNotEmpty) {
       try {
         final newValue = double.parse(_windDirectionController.text);
         setState(() => _windDirection = newValue);
+        _calculateBallistics();
       } catch (_) {}
     }
   }
-
   void _updateDistanceFromText() {
     if (_distanceController.text.isNotEmpty) {
       try {
         final newValue = double.parse(_distanceController.text);
         setState(() => _distance = newValue);
+        _calculateBallistics();
       } catch (_) {}
     }
   }
@@ -89,12 +90,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       } catch (_) {}
     }
   }
-
   void _updateWindSpeedFromText() {
     if (_windSpeedController.text.isNotEmpty) {
       try {
         final newValue = double.parse(_windSpeedController.text);
         setState(() => _windSpeed = newValue);
+        _calculateBallistics();
       } catch (_) {}
     }
   }
@@ -125,7 +126,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       } catch (_) {}
     }
   }
-
   void _updateDistance(double delta) {
     final newDistance = _distance + delta;
     if (newDistance >= 0) {
@@ -133,6 +133,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _distance = newDistance;
         _distanceController.text = _distance.toStringAsFixed(1);
       });
+      _calculateBallistics();
     }
   }
 
@@ -145,7 +146,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       });
     }
   }
-
   void _updateWindSpeed(double delta) {
     final newWindSpeed = _windSpeed + delta;
     if (newWindSpeed >= 0) {
@@ -153,15 +153,16 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _windSpeed = newWindSpeed;
         _windSpeedController.text = _windSpeed.toStringAsFixed(1);
       });
+      _calculateBallistics();
     }
   }
-
   void _updateWindDirection(double delta) {
     setState(() {
       _windDirection = (_windDirection + delta) % 360;
       if (_windDirection < 0) _windDirection += 360;
       _windDirectionController.text = _windDirection.round().toString();
     });
+    _calculateBallistics();
   }
 
   void _updateTemperature(double delta) {
@@ -204,10 +205,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _angleController.text = _angle.toStringAsFixed(1);
       });
     }
-  }
-  Future<void> _saveCalculation() async {
-    // Calculate ballistics results
-    final ballisticsResult = BallisticsCalculator.calculate(
+  }  Future<void> _saveCalculation() async {
+    // Use existing ballistics result or calculate if not available
+    final ballisticsResult = _ballisticsResult ?? BallisticsCalculator.calculate(
       _distance,
       _windSpeed,
       _windDirection,
@@ -244,6 +244,23 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     
     if (widget.onNavigate != null) {
       widget.onNavigate!(0);
+    }
+  }
+
+  void _calculateBallistics() {
+    if (_distance > 0) {
+      final result = BallisticsCalculator.calculate(
+        _distance,
+        _windSpeed,
+        _windDirection,
+      );
+      setState(() {
+        _ballisticsResult = result;
+      });
+    } else {
+      setState(() {
+        _ballisticsResult = null;
+      });
     }
   }
 
@@ -303,14 +320,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     onUpdateWindSpeed: _updateWindSpeed,
                   ),
                   const SizedBox(height: 20),
-                  
-                  _hasCompass 
+                    _hasCompass 
                     ? CompassWidget(
                         onWindDirectionChanged: (direction) {
                           setState(() {
                             _windDirection = direction;
                             _windDirectionController.text = _windDirection.round().toString();
                           });
+                          _calculateBallistics();
                         },
                       )
                     : WindDirectionInput(
@@ -330,9 +347,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     onUpdatePressure: _updatePressure,
                     onUpdateHumidity: _updateHumidity,
                   ),
+                    const SizedBox(height: 20),
                   
-                  const SizedBox(height: 20),
-                  const SizedBox(height: 20),
+                  // Ballistics Results Display
+                  BallisticsResultsWidget(
+                    result: _ballisticsResult,
+                    distance: _distance,
+                  ),
+                  
                   const SizedBox(height: 20),
                 ],
               ),
