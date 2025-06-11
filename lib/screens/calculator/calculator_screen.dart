@@ -11,6 +11,12 @@ import 'package:flutter_compass/flutter_compass.dart';
 import '../../models/calculation.dart';
 import '../../services/calculation_storage.dart';
 import '../../services/ballistics_calculator.dart';
+import '../../services/gun_storage.dart';
+import '../../services/cartridge_storage.dart';
+import '../../services/scope_storage.dart';
+import '../../models/gun_model.dart';
+import '../../models/cartridge_model.dart';
+import '../../models/scope_model.dart';
 
 class CalculatorScreen extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -29,8 +35,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   double _angle = 0.0;
   final TextEditingController _windSpeedController = TextEditingController(text: '0.0');
   double _windSpeed = 0.0;
-  final TextEditingController _windDirectionController = TextEditingController(text: '0.0');  double _windDirection = 0.0;
-  bool _hasCompass = false;
+  final TextEditingController _windDirectionController = TextEditingController(text: '0.0');  double _windDirection = 0.0;  bool _hasCompass = false;
   BallisticsResult? _ballisticsResult;
 
   // Add new controllers and variables for environmental data
@@ -41,6 +46,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   final TextEditingController _humidityController = TextEditingController(text: '50.0');
   double _humidity = 50.0;
 
+  // Profile data
+  Gun? _selectedGun;
+  Cartridge? _selectedCartridge;
+  Scope? _selectedScope;
   @override
   void initState() {
     super.initState();
@@ -54,8 +63,27 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     _pressureController.addListener(_updatePressureFromText);
     _humidityController.addListener(_updateHumidityFromText);
     
+    // Load selected profiles
+    _loadSelectedProfiles();
+    
     // Check if compass is available
     _checkCompassAvailability();
+  }
+
+  Future<void> _loadSelectedProfiles() async {
+    try {
+      final gun = await GunStorage.getSelectedGun();
+      final cartridge = await CartridgeStorage.getSelectedCartridge();
+      final scope = await ScopeStorage.getSelectedScope();
+      
+      setState(() {
+        _selectedGun = gun;
+        _selectedCartridge = cartridge;
+        _selectedScope = scope;
+      });
+    } catch (e) {
+      print('Error loading selected profiles: $e');
+    }
   }
 
   Future<void> _checkCompassAvailability() async {
@@ -207,10 +235,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     }
   }  Future<void> _saveCalculation() async {
     // Use existing ballistics result or calculate if not available
-    final ballisticsResult = _ballisticsResult ?? BallisticsCalculator.calculate(
+    final ballisticsResult = _ballisticsResult ?? BallisticsCalculator.calculateWithProfiles(
       _distance,
       _windSpeed,
       _windDirection,
+      _selectedGun,
+      _selectedCartridge,
+      _selectedScope,
     );
     
     final calculation = Calculation(
@@ -246,13 +277,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       widget.onNavigate!(0);
     }
   }
-
   void _calculateBallistics() {
     if (_distance > 0) {
-      final result = BallisticsCalculator.calculate(
+      final result = BallisticsCalculator.calculateWithProfiles(
         _distance,
         _windSpeed,
         _windDirection,
+        _selectedGun,
+        _selectedCartridge,
+        _selectedScope,
       );
       setState(() {
         _ballisticsResult = result;

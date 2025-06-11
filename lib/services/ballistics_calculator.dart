@@ -1,4 +1,7 @@
 import 'dart:math';
+import '../models/gun_model.dart';
+import '../models/cartridge_model.dart';
+import '../models/scope_model.dart';
 
 class BallisticsResult {
   // Raw displacement values
@@ -133,8 +136,77 @@ class BallisticsCalculator {
     final double g = gamma * pow(Re / (Re + altM), 2) + deltaGA;
     return g;
   }
+  static double? _getDiameterFromCartridge(Cartridge? cartridge) {
+    if (cartridge == null) return null;
+    
+    // Convert common cartridge diameter names to meters
+    switch (cartridge.diameter.toLowerCase()) {
+      case '.308':
+      case '308':
+      case '7.62':
+      case '7.62mm':
+        return 0.00782; // .308 inch = 7.82mm
+      case '.223':
+      case '223':
+      case '5.56':
+      case '5.56mm':
+        return 0.00556; // 5.56mm
+      case '.30-06':
+      case '30-06':
+        return 0.00782; // Same as .308
+      case '.243':
+      case '243':
+      case '6mm':
+        return 0.006; // 6mm
+      case '.270':
+      case '270':
+        return 0.00686; // 6.86mm
+      default:
+        return 0.00782; // Default to .308
+    }
+  }
 
   static BallisticsResult calculate(double distance, double windSpeed, double windDirection) {
+    // Use hardcoded defaults when no profiles are provided (for backward compatibility)
+    return calculateWithProfiles(
+      distance, 
+      windSpeed, 
+      windDirection,
+      null, // gun
+      null, // cartridge
+      null, // scope
+    );
+  }
+
+  static BallisticsResult calculateWithProfiles(
+    double distance, 
+    double windSpeed, 
+    double windDirection,
+    Gun? gun,
+    Cartridge? cartridge,
+    Scope? scope,
+  ) {
+    // Extract values from profiles with fallbacks to hardcoded constants
+    
+    // Projectile properties from cartridge
+    final double bulletWeightGrains = cartridge?.bulletWeight ?? 150.0; // grains
+    final double mass = bulletWeightGrains * 0.0000648; // Convert grains to kg (1 grain = 0.0648 grams)
+    final double ballisticCoefficient = cartridge?.ballisticCoefficient ?? 0.504; // G1
+    final double diameter = _getDiameterFromCartridge(cartridge) ?? 0.00782; // m (.308 default)
+    
+    // Gun properties
+    final double muzzleVelocity = gun?.muzzleVelocity ?? 820.0; // m/s
+    final double twistRate = gun?.twistRate ?? (1 / 0.3048); // rev/m (1 turn in 12" default)
+    final int twistDirection = gun?.twistDirection ?? 1; // 1: right, 0: left
+    final double calibrationDistance = gun?.zeroRange ?? 100.0; // m
+    
+    // Scope properties
+    final double sightHeightValue = scope?.sightHeight ?? 2.17; // inches default
+    final int sightHeightUnits = scope?.units ?? 0; // 0: inches, 1: cm
+    final double visorHeight = sightHeightUnits == 0 
+        ? sightHeightValue * 0.0254 // Convert inches to meters
+        : sightHeightValue * 0.01; // Convert cm to meters
+
     // Convert wind direction to wind vector (simplified)
     final double windX = windSpeed * cos(windDirection * pi / 180);
     final double windY = windSpeed * sin(windDirection * pi / 180);
@@ -142,14 +214,13 @@ class BallisticsCalculator {
     
     // Initial state
     List<double> pos = [0.0, 0.0, 0.0];
-    const double speed = 820.0; // m/s
-    List<double> vel = [speed * cos(elevationAngle), 0.0, speed * sin(elevationAngle)];
+    List<double> vel = [muzzleVelocity * cos(elevationAngle), 0.0, muzzleVelocity * sin(elevationAngle)];
     
     double? driftH;
     double? dropZ;
     
     // Area
-    const double A = pi * (diameter / 2) * (diameter / 2);
+    final double A = pi * (diameter / 2) * (diameter / 2);
     
     for (int step = 0; step < (30.0 / dt).round(); step++) {
       // Local conditions
