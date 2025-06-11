@@ -4,6 +4,7 @@ import '../../services/calculation_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../profile/profile_details_screen.dart';
 
 // New widget for just the content
 class HomeContent extends StatefulWidget {
@@ -368,8 +369,7 @@ class _HomeContentState extends State<HomeContent> {
       body: RefreshIndicator(
         onRefresh: _loadCalculations,
         child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
+          slivers: [            SliverAppBar(
               pinned: true,
               floating: _calculations.isNotEmpty, // Make it floating when there are calculations
               snap: _calculations.isNotEmpty,     // Enable snapping when there are calculations
@@ -387,6 +387,21 @@ class _HomeContentState extends State<HomeContent> {
                   color: Theme.of(context).scaffoldBackgroundColor,
                 ),
               ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.info_outline),
+                  color: Theme.of(context).colorScheme.primary,
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ProfileDetailsScreen(),
+                      ),
+                    );
+                  },
+                  tooltip: 'Profile Details',
+                ),
+              ],
             ),
             // Show prominent ballistics results if available
             if (_calculations.isNotEmpty && !_isLoading)
