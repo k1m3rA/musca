@@ -64,11 +64,10 @@ class Gun {
       zeroRange: zeroRange ?? this.zeroRange,
     );
   }
-
   // Generate a description string for display purposes
   String getDescription() {
     final twistDirectionText = twistDirection == 0 ? 'Left' : 'Right';
-    return '$twistDirectionText Twist Rate: 1:${twistRate.toStringAsFixed(1)}", '
+    return '$twistDirectionText Twist Rate: 1:${twistRate.toStringAsFixed(1)}, '
            'MV: ${muzzleVelocity.toStringAsFixed(0)} m/s, '
            'Zero: ${zeroRange.toStringAsFixed(0)} m';
   }

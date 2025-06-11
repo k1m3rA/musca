@@ -4,6 +4,7 @@ import 'widgets/muzzle_velocity_input.dart';
 import 'widgets/zero_range_input.dart';
 import 'widgets/name_input.dart';
 import '../../../../../models/gun_model.dart'; // Import the new Gun model
+import '../../../../../services/gun_storage.dart'; // Import the gun storage service
 
 class GunSettingsScreen extends StatefulWidget {
   final Gun? gun; // Now uses the proper Gun model
@@ -29,7 +30,6 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
   late double _zeroRange;
   
   String? _gunId;
-
   @override
   void initState() {
     super.initState();
@@ -55,6 +55,12 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
     _twistRateController = TextEditingController(text: _twistRate.toStringAsFixed(1));
     _muzzleVelocityController = TextEditingController(text: _muzzleVelocity.toStringAsFixed(0));
     _zeroRangeController = TextEditingController(text: _zeroRange.toStringAsFixed(0));
+    
+    // Add listeners to update values when text changes
+    _nameController.addListener(_updateNameFromText);
+    _twistRateController.addListener(_updateTwistRateFromText);
+    _muzzleVelocityController.addListener(_updateMuzzleVelocityFromText);
+    _zeroRangeController.addListener(_updateZeroRangeFromText);
   }
 
   @override
@@ -101,8 +107,7 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
       _zeroRangeController.text = _zeroRange.toStringAsFixed(0);
     });
   }
-
-  void _saveAndNavigateBack() {
+  Future<void> _saveAndNavigateBack() async {
     // Create a Gun object with the current values using the new model
     final gun = Gun(
       id: _gunId ?? DateTime.now().millisecondsSinceEpoch.toString(),
@@ -113,22 +118,86 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
       zeroRange: _zeroRange,
     );
     
-    // Show feedback to user
-    final snackBar = SnackBar(
-      content: Text(widget.gun != null ? 'Gun updated!' : 'Gun created!'),
-      backgroundColor: Colors.green,
-      behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.only(
-        left: 20, 
-        bottom: 20.0,
-        right: 20.0,
-      ),
-      duration: const Duration(seconds: 2),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    
-    // Return the gun to the previous screen
-    Navigator.of(context).pop(gun);
+    try {
+      // Save the gun to storage
+      await GunStorage.saveGun(gun);
+      
+      // Show success feedback to user
+      final snackBar = SnackBar(
+        content: Text(widget.gun != null ? 'Gun updated!' : 'Gun created!'),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(
+          left: 20, 
+          bottom: 20.0,
+          right: 20.0,
+        ),
+        duration: const Duration(seconds: 2),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      
+      // Return the gun to the previous screen
+      Navigator.of(context).pop(gun);
+    } catch (e) {
+      // Show error feedback to user
+      final snackBar = SnackBar(
+        content: Text('Error saving gun: $e'),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(
+          left: 20, 
+          bottom: 20.0,
+          right: 20.0,
+        ),
+        duration: const Duration(seconds: 3),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+  }
+
+  void _updateNameFromText() {
+    setState(() {
+      _name = _nameController.text;
+    });
+  }
+
+  void _updateTwistRateFromText() {
+    if (_twistRateController.text.isNotEmpty) {
+      try {
+        final newValue = double.parse(_twistRateController.text);
+        setState(() {
+          _twistRate = newValue;
+        });
+      } catch (_) {
+        // Invalid input, ignore
+      }
+    }
+  }
+
+  void _updateMuzzleVelocityFromText() {
+    if (_muzzleVelocityController.text.isNotEmpty) {
+      try {
+        final newValue = double.parse(_muzzleVelocityController.text);
+        setState(() {
+          _muzzleVelocity = newValue;
+        });
+      } catch (_) {
+        // Invalid input, ignore
+      }
+    }
+  }
+
+  void _updateZeroRangeFromText() {
+    if (_zeroRangeController.text.isNotEmpty) {
+      try {
+        final newValue = double.parse(_zeroRangeController.text);
+        setState(() {
+          _zeroRange = newValue;
+        });
+      } catch (_) {
+        // Invalid input, ignore
+      }
+    }
   }
 
   @override

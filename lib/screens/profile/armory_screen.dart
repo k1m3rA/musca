@@ -6,7 +6,7 @@ import 'screens/gun/list_gun_screen.dart';
 import '../../models/gun_model.dart';
 import '../../models/cartridge_model.dart';
 import '../../models/scope_model.dart'; // Add import for Scope model
-import '../../services/calculation_storage.dart';
+import '../../services/gun_storage.dart';
 import '../../services/cartridge_storage.dart';
 import '../../services/scope_storage.dart'; // Add import for ScopeStorage
 
@@ -37,11 +37,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadSavedSelections() async {
     setState(() {
       _isLoading = true;
-    });
-
-    // Load saved gun
+    });    // Load saved gun
     try {
-      final Gun? gun = await CalculationStorage.getSelectedGun();
+      final Gun? gun = await GunStorage.getSelectedGun();
       if (gun != null) {
         setState(() {
           selectedGun = gun;
@@ -123,13 +121,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         builder: (context) => ListGunsScreen(selectedGun: selectedGun),
                       ),
                     );
-                    
-                    if (result != null) {
+                      if (result != null) {
                       setState(() {
                         selectedGun = result;
                       });
                       // Save the selected gun
-                      await CalculationStorage.saveSelectedGunId(result.id);
+                      await GunStorage.saveSelectedGunId(result.id);
                     }
                   },
                   child: Card(

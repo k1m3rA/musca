@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../../models/scope_model.dart';
+import '../../../../../services/scope_storage.dart';
 import 'widgets/name_input.dart';
 import 'widgets/sight_height_input.dart';
 import 'widgets/units_input.dart';
@@ -56,7 +57,6 @@ class _ScopeSettingsScreenState extends State<ScopeSettingsScreen> {
       default: return 2; // Default to MOA
     }
   }
-
   @override
   void initState() {
     super.initState();
@@ -76,6 +76,10 @@ class _ScopeSettingsScreenState extends State<ScopeSettingsScreen> {
     
     _nameController = TextEditingController(text: _name);
     _sightHeightController = TextEditingController(text: _sightHeight.toStringAsFixed(2));
+    
+    // Add listeners for text fields
+    _nameController.addListener(_updateNameFromText);
+    _sightHeightController.addListener(_updateSightHeightFromText);
   }
 
   @override
@@ -84,11 +88,29 @@ class _ScopeSettingsScreenState extends State<ScopeSettingsScreen> {
     _sightHeightController.dispose();
     super.dispose();
   }
-
   void _updateName(String value) {
     setState(() {
       _name = value;
     });
+  }
+  
+  void _updateNameFromText() {
+    if (_nameController.text.isNotEmpty) {
+      setState(() {
+        _name = _nameController.text;
+      });
+    }
+  }
+  
+  void _updateSightHeightFromText() {
+    if (_sightHeightController.text.isNotEmpty) {
+      try {
+        final newValue = double.parse(_sightHeightController.text);
+        setState(() {
+          _sightHeight = newValue.clamp(0.1, 10.0);
+        });
+      } catch (_) {}
+    }
   }
   
   void _updateSightHeightDelta(double delta) {
@@ -105,8 +127,7 @@ class _ScopeSettingsScreenState extends State<ScopeSettingsScreen> {
       _units = units;
     });
   }
-
-  void _saveAndNavigateBack() {
+  void _saveAndNavigateBack() async {
     // Create a Scope object with the current values
     final scope = Scope(
       id: _scopeId ?? const Uuid().v4(),
@@ -114,6 +135,9 @@ class _ScopeSettingsScreenState extends State<ScopeSettingsScreen> {
       sightHeight: _sightHeight,
       units: _unitStringToInt(_units), // Convert string to int for the model
     );
+    
+    // Save the scope to permanent storage
+    await ScopeStorage.saveScope(scope);
     
     // Show feedback to user
     final snackBar = SnackBar(

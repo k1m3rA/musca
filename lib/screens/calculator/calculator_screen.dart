@@ -20,8 +20,13 @@ import '../../models/scope_model.dart';
 
 class CalculatorScreen extends StatefulWidget {
   final Function(int)? onNavigate;
+  final ValueNotifier<bool>? reloadProfilesNotifier;
   
-  const CalculatorScreen({super.key, this.onNavigate});
+  const CalculatorScreen({
+    super.key, 
+    this.onNavigate,
+    this.reloadProfilesNotifier,
+  });
 
   @override
   State<CalculatorScreen> createState() => _CalculatorScreenState();
@@ -49,10 +54,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   // Profile data
   Gun? _selectedGun;
   Cartridge? _selectedCartridge;
-  Scope? _selectedScope;
-  @override
+  Scope? _selectedScope;  @override
   void initState() {
     super.initState();
+    
     _distanceController.addListener(_updateDistanceFromText);
     _angleController.addListener(_updateAngleFromText);
     _windSpeedController.addListener(_updateWindSpeedFromText);
@@ -63,13 +68,38 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     _pressureController.addListener(_updatePressureFromText);
     _humidityController.addListener(_updateHumidityFromText);
     
+    // Listen for profile reload notifications
+    widget.reloadProfilesNotifier?.addListener(_onReloadProfilesNotification);
+    
     // Load selected profiles
     _loadSelectedProfiles();
     
     // Check if compass is available
     _checkCompassAvailability();
   }
+  // This will be called when returning from other screens
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Only reload if widget is already mounted and not in initial build
+    if (mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _loadSelectedProfiles();
+        }
+      });
+    }
+  }  // Public method to be called from navigation container
+  void reloadProfilesFromNavigation() {
+    print('Reloading profiles from navigation...'); // Debug print
+    _loadSelectedProfiles();
+  }
 
+  // Method called when ValueNotifier changes
+  void _onReloadProfilesNotification() {
+    print('Profile reload notification received!'); // Debug print
+    _loadSelectedProfiles();
+  }
   Future<void> _loadSelectedProfiles() async {
     try {
       final gun = await GunStorage.getSelectedGun();
@@ -81,6 +111,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _selectedCartridge = cartridge;
         _selectedScope = scope;
       });
+      
+      // Recalculate ballistics with new profiles
+      _calculateBallistics();
     } catch (e) {
       print('Error loading selected profiles: $e');
     }
@@ -295,10 +328,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _ballisticsResult = null;
       });
     }
-  }
-
-  @override
+  }  @override
   void dispose() {
+    // Remove profile reload listener
+    widget.reloadProfilesNotifier?.removeListener(_onReloadProfilesNotification);
+    
     _distanceController.dispose();
     _angleController.dispose();
     _windSpeedController.dispose();
@@ -403,6 +437,5 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           child: Icon(Icons.save, color: Theme.of(context).scaffoldBackgroundColor),
         ),
       ),
-    );
-  }
+    );  }
 }

@@ -22,6 +22,10 @@ class NavigationContainer extends StatefulWidget {
 class _NavigationContainerState extends State<NavigationContainer> {
   int _currentIndex = 0;
   DateTime _lastHomeRefresh = DateTime.now();
+  final GlobalKey<State<CalculatorScreen>> _calculatorKey = GlobalKey<State<CalculatorScreen>>();
+  
+  // Simple notification mechanism
+  final ValueNotifier<bool> _reloadCalculatorProfiles = ValueNotifier<bool>(false);
 
   @override
   void initState() {
@@ -36,17 +40,25 @@ class _NavigationContainerState extends State<NavigationContainer> {
       // Refresh home screen when navigating to it from another screen
       if (index == 0 && previousIndex != 0) {
         _lastHomeRefresh = DateTime.now();
+      }      // When navigating to calculator from armory, trigger profile reload
+      if (index == 1 && previousIndex == 2) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _reloadCalculatorProfiles.value = !_reloadCalculatorProfiles.value;
+        });
       }
     });
-  }  @override
+  }@override
   Widget build(BuildContext context) {
     final List<Widget> screens = [
       HomeContent(
         key: ValueKey(_lastHomeRefresh.millisecondsSinceEpoch),
         title: widget.title,
         onNavigateTo: _changeScreen,
-      ),
-      CalculatorScreen(onNavigate: _changeScreen), // Pass the navigation callback
+      ),      CalculatorScreen(
+        key: _calculatorKey,
+        onNavigate: _changeScreen,
+        reloadProfilesNotifier: _reloadCalculatorProfiles,
+      ), // Pass the navigation callback
       ProfileScreen(onNavigate: _changeScreen), // Add the new profile screen
       SettingsPage(onThemeChanged: widget.onThemeChanged),
     ];

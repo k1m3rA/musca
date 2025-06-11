@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:musca/screens/profile/screens/cartridge/screens/widgets/length_input.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../../models/cartridge_model.dart'; // Import the proper Cartridge model
+import '../../../../../services/cartridge_storage.dart'; // Import the cartridge storage service
 import 'widgets/bc_input.dart'; // Import the BC input widget
 import 'widgets/name_input.dart'; // Import the name input widget
 import 'widgets/diameter_input.dart'; // Import the diameter input widget
@@ -54,12 +55,18 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
       _ballisticCoefficient = 0.5;
       _bcModelType = 0; // Default to G1
     }
-    
-    _nameController = TextEditingController(text: _name);
+      _nameController = TextEditingController(text: _name);
     _diameterController = TextEditingController(text: _diameter);
     _bulletWeightController = TextEditingController(text: _bulletWeight.toStringAsFixed(1));
     _bulletLengthController = TextEditingController(text: _bulletLength);
     _ballisticCoefficientController = TextEditingController(text: _ballisticCoefficient.toStringAsFixed(3));
+    
+    // Add listeners for text fields
+    _nameController.addListener(_updateNameFromText);
+    _diameterController.addListener(_updateDiameterFromText);
+    _bulletWeightController.addListener(_updateBulletWeightFromText);
+    _bulletLengthController.addListener(_updateBulletLengthFromText);
+    _ballisticCoefficientController.addListener(_updateBallisticCoefficientFromText);
   }
 
   @override
@@ -71,11 +78,56 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
     _ballisticCoefficientController.dispose();
     super.dispose();
   }
-
   void _updateName(String value) {
     setState(() {
       _name = value;
     });
+  }
+
+  void _updateNameFromText() {
+    if (_nameController.text.isNotEmpty) {
+      setState(() {
+        _name = _nameController.text;
+      });
+    }
+  }
+
+  void _updateDiameterFromText() {
+    if (_diameterController.text.isNotEmpty) {
+      setState(() {
+        _diameter = _diameterController.text;
+      });
+    }
+  }
+
+  void _updateBulletWeightFromText() {
+    if (_bulletWeightController.text.isNotEmpty) {
+      try {
+        final newValue = double.parse(_bulletWeightController.text);
+        setState(() {
+          _bulletWeight = newValue.clamp(1.0, 1000.0);
+        });
+      } catch (_) {}
+    }
+  }
+
+  void _updateBulletLengthFromText() {
+    if (_bulletLengthController.text.isNotEmpty) {
+      setState(() {
+        _bulletLength = _bulletLengthController.text;
+      });
+    }
+  }
+
+  void _updateBallisticCoefficientFromText() {
+    if (_ballisticCoefficientController.text.isNotEmpty) {
+      try {
+        final newValue = double.parse(_ballisticCoefficientController.text);
+        setState(() {
+          _ballisticCoefficient = newValue.clamp(0.1, 2.0);
+        });
+      } catch (_) {}
+    }
   }
 
   
@@ -138,8 +190,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
       _diameterController.text = _diameter;
     });
   }
-
-  void _saveAndNavigateBack() {
+  void _saveAndNavigateBack() async {
     // Create a Cartridge object with the current values
     final cartridge = Cartridge(
       id: _cartridgeId ?? Uuid().v4(),
@@ -150,6 +201,9 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
       ballisticCoefficient: _ballisticCoefficient,
       bcModelType: _bcModelType,
     );
+    
+    // Save the cartridge to permanent storage
+    await CartridgeStorage.saveCartridge(cartridge);
     
     // Show feedback to user
     final snackBar = SnackBar(

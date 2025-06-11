@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/gun_settings_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../../../services/calculation_storage.dart'; // Import the storage service
+import '../../../../services/gun_storage.dart'; // Import the gun storage service
 import '../../../../models/gun_model.dart'; // Import the new Gun model
 
 class ListGunsScreen extends StatefulWidget {
@@ -23,13 +23,12 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
     super.initState();
     _loadGuns();
   }
-  
-  Future<void> _loadGuns() async {
+    Future<void> _loadGuns() async {
     setState(() {
       _isLoading = true;
     });
     
-    final loadedGuns = await CalculationStorage.getGuns();
+    final loadedGuns = await GunStorage.getGuns();
     
     setState(() {
       guns = loadedGuns;
@@ -52,14 +51,15 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
       _selectedIndex = index;
     });
   }
-
-  void _confirmSelection() {
+  void _confirmSelection() async {
     if (_selectedIndex != null) {
+      final selectedGun = guns[_selectedIndex!];
+      // Save the selected gun ID to storage
+      await GunStorage.saveSelectedGunId(selectedGun.id);
       // Return the selected gun to the previous screen
-      Navigator.of(context).pop(guns[_selectedIndex!]);
+      Navigator.of(context).pop(selectedGun);
     }
   }
-
   void _addNewGun() async {
     final Gun? newGun = await Navigator.push<Gun>(
       context,
@@ -74,10 +74,9 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
         guns.add(newGun);
       });
       // Save the updated list
-      await CalculationStorage.saveGuns(guns);
+      await GunStorage.saveGun(newGun);
     }
   }
-
   void _editSelectedGun() {
     if (_selectedIndex != null) {
       Navigator.push<Gun>(
@@ -90,8 +89,8 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
           setState(() {
             guns[_selectedIndex!] = updatedGun;
           });
-          // Save the updated list
-          await CalculationStorage.saveGuns(guns);
+          // Save the updated gun
+          await GunStorage.saveGun(updatedGun);
         }
       });
     }
@@ -119,15 +118,14 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
           ],
         ),
       ) ?? false;
-      
-      if (confirmed) {
+        if (confirmed) {
         setState(() {
           guns.removeAt(_selectedIndex!);
           _selectedIndex = null;
         });
         
-        // Save the updated list
-        await CalculationStorage.saveGuns(guns);
+        // Delete the gun using GunStorage
+        await GunStorage.deleteGun(gunToDelete.id);
       }
     }
   }
