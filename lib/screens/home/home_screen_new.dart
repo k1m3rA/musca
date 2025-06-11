@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/calculation.dart';
 import '../../services/calculation_storage.dart';
+import '../../services/ballistics_calculator.dart';
+import '../../services/ballistics_units.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -246,20 +248,17 @@ class _HomeContentState extends State<HomeContent> {
       ),
     );
   }
+
   List<String> _getAllAvailableUnits() {
     return [
       'MRAD',
-      '1/20 MRAD',
       'MOA',
-      '1/2 MOA',
-      '1/3 MOA',
-      '1/4 MOA',
-      '1/8 MOA',
       'Inches',
       'Centimeters',
       'Meters',
     ];
   }
+
   Map<String, dynamic> _getCorrectionsForUnit(String unit, Calculation calculation) {
     switch (unit) {
       case 'MRAD':
@@ -268,51 +267,10 @@ class _HomeContentState extends State<HomeContent> {
           'drop': calculation.dropMrad ?? 0.0,
           'unit': 'MRAD'
         };
-      case '1/20 MRAD':
-        final driftMrad20 = ((calculation.driftMrad ?? 0.0) / 0.05).round() * 0.05;
-        final dropMrad20 = ((calculation.dropMrad ?? 0.0) / 0.05).round() * 0.05;
-        return {
-          'drift': driftMrad20,
-          'drop': dropMrad20,
-          'unit': 'MRAD'
-        };
       case 'MOA':
         return {
           'drift': calculation.driftMoa ?? 0.0,
           'drop': calculation.dropMoa ?? 0.0,
-          'unit': 'MOA'
-        };
-      case '1/2 MOA':
-        final driftMoa2 = ((calculation.driftMoa ?? 0.0) / 0.5).round() * 0.5;
-        final dropMoa2 = ((calculation.dropMoa ?? 0.0) / 0.5).round() * 0.5;
-        return {
-          'drift': driftMoa2,
-          'drop': dropMoa2,
-          'unit': 'MOA'
-        };
-      case '1/3 MOA':
-        const double oneThird = 1.0 / 3.0;
-        final driftMoa3 = ((calculation.driftMoa ?? 0.0) / oneThird).round() * oneThird;
-        final dropMoa3 = ((calculation.dropMoa ?? 0.0) / oneThird).round() * oneThird;
-        return {
-          'drift': driftMoa3,
-          'drop': dropMoa3,
-          'unit': 'MOA'
-        };
-      case '1/4 MOA':
-        final driftMoa4 = ((calculation.driftMoa ?? 0.0) / 0.25).round() * 0.25;
-        final dropMoa4 = ((calculation.dropMoa ?? 0.0) / 0.25).round() * 0.25;
-        return {
-          'drift': driftMoa4,
-          'drop': dropMoa4,
-          'unit': 'MOA'
-        };
-      case '1/8 MOA':
-        final driftMoa8 = ((calculation.driftMoa ?? 0.0) / 0.125).round() * 0.125;
-        final dropMoa8 = ((calculation.dropMoa ?? 0.0) / 0.125).round() * 0.125;
-        return {
-          'drift': driftMoa8,
-          'drop': dropMoa8,
           'unit': 'MOA'
         };
       case 'Inches':
@@ -340,19 +298,11 @@ class _HomeContentState extends State<HomeContent> {
         };
     }
   }
+
   int _getPrecisionForUnit(String unit) {
     switch (unit) {
       case 'MRAD':
-      case '1/20 MRAD':
-        return 2;
       case 'MOA':
-      case '1/2 MOA':
-      case '1/4 MOA':
-        return 2;
-      case '1/3 MOA':
-        return 3;
-      case '1/8 MOA':
-        return 3;
       case 'in':
         return 2;
       case 'cm':
@@ -612,10 +562,14 @@ class _CalculationCardState extends State<CalculationCard> {
                       underline: Container(),
                       items: [
                         const DropdownMenuItem(value: 'MRAD', child: Text('MRAD')),
+                        const DropdownMenuItem(value: '1/20 MRAD', child: Text('1/20 MRAD')),
                         const DropdownMenuItem(value: 'MOA', child: Text('MOA')),
+                        const DropdownMenuItem(value: '1/2 MOA', child: Text('1/2 MOA')),
+                        const DropdownMenuItem(value: '1/3 MOA', child: Text('1/3 MOA')),
+                        const DropdownMenuItem(value: '1/4 MOA', child: Text('1/4 MOA')),
+                        const DropdownMenuItem(value: '1/8 MOA', child: Text('1/8 MOA')),
                         const DropdownMenuItem(value: 'Inches', child: Text('Inches')),
                         const DropdownMenuItem(value: 'Centimeters', child: Text('Centimeters')),
-                        const DropdownMenuItem(value: 'Meters', child: Text('Meters')),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -644,7 +598,22 @@ class _CalculationCardState extends State<CalculationCard> {
         dropValue = widget.calculation.dropMrad?.toStringAsFixed(2) ?? '0.00';
         unit = 'MRAD';
         break;
+      case '1/20 MRAD':
+        // Use MRAD values for now, as 1/20 MRAD isn't stored in calculation model yet
+        driftValue = widget.calculation.driftMrad?.toStringAsFixed(2) ?? '0.00';
+        dropValue = widget.calculation.dropMrad?.toStringAsFixed(2) ?? '0.00';
+        unit = 'MRAD';
+        break;
       case 'MOA':
+        driftValue = widget.calculation.driftMoa?.toStringAsFixed(2) ?? '0.00';
+        dropValue = widget.calculation.dropMoa?.toStringAsFixed(2) ?? '0.00';
+        unit = 'MOA';
+        break;
+      case '1/2 MOA':
+      case '1/3 MOA':
+      case '1/4 MOA':
+      case '1/8 MOA':
+        // Use MOA values for fractional units for now
         driftValue = widget.calculation.driftMoa?.toStringAsFixed(2) ?? '0.00';
         dropValue = widget.calculation.dropMoa?.toStringAsFixed(2) ?? '0.00';
         unit = 'MOA';
@@ -665,8 +634,7 @@ class _CalculationCardState extends State<CalculationCard> {
         dropValue = dropCm.toStringAsFixed(1);
         unit = 'cm';
         break;
-      case 'Meters':
-      default:
+      default: // meters
         driftValue = widget.calculation.driftHorizontal?.toStringAsFixed(3) ?? '0.000';
         dropValue = widget.calculation.dropVertical?.toStringAsFixed(3) ?? '0.000';
         unit = 'm';
