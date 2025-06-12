@@ -171,14 +171,23 @@ class BallisticsCalculator {
     
     return dryAirDensity + waterVaporDensity;
   }  static double _getDiameterFromCartridge(Cartridge cartridge) {
-    // Parse the diameter directly from user input
-    // Assume the diameter is provided in centimeters as a string (e.g., "0.782")
+    // Parse the diameter from user input
+    // The diameter is collected in centimeters in the UI
     try {
       final double diameterCm = double.parse(cartridge.diameter);
       return diameterCm * 0.01; // Convert centimeters to meters
     } catch (e) {
-      // If parsing fails, throw an error since user input is required
-      throw ArgumentError('Invalid cartridge diameter: "${cartridge.diameter}". Please enter a valid diameter in centimeters (e.g., "0.782")');
+      // If parsing fails, try to handle common caliber formats like ".308", "7.62", etc.
+      String cleanDiameter = cartridge.diameter.replaceAll(RegExp(r'[^\d.]'), '');
+      final double parsedValue = double.parse(cleanDiameter);
+      
+      // If value is less than 1, assume it's in inches (like .308) and convert to meters
+      if (parsedValue < 1.0) {
+        return parsedValue * 0.0254; // Convert inches to meters
+      } else {
+        // Otherwise assume it's in centimeters
+        return parsedValue * 0.01; // Convert centimeters to meters
+      }
     }
   }static BallisticsResult calculate(double distance, double windSpeed, double windDirection) {
     // Legacy method for backward compatibility - uses default test profiles
@@ -197,7 +206,7 @@ class BallisticsCalculator {
     final defaultCartridge = Cartridge(
       id: 'default-test-cartridge',
       name: 'Default Test .308',
-      diameter: '.308',
+      diameter: '0.782', // .308" converted to centimeters
       bulletWeight: 150.0, // grains
       bulletLength: 0.0,
       ballisticCoefficient: 0.504, // G1
@@ -315,13 +324,14 @@ class BallisticsCalculator {
       
       final double vMagnitude = sqrt(vRel[0] * vRel[0] + vRel[1] * vRel[1] + vRel[2] * vRel[2]);
       final double mach = vMagnitude / a;
-        // Updated coefficients
-      final double CD = cartridge.bcModelType == 1 
-          ? g7BallisticCoefficient(mach) * ballisticCoefficient
-          : g1BallisticCoefficient(mach) * ballisticCoefficient;
       
-      // Drag force (use calculated air density instead of constant)
-      final double dragMagnitude = 0.5 * rhoAir * A * CD * vMagnitude * vMagnitude;
+      // Updated coefficients
+      final double CD = cartridge.bcModelType == 1 
+          ? g7BallisticCoefficient(mach)
+          : g1BallisticCoefficient(mach);
+      
+      // Drag force (use calculated air density and correct BC application)
+      final double dragMagnitude = 0.5 * rhoAir * A * CD * vMagnitude * vMagnitude / ballisticCoefficient;
       final List<double> dragForce = [
         -dragMagnitude * (vRel[0] / vMagnitude),
         -dragMagnitude * (vRel[1] / vMagnitude),

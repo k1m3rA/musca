@@ -49,9 +49,9 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
     } else {
       // Default values for new cartridge
       _name = "My Cartridge";
-      _diameter = "0.782";
+      _diameter = "0.782"; // Diameter in centimeters (.308" = 0.782 cm)
       _bulletWeight = 168.0;
-      _bulletLength = "3.550";
+      _bulletLength = "3.550"; // Length in centimeters
       _ballisticCoefficient = 0.5;
       _bcModelType = 0; // Default to G1
     }
@@ -179,10 +179,10 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
       currentValue = double.tryParse(_diameterController.text) ?? 0.782;
     } catch (e) {
       // Fallback to a default value if parsing fails
-      currentValue = 0.782;
+      currentValue = 0.782; // .308" caliber in centimeters
     }
     
-    final newValue = (currentValue + delta).clamp(0.432, 2.032); // Reasonable range for bullet diameters in cm (.17" to .80" converted to cm)
+    final newValue = (currentValue + delta).clamp(0.432, 2.032); // Range from .17" to .80" in centimeters
     setState(() {
       _diameter = newValue.toStringAsFixed(3);
       _diameterController.text = _diameter;
