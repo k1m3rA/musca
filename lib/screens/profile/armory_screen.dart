@@ -212,7 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Column(
                               children: [
                                 Text(
-                                  'Sight Height: ${selectedScope!.sightHeight.toStringAsFixed(2)} ${selectedScope!.units <= 1 ? (selectedScope!.units == 0 ? "in" : "cm") : "in"}',
+                                  'Sight Height: ${selectedScope!.sightHeight.toStringAsFixed(2)} ${selectedScope!.units <= 1 ? (selectedScope!.units == 0 ? "cm" : "cm") : "cm"}',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey[600],
@@ -280,7 +280,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Column(
                               children: [
                                 Text(
-                                  'Diameter: ${selectedCartridge!.diameter} in · Weight: ${selectedCartridge!.bulletWeight} gr',
+                                  'Diameter: ${selectedCartridge!.diameter} cm · Weight: ${selectedCartridge!.bulletWeight} gr',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey[600],
