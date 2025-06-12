@@ -65,7 +65,7 @@ class BallisticsCalculator {
   static double speedOfSound(double tC) {
     return 20.05 * sqrt(tC + 273.15);
   }
-  static double g1BallisticCoefficient(double mach) {
+  static double g1DragCoefficient(double mach) {
     final machValues = [
       0.00, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45,
       0.50, 0.55, 0.60, 0.70, 0.725, 0.75, 0.775, 0.80, 0.825, 0.85,
@@ -99,7 +99,7 @@ class BallisticsCalculator {
     return g1DragCoeffValues.last;
   }
 
-  static double g7BallisticCoefficient(double mach) {
+  static double g7DragCoefficient(double mach) {
     final machValues = [
       0.00, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45,
       0.50, 0.55, 0.60, 0.65, 0.70, 0.725, 0.75, 0.775, 0.80, 0.825,
@@ -195,10 +195,10 @@ class BallisticsCalculator {
     return dryAirDensity + waterVaporDensity;
   }  static double _getDiameterFromCartridge(Cartridge cartridge) {
     // Parse the diameter from user input
-    // The diameter is collected in centimeters in the UI
+    // The diameter is collected in millimeters in the UI
     try {
-      final double diameterCm = double.parse(cartridge.diameter);
-      return diameterCm * 0.01; // Convert centimeters to meters
+      final double diameterMm = double.parse(cartridge.diameter);
+      return diameterMm * 0.001; // Convert millimeters to meters
     } catch (e) {
       // If parsing fails, try to handle common caliber formats like ".308", "7.62", etc.
       String cleanDiameter = cartridge.diameter.replaceAll(RegExp(r'[^\d.]'), '');
@@ -207,9 +207,12 @@ class BallisticsCalculator {
       // If value is less than 1, assume it's in inches (like .308) and convert to meters
       if (parsedValue < 1.0) {
         return parsedValue * 0.0254; // Convert inches to meters
+      } else if (parsedValue < 50.0) {
+        // Values between 1-50 are likely millimeters (common rifle calibers)
+        return parsedValue * 0.001; // Convert millimeters to meters
       } else {
-        // Otherwise assume it's in centimeters
-        return parsedValue * 0.01; // Convert centimeters to meters
+        // Larger values might be in hundredths of millimeters or other units
+        return parsedValue * 0.001; // Default to millimeters
       }
     }
   }static BallisticsResult calculate(double distance, double windSpeed, double windDirection) {
@@ -461,8 +464,8 @@ class BallisticsCalculator {
     
     // Drag coefficient
     final double CD = bcModelType == 1 
-        ? g7BallisticCoefficient(mach)
-        : g1BallisticCoefficient(mach);
+        ? g7DragCoefficient(mach)
+        : g1DragCoefficient(mach);
     
     // Drag force magnitude
     final double dragMagnitude = 0.5 * rhoAir * A * CD * vMagnitude * vMagnitude / ballisticCoefficient;
