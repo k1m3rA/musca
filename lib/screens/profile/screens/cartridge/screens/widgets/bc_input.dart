@@ -61,6 +61,18 @@ class _BCTypeInputState extends State<BCTypeInput> {
     }
   }
   
+  // Helper method to get the current BC profile text
+  String _getCurrentProfileText() {
+    switch (_selectedButtonIndex) {
+      case 0:
+        return 'G1';
+      case 1:
+        return 'G7';
+      default:
+        return 'BC';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final iconColor = Theme.of(context).colorScheme.primary;
@@ -120,7 +132,7 @@ class _BCTypeInputState extends State<BCTypeInput> {
                           color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
-                      suffixText: '1:in',
+                      suffixText: _getCurrentProfileText(),
                     ),
                   ),
                 ),
