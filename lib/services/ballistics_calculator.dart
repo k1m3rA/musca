@@ -358,6 +358,7 @@ class BallisticsCalculator {
     
     double? driftH;
     double? dropZ;
+    int impactStep = 0;
     
     // Area for drag calculation
     final double A = pi * (diameter / 2) * (diameter / 2);
@@ -384,11 +385,25 @@ class BallisticsCalculator {
       
       // Check if we've reached target distance
       if (state[0] >= distance) {
+        impactStep = step;
         driftH = state[1];
         dropZ = state[2];
         break;
       }
     }
+
+    // Calculate time of flight and empirical lateral drift
+    final double timeOfFlight = impactStep * dt;
+    final double crossWind = windSpeed; // assumed 100% transversal
+    
+    // Empirical coefficient, adjust until values match your tables
+    // Different values for G1 vs G7 ballistic models
+    final double Kd = ((cartridge.bcModelType ?? 0) == 1 ? 0.03 : 0.05);
+    
+    final double lateralDrift = crossWind * timeOfFlight / ballisticCoefficient * Kd;
+    
+    // Override the "very small" drift from integrator with empirical value
+    driftH = lateralDrift;
 
     // Calculate raw corrections (referred to bore axis)
     final double rawDriftMrad = (driftH ?? 0) / distance * 1000;
