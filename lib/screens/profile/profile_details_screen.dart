@@ -79,13 +79,17 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
         slivers: [
           SliverAppBar(
             pinned: true,
-            expandedHeight: 150,
-            flexibleSpace: const FlexibleSpaceBar(
+            expandedHeight: 100,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
-              title: Text("Profile Details"),
+              title: Text(
+                "Profile Details",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
             ),
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            foregroundColor: Colors.white,
           ),
           if (_isLoading)
             const SliverFillRemaining(
@@ -213,14 +217,14 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: SvgPicture.asset(
                     'assets/icon/bullet.svg',
                     height: 30,
                     width: 30,
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -231,7 +235,7 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
                       Text(
                         'Cartridge Profile',
                         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.secondary,
+                          color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -275,14 +279,14 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.tertiary.withOpacity(0.1),
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: SvgPicture.asset(
                     'assets/icon/scope.svg',
                     height: 30,
                     width: 30,
-                    color: Theme.of(context).colorScheme.tertiary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -293,7 +297,7 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
                       Text(
                         'Scope Profile',
                         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.tertiary,
+                          color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

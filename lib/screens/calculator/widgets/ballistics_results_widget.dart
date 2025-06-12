@@ -74,21 +74,13 @@ class _BallisticsResultsWidgetState extends State<BallisticsResultsWidget> {
   }
 
   Widget _buildHeader() {
-    return Row(
-      children: [
-        Icon(
-          Icons.my_location,
-          color: Theme.of(context).textTheme.titleLarge?.color,
-        ),
-        const SizedBox(width: 8),
-        Text(
-          'Correcciones a ${widget.distance.toStringAsFixed(0)}m',
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
+    return Text(
+      'Correcciones a ${widget.distance.toStringAsFixed(0)}m',
+      style: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: Theme.of(context).colorScheme.primary,
+      ),
     );
   }
 
