@@ -311,6 +311,12 @@ class BallisticsCalculator {
     // Gun properties
     final double muzzleVelocity = gun.muzzleVelocity;
     final double calibrationDistance = gun.zeroRange;
+    final double twistRate = gun.twistRate; // calibres/rev
+    final int twistDirection = gun.twistDirection; // 1 for right, -1 for left
+    
+    // Calculate initial spin rate
+    final double p0 = 2 * pi * muzzleVelocity / (twistRate * diameter);
+    final double spinRate = twistDirection * p0; // Apply twist direction
     
     // Scope properties
     final double sightHeightValue = scope.sightHeight;
@@ -327,12 +333,13 @@ class BallisticsCalculator {
     // Convert elevation angle from degrees to radians
     final double elevationAngleRad = elevationAngle * pi / 180;
     
-    // Initial state [x, y, z, vx, vy, vz]
+    // Initial state [x, y, z, vx, vy, vz, p] - added spin rate p
     List<double> state = [
       0.0, 0.0, 0.0,
       muzzleVelocity * cos(elevationAngleRad), 
       0.0, 
-      muzzleVelocity * sin(elevationAngleRad)
+      muzzleVelocity * sin(elevationAngleRad),
+      spinRate
     ];
     
     double? driftH;
@@ -345,19 +352,19 @@ class BallisticsCalculator {
     for (int step = 0; step < (30.0 / dt).round(); step++) {
       // RK4 step
       final int bcModelType = cartridge.bcModelType ?? 0;
-      final List<double> k1 = _calculateDerivatives(state, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType);
+      final List<double> k1 = _calculateDerivatives(state, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter);
       
-      final List<double> state2 = List.generate(6, (i) => state[i] + k1[i] * dt * 0.5);
-      final List<double> k2 = _calculateDerivatives(state2, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType);
+      final List<double> state2 = List.generate(7, (i) => state[i] + k1[i] * dt * 0.5);
+      final List<double> k2 = _calculateDerivatives(state2, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter);
       
-      final List<double> state3 = List.generate(6, (i) => state[i] + k2[i] * dt * 0.5);
-      final List<double> k3 = _calculateDerivatives(state3, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType);
+      final List<double> state3 = List.generate(7, (i) => state[i] + k2[i] * dt * 0.5);
+      final List<double> k3 = _calculateDerivatives(state3, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter);
       
-      final List<double> state4 = List.generate(6, (i) => state[i] + k3[i] * dt);
-      final List<double> k4 = _calculateDerivatives(state4, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType);
+      final List<double> state4 = List.generate(7, (i) => state[i] + k3[i] * dt);
+      final List<double> k4 = _calculateDerivatives(state4, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter);
       
       // Update state using RK4 formula
-      for (int i = 0; i < 6; i++) {
+      for (int i = 0; i < 7; i++) {
         state[i] += dt / 6.0 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
       }
       
@@ -431,7 +438,7 @@ class BallisticsCalculator {
   }
 
   /// Calculate derivatives for RK4 integration
-  /// Returns [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt]
+  /// Returns [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt, dp/dt]
   static List<double> _calculateDerivatives(
     List<double> state,
     List<double> windVector,
@@ -440,7 +447,8 @@ class BallisticsCalculator {
     double A,
     double mass,
     double ballisticCoefficient,
-    int bcModelType
+    int bcModelType,
+    double diameter
   ) {
     final double x = state[0];
     final double y = state[1];
@@ -448,6 +456,7 @@ class BallisticsCalculator {
     final double vx = state[3];
     final double vy = state[4];
     final double vz = state[5];
+    final double p = state[6]; // spin rate
     
     // Local conditions
     final double tLoc = envTemperature - 0.0065 * z;
@@ -476,11 +485,54 @@ class BallisticsCalculator {
     final double dragFy = vRelMag > 0 ? -dragMagnitude * (vRelY / vRelMag) : 0.0;
     final double dragFz = vRelMag > 0 ? -dragMagnitude * (vRelZ / vRelMag) : 0.0;
     
-    // Accelerations
-    final double ax = dragFx / mass;
-    final double ay = dragFy / mass;
-    final double az = (dragFz / mass) - gLoc;
+    // Magnus force calculation
+    // Magnus coefficient (empirical, depends on bullet shape)
+    final double CM = 0.3; // Typical value for spitzer bullets
     
-    return [vx, vy, vz, ax, ay, az];
+    // Spin vector (aligned with bullet axis, approximately with velocity)
+    final double spinMagnitude = p.abs();
+    final double spinX = vRelMag > 0 ? spinMagnitude * (vRelX / vRelMag) : 0.0;
+    final double spinY = vRelMag > 0 ? spinMagnitude * (vRelY / vRelMag) : 0.0;
+    final double spinZ = vRelMag > 0 ? spinMagnitude * (vRelZ / vRelMag) : 0.0;
+    
+    // Cross product: spin × velocity
+    final double magnusX = (spinY * vRelZ - spinZ * vRelY);
+    final double magnusY = (spinZ * vRelX - spinX * vRelZ);
+    final double magnusZ = (spinX * vRelY - spinY * vRelX);
+    
+    // Magnus force magnitude
+    final double magnusMagnitude = 0.5 * rhoAir * A * CM * vMagnitude;
+    
+    // Magnus forces
+    final double magFx = magnusMagnitude * magnusX;
+    final double magFy = magnusMagnitude * magnusY;
+    final double magFz = magnusMagnitude * magnusZ;
+    
+    // Coriolis effect calculation
+    // Earth's angular velocity vector in Earth-fixed coordinates
+    final double latRad = latitude * pi / 180;
+    final double omegaX = 0.0; // No rotation about local X-axis
+    final double omegaY = omega * cos(latRad); // East component
+    final double omegaZ = omega * sin(latRad); // Up component
+    
+    // Coriolis acceleration: -2 * Ω × v
+    final double coriolisX = -2.0 * (omegaY * vz - omegaZ * vy);
+    final double coriolisY = -2.0 * (omegaZ * vx - omegaX * vz);
+    final double coriolisZ = -2.0 * (omegaX * vy - omegaY * vx);
+    
+    // Convert Coriolis acceleration to forces
+    final double coriolisFx = mass * coriolisX;
+    final double coriolisFy = mass * coriolisY;
+    final double coriolisFz = mass * coriolisZ;
+    
+    // Total accelerations (drag + Magnus + Coriolis + gravity)
+    final double ax = (dragFx + magFx + coriolisFx) / mass;
+    final double ay = (dragFy + magFy + coriolisFy) / mass;
+    final double az = (dragFz + magFz + coriolisFz) / mass - gLoc;
+    
+    // Spin decay (due to air resistance)
+    final double spinDecay = -0.001 * spinMagnitude; // Empirical spin decay rate
+    
+    return [vx, vy, vz, ax, ay, az, spinDecay];
   }
 }
