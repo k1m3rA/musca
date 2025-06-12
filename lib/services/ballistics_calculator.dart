@@ -262,11 +262,11 @@ class BallisticsCalculator {
     Gun? gun,
     Cartridge? cartridge,
     Scope? scope, {
-    required double temperature,  // Made required
-    required double pressure,     // Made required  
-    required double humidity,     // Made required
-    double elevationAngle = 0.0,  // Elevation angle in degrees
-    double azimuthAngle = 0.0,    // Azimuth angle in degrees
+    required double temperature,
+    required double pressure,     
+    required double humidity,
+    double elevationAngle = 0.0,
+    double azimuthAngle = 0.0,
   }) {
     // Strict validation - no fallbacks allowed
     if (gun == null) {
@@ -289,9 +289,9 @@ class BallisticsCalculator {
     }
     
     // Use strictly the provided environmental data from calculator screen
-    final double envTemperature = temperature; // °C - strictly from screen
-    final double envPressure = pressure; // mbar or Pa - strictly from screen
-    final double envHumidity = humidity; // % - strictly from screen
+    final double envTemperature = temperature;
+    final double envPressure = pressure;
+    final double envHumidity = humidity;
     
     // Convert pressure to Pa using intelligent detection
     final double pressurePa = _convertPressureToPa(envPressure);
@@ -300,22 +300,23 @@ class BallisticsCalculator {
     final double rhoAir = calculateAirDensity(envTemperature, pressurePa, envHumidity);
     
     // Extract ballistics data from profiles
-      // Projectile properties from cartridge
-    final double bulletWeightGrains = cartridge.bulletWeight; // grains
-    final double mass = bulletWeightGrains * 0.0000648; // Convert grains to kg
-    final double ballisticCoefficient = cartridge.ballisticCoefficient; // G1 or G7
-    final double diameter = _getDiameterFromCartridge(cartridge); // m
+    final double bulletWeightGrains = cartridge.bulletWeight;
+    final double mass = bulletWeightGrains * 0.0000648;
+    final double ballisticCoefficient = cartridge.ballisticCoefficient;
+    final double diameter = _getDiameterFromCartridge(cartridge);
       
     // Gun properties
-    final double muzzleVelocity = gun.muzzleVelocity; // m/s
-    final double calibrationDistance = gun.zeroRange; // m
+    final double muzzleVelocity = gun.muzzleVelocity;
+    final double calibrationDistance = gun.zeroRange;
     
     // Scope properties
-    final double sightHeightValue = scope.sightHeight; // value in units specified
-    final int sightHeightUnits = scope.units; // 0: inches, 1: cm
+    final double sightHeightValue = scope.sightHeight;
+    final int sightHeightUnits = scope.units;
     final double visorHeight = sightHeightUnits == 0 
-        ? sightHeightValue * 0.0254 // Convert inches to meters
-        : sightHeightValue * 0.01; // Convert cm to meters    // Convert wind direction to wind vector (simplified)
+        ? sightHeightValue * 0.0254
+        : sightHeightValue * 0.01;
+
+    // Convert wind direction to wind vector
     final double windX = windSpeed * cos(windDirection * pi / 180);
     final double windY = windSpeed * sin(windDirection * pi / 180);
     final List<double> windVector = [windX, windY, 0.0];
@@ -323,75 +324,49 @@ class BallisticsCalculator {
     // Convert elevation angle from degrees to radians
     final double elevationAngleRad = elevationAngle * pi / 180;
     
-    // Initial state
-    List<double> pos = [0.0, 0.0, 0.0];
-    List<double> vel = [muzzleVelocity * cos(elevationAngleRad), 0.0, muzzleVelocity * sin(elevationAngleRad)];
+    // Initial state [x, y, z, vx, vy, vz]
+    List<double> state = [
+      0.0, 0.0, 0.0,
+      muzzleVelocity * cos(elevationAngleRad), 
+      0.0, 
+      muzzleVelocity * sin(elevationAngleRad)
+    ];
     
     double? driftH;
     double? dropZ;
     
-    // Area
+    // Area for drag calculation
     final double A = pi * (diameter / 2) * (diameter / 2);
-      for (int step = 0; step < (30.0 / dt).round(); step++) {
-      // Local conditions (use dynamic temperature instead of constant)
-      final double tLoc = envTemperature - 0.0065 * pos[2];
-      final double a = speedOfSound(tLoc);
-      final double gLoc = gravity(latitude, pos[2]);
+
+    // RK4 Integration loop
+    for (int step = 0; step < (30.0 / dt).round(); step++) {
+      // RK4 step
+      final int bcModelType = cartridge.bcModelType ?? 0;
+      final List<double> k1 = _calculateDerivatives(state, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType);
       
-      // Relative velocity to air
-      final List<double> vRel = [
-        vel[0] - windVector[0],
-        vel[1] - windVector[1],
-        vel[2] - windVector[2]
-      ];
+      final List<double> state2 = List.generate(6, (i) => state[i] + k1[i] * dt * 0.5);
+      final List<double> k2 = _calculateDerivatives(state2, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType);
       
-      final double vMagnitude = sqrt(vRel[0] * vRel[0] + vRel[1] * vRel[1] + vRel[2] * vRel[2]);
-      final double mach = vMagnitude / a;
+      final List<double> state3 = List.generate(6, (i) => state[i] + k2[i] * dt * 0.5);
+      final List<double> k3 = _calculateDerivatives(state3, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType);
       
-      // Updated coefficients
-      final double CD = cartridge.bcModelType == 1 
-          ? g7BallisticCoefficient(mach)
-          : g1BallisticCoefficient(mach);
+      final List<double> state4 = List.generate(6, (i) => state[i] + k3[i] * dt);
+      final List<double> k4 = _calculateDerivatives(state4, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType);
       
-      // Drag force (use calculated air density and correct BC application)
-      final double dragMagnitude = 0.5 * rhoAir * A * CD * vMagnitude * vMagnitude / ballisticCoefficient;
-      final List<double> dragForce = [
-        -dragMagnitude * (vRel[0] / vMagnitude),
-        -dragMagnitude * (vRel[1] / vMagnitude),
-        -dragMagnitude * (vRel[2] / vMagnitude)
-      ];
+      // Update state using RK4 formula
+      for (int i = 0; i < 6; i++) {
+        state[i] += dt / 6.0 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
+      }
       
-      // Gravity force
-      final List<double> gravityForce = [0.0, 0.0, -mass * gLoc];
-      
-      // Total force (simplified - only drag and gravity for basic calculation)
-      final List<double> totalForce = [
-        gravityForce[0] + dragForce[0],
-        gravityForce[1] + dragForce[1],
-        gravityForce[2] + dragForce[2]
-      ];
-      
-      // Euler integration
-      final List<double> acc = [
-        totalForce[0] / mass,
-        totalForce[1] / mass,
-        totalForce[2] / mass
-      ];
-      
-      vel[0] += acc[0] * dt;
-      vel[1] += acc[1] * dt;
-      vel[2] += acc[2] * dt;
-      
-      pos[0] += vel[0] * dt;
-      pos[1] += vel[1] * dt;
-      pos[2] += vel[2] * dt;
-      
-      if (pos[0] >= distance) {
-        driftH = pos[1];
-        dropZ = pos[2];
+      // Check if we've reached target distance
+      if (state[0] >= distance) {
+        driftH = state[1];
+        dropZ = state[2];
         break;
-      }    }
-      // Calculate raw corrections (referred to bore axis)
+      }
+    }
+
+    // Calculate raw corrections (referred to bore axis)
     final double rawDriftMrad = (driftH ?? 0) / distance * 1000;
     final double rawDropMrad = -(dropZ ?? 0) / distance * 1000; // Negative for upward correction
     
@@ -450,5 +425,59 @@ class BallisticsCalculator {
       driftCm: driftCm,
       dropCm: dropCm,
     );
+  }
+
+  /// Calculate derivatives for RK4 integration
+  /// Returns [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt]
+  static List<double> _calculateDerivatives(
+    List<double> state,
+    List<double> windVector,
+    double envTemperature,
+    double rhoAir,
+    double A,
+    double mass,
+    double ballisticCoefficient,
+    int bcModelType
+  ) {
+    final double x = state[0];
+    final double y = state[1];
+    final double z = state[2];
+    final double vx = state[3];
+    final double vy = state[4];
+    final double vz = state[5];
+    
+    // Local conditions
+    final double tLoc = envTemperature - 0.0065 * z;
+    final double a = speedOfSound(tLoc);
+    final double gLoc = gravity(latitude, z);
+    
+    // Relative velocity to air
+    final double vRelX = vx - windVector[0];
+    final double vRelY = vy - windVector[1];
+    final double vRelZ = vz - windVector[2];
+    
+    final double vMagnitude = sqrt(vRelX * vRelX + vRelY * vRelY + vRelZ * vRelZ);
+    final double mach = vMagnitude / a;
+    
+    // Drag coefficient
+    final double CD = bcModelType == 1 
+        ? g7BallisticCoefficient(mach)
+        : g1BallisticCoefficient(mach);
+    
+    // Drag force magnitude
+    final double dragMagnitude = 0.5 * rhoAir * A * CD * vMagnitude * vMagnitude / ballisticCoefficient;
+    
+    // Unit vector in direction of relative velocity
+    final double vRelMag = vMagnitude;
+    final double dragFx = vRelMag > 0 ? -dragMagnitude * (vRelX / vRelMag) : 0.0;
+    final double dragFy = vRelMag > 0 ? -dragMagnitude * (vRelY / vRelMag) : 0.0;
+    final double dragFz = vRelMag > 0 ? -dragMagnitude * (vRelZ / vRelMag) : 0.0;
+    
+    // Accelerations
+    final double ax = dragFx / mass;
+    final double ay = dragFy / mass;
+    final double az = (dragFz / mass) - gLoc;
+    
+    return [vx, vy, vz, ax, ay, az];
   }
 }
