@@ -547,7 +547,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         child: FloatingActionButton(
           onPressed: _saveCalculation,
           backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.8),
-          child: Icon(Icons.save, color: Theme.of(context).scaffoldBackgroundColor),
+          child: Icon(Icons.my_location, color: Theme.of(context).scaffoldBackgroundColor),
         ),
       ),
     );  }

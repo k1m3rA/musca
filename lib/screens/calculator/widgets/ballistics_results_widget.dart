@@ -17,7 +17,6 @@ class BallisticsResultsWidget extends StatefulWidget {
 
 class _BallisticsResultsWidgetState extends State<BallisticsResultsWidget> {
   String _selectedUnit = 'MRAD';
-  bool _showAllUnits = false;
 
   @override
   Widget build(BuildContext context) {
@@ -67,9 +66,7 @@ class _BallisticsResultsWidgetState extends State<BallisticsResultsWidget> {
             const SizedBox(height: 16),
             _buildUnitSelector(),
             const SizedBox(height: 16),
-            if (_showAllUnits) _buildAllUnitsTable() else _buildSelectedUnitResults(),
-            const SizedBox(height: 16),
-            _buildToggleButton(),
+            _buildSelectedUnitResults(),
           ],
         ),
       ),
@@ -81,7 +78,7 @@ class _BallisticsResultsWidgetState extends State<BallisticsResultsWidget> {
       children: [
         Icon(
           Icons.my_location,
-          color: Theme.of(context).primaryColor,
+          color: Theme.of(context).textTheme.titleLarge?.color,
         ),
         const SizedBox(width: 8),
         Text(
@@ -144,209 +141,90 @@ class _BallisticsResultsWidgetState extends State<BallisticsResultsWidget> {
 
     return Column(
       children: [
-        _buildCorrectionRow(
+        _buildCorrectionCard(
           'Deriva horizontal',
           corrections['drift'],
           corrections['unit'],
-          Icons.arrow_forward,
+          'Ajustar ${corrections['drift'] > 0 ? 'a la derecha' : 'a la izquierda'}',
         ),
         const Divider(),
-        _buildCorrectionRow(
+        _buildCorrectionCard(
           'Caída vertical',
           corrections['drop'],
           corrections['unit'],
-          Icons.arrow_downward,
+          'Ajustar ${corrections['drop'] > 0 ? 'hacia arriba' : 'hacia abajo'}',
         ),
       ],
     );
   }
 
-  Widget _buildCorrectionRow(String label, double value, String unit, IconData icon) {
-    final bool isNegative = value < 0;
-    final String displayValue = value.abs().toStringAsFixed(_getPrecisionForUnit(unit));
-    final String direction = _getDirectionText(label, value);
+  Widget _buildCorrectionCard(String label, double value, String unit, String description) {
+    // Determine correct icon and direction based on correction type and value
+    IconData correctionIcon;
+    String correctionDirection;
+    Color correctionColor;
+    
+    if (label.contains('horizontal') || label.contains('Deriva')) {
+      // For horizontal drift: positive = adjust right, negative = adjust left
+      correctionIcon = value > 0 ? Icons.arrow_forward : Icons.arrow_back;
+      correctionDirection = value > 0 ? 'Right' : 'Left';
+      correctionColor = value > 0 ? Colors.green : Colors.red;
+    } else {
+      // For vertical drop: positive = adjust up, negative = adjust down
+      correctionIcon = value > 0 ? Icons.arrow_upward : Icons.arrow_downward;
+      correctionDirection = value > 0 ? 'Up' : 'Down';
+      correctionColor = value > 0 ? Colors.green : Colors.red;
+    }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: value == 0 ? Colors.grey.withOpacity(0.3) : correctionColor.withOpacity(0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            color: isNegative ? Colors.red : Colors.green,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+          Row(
+            children: [
+              Icon(
+                correctionIcon,
+                color: value == 0 ? Colors.grey : correctionColor,
+                size: 18,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
                   label,
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                Text(
-                  direction,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '$displayValue $unit',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
               ),
-              if (!['Inches', 'Centimeters'].contains(_selectedUnit))
-                Text(
-                  '${_getClicksEstimation(value, _selectedUnit)} clicks',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAllUnitsTable() {
-    final result = widget.result!;
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Todas las unidades',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 12),
-        _buildUnitsTable(result),
-      ],
-    );
-  }
-
-  Widget _buildUnitsTable(BallisticsResult result) {
-    final allUnits = [
-      {'name': 'MRAD', 'drift': result.driftMrad, 'drop': result.dropMrad},
-      {'name': '1/20 MRAD', 'drift': result.driftMrad20, 'drop': result.dropMrad20},
-      {'name': 'MOA', 'drift': result.driftMoa, 'drop': result.dropMoa},
-      {'name': '1/2 MOA', 'drift': result.driftMoa2, 'drop': result.dropMoa2},
-      {'name': '1/3 MOA', 'drift': result.driftMoa3, 'drop': result.dropMoa3},
-      {'name': '1/4 MOA', 'drift': result.driftMoa4, 'drop': result.dropMoa4},
-      {'name': '1/8 MOA', 'drift': result.driftMoa8, 'drop': result.dropMoa8},
-      {'name': 'Inches', 'drift': result.driftInches, 'drop': result.dropInches},
-      {'name': 'Centimeters', 'drift': result.driftCm, 'drop': result.dropCm},
-    ];
-
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(8),
-                topRight: Radius.circular(8),
-              ),
-            ),
-            child: const Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Unidad',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    'Deriva',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    'Caída',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
+          const SizedBox(height: 8),
+          Text(
+            '${value.abs().toStringAsFixed(_getPrecisionForUnit(unit))} $unit',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: value == 0 ? Colors.grey : correctionColor,
             ),
           ),
-          // Data rows
-          ...allUnits.asMap().entries.map((entry) {
-            final index = entry.key;
-            final unit = entry.value;
-            final precision = _getPrecisionForUnit(unit['name'] as String);
-            
-            return Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: index % 2 == 0 ? null : Colors.grey[50],
-                border: index < allUnits.length - 1
-                    ? Border(bottom: BorderSide(color: Colors.grey[200]!))
-                    : null,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Text(unit['name'] as String),
-                  ),
-                  Expanded(
-                    child: Text(
-                      (unit['drift'] as double).toStringAsFixed(precision),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      (unit['drop'] as double).toStringAsFixed(precision),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
+          Text(
+            value == 0 ? 'No correction' : description,
+            style: TextStyle(
+              fontSize: 11,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+            ),
+          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildToggleButton() {
-    return Center(
-      child: ElevatedButton.icon(
-        onPressed: () {
-          setState(() {
-            _showAllUnits = !_showAllUnits;
-          });
-        },
-        icon: Icon(_showAllUnits ? Icons.visibility_off : Icons.visibility),
-        label: Text(_showAllUnits ? 'Mostrar menos' : 'Ver todas las unidades'),
       ),
     );
   }
