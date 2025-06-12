@@ -7,6 +7,8 @@ class BallisticsUnits {
   static const double metersToCm = 100.0;
   static const double inchesToMeters = 0.0254;
   static const double cmToMeters = 0.01;
+  static const double mbarToPa = 100.0;
+  static const double paToMbar = 0.01;
 
   /// Convert angular correction from milliradians to various units
   static Map<String, double> convertAngularCorrection(double mrad) {
@@ -146,6 +148,46 @@ class BallisticsUnits {
         return 1;
       default:
         return 2;
+    }
+  }
+
+  /// Convert pressure to Pascals with intelligent unit detection
+  static double convertPressureToPa(double pressure) {
+    if (pressure >= 800 && pressure <= 1200) {
+      // Typical atmospheric pressure range in mbar
+      return pressure * mbarToPa;
+    } else if (pressure >= 80000) {
+      // Clearly in Pa range
+      return pressure;
+    } else if (pressure < 800) {
+      // Low pressure, assume mbar
+      return pressure * mbarToPa;
+    } else {
+      // Ambiguous range 1200-80000, assume Pa
+      return pressure;
+    }
+  }
+
+  /// Validate pressure input and return suggested unit
+  static String getSuggestedPressureUnit(double pressure) {
+    if (pressure >= 800 && pressure <= 1200) {
+      return 'mbar';
+    } else if (pressure >= 80000) {
+      return 'Pa';
+    } else if (pressure < 800) {
+      return 'mbar (low pressure)';
+    } else {
+      return 'Pa (assumed)';
+    }
+  }
+
+  /// Format pressure with appropriate units
+  static String formatPressure(double pressure) {
+    final String unit = getSuggestedPressureUnit(pressure);
+    if (unit.contains('mbar')) {
+      return '${pressure.toStringAsFixed(1)} mbar';
+    } else {
+      return '${pressure.toStringAsFixed(0)} Pa';
     }
   }
 }

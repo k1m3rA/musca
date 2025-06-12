@@ -160,7 +160,8 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
           _buildInputRow(
             controller: widget.pressureController,
             label: 'Pressure',
-            suffix: 'hPa',
+            suffix: 'mbar/Pa',
+            hint: '800-1200 = mbar, >10000 = Pa',
             onIncrease: () => widget.onUpdatePressure(widget.scrollStep * 2),
             onDecrease: () => widget.onUpdatePressure(-widget.scrollStep * 2),
             onDrag: (delta) => widget.onUpdatePressure(-delta * 0.5),
@@ -188,6 +189,7 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
     required TextEditingController controller,
     required String label,
     required String suffix,
+    String? hint,
     required VoidCallback onIncrease,
     required VoidCallback onDecrease,
     required Function(double) onDrag,
@@ -195,84 +197,100 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
   }) {
     final iconColor = Theme.of(context).colorScheme.primary;
     
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: label,
-              labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
-              border: const OutlineInputBorder(
-                borderSide: BorderSide(width: 2.0),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  width: 2.0,
-                  color: Theme.of(context).colorScheme.outline,
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: controller,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: label,
+                  labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+                  border: const OutlineInputBorder(
+                    borderSide: BorderSide(width: 2.0),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      width: 2.0,
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      width: 2.0,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  suffixText: suffix,
                 ),
               ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  width: 2.0,
-                  color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(width: 10),
+            GestureDetector(
+              onVerticalDragUpdate: (details) {
+                double delta = details.delta.dy;
+                onDrag(delta);
+              },
+              child: Container(
+                width: 40,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Upper touch area
+                    InkWell(
+                      onTap: onIncrease,
+                      child: Container(
+                        height: 30,
+                        width: 40,
+                        alignment: Alignment.center,
+                        child: Icon(Icons.keyboard_arrow_up, color: iconColor),
+                      ),
+                    ),
+                    // Center indicator
+                    Container(
+                      width: 30,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        shape: BoxShape.rectangle,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    // Lower touch area
+                    InkWell(
+                      onTap: onDecrease,
+                      child: Container(
+                        height: 30,
+                        width: 40,
+                        alignment: Alignment.center,
+                        child: Icon(Icons.keyboard_arrow_down, color: iconColor),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              suffixText: suffix,
+            ),
+          ],
+        ),
+        if (hint != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4.0, left: 12.0),
+            child: Text(
+              hint,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: 10),
-        GestureDetector(
-          onVerticalDragUpdate: (details) {
-            double delta = details.delta.dy;
-            onDrag(delta);
-          },
-          child: Container(
-            width: 40,
-            height: 80,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Upper touch area
-                InkWell(
-                  onTap: onIncrease,
-                  child: Container(
-                    height: 30,
-                    width: 40,
-                    alignment: Alignment.center,
-                    child: Icon(Icons.keyboard_arrow_up, color: iconColor),
-                  ),
-                ),
-                // Center indicator
-                Container(
-                  width: 30,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    shape: BoxShape.rectangle,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                // Lower touch area
-                InkWell(
-                  onTap: onDecrease,
-                  child: Container(
-                    height: 30,
-                    width: 40,
-                    alignment: Alignment.center,
-                    child: Icon(Icons.keyboard_arrow_down, color: iconColor),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ],
     );
   }

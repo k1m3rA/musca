@@ -145,11 +145,34 @@ class BallisticsCalculator {
 
     final double gamma = 9.7803267715 * (1 + 0.0052790414 * sin2Phi + 0.0000232718 * sin4Phi + 0.0000001262 * sin6Phi + 0.0000000007 * sin8Phi);
     
-    double deltaGA = 0.874 - 9.9e-5 * altM + 3.56e-9 * altM * altM;
-    deltaGA /= 1000.0; // mGal to m/s²
+    // Corrected gravity anomaly calculation: 1 mGal = 1e-5 m/s², not 1e-3
+    final double deltaGA = (0.874 - 9.9e-5 * altM + 3.56e-9 * altM * altM) * 1e-5; // Convert mGal to m/s²
 
     final double g = gamma * pow(Re / (Re + altM), 2) + deltaGA;
     return g;
+  }
+
+  /// Converts pressure from various units to Pascals
+  /// Accepts pressure in mbar (millibar) or Pa (Pascal)
+  /// Values between 800-1200 are assumed to be mbar
+  /// Values above 10000 are assumed to be Pa
+  /// Values below 800 or between 1200-10000 may be ambiguous
+  static double _convertPressureToPa(double pressure) {
+    // More intelligent pressure unit detection
+    if (pressure >= 800 && pressure <= 1200) {
+      // Typical atmospheric pressure range in mbar (800-1200 mbar)
+      return pressure * 100; // Convert mbar to Pa
+    } else if (pressure >= 80000) {
+      // Clearly in Pa range (80000+ Pa = 800+ mbar)
+      return pressure;
+    } else if (pressure < 800) {
+      // Ambiguous range - assume mbar for values that could be low pressure
+      return pressure * 100;
+    } else {
+      // Range 1200-80000 is ambiguous, but more likely to be Pa
+      // Log a warning in debug mode if possible
+      return pressure;
+    }
   }
 
   static double calculateAirDensity(double tempC, double pressurePa, double humidityPercent) {
@@ -267,11 +290,11 @@ class BallisticsCalculator {
     
     // Use strictly the provided environmental data from calculator screen
     final double envTemperature = temperature; // °C - strictly from screen
-    final double envPressure = pressure; // mbar - strictly from screen
+    final double envPressure = pressure; // mbar or Pa - strictly from screen
     final double envHumidity = humidity; // % - strictly from screen
     
-    // Convert pressure from mbar to Pa if needed
-    final double pressurePa = envPressure < 10000 ? envPressure * 100 : envPressure;
+    // Convert pressure to Pa using intelligent detection
+    final double pressurePa = _convertPressureToPa(envPressure);
     
     // Calculate air density based on environmental conditions
     final double rhoAir = calculateAirDensity(envTemperature, pressurePa, envHumidity);
