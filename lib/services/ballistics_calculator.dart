@@ -58,8 +58,6 @@ class BallisticsResult {
 
 class BallisticsCalculator {
   // Fixed simulation parameters
-  static const double elevationAngle = 0.0; // rad
-  static const double azimuthAngle = 0.0; // rad
   static const double dt = 0.001; // s
   static const double omega = 7.292115e-5; // rad/s (Earth rotation)
   static const double latitude = 0.0; // degrees North
@@ -225,7 +223,7 @@ class BallisticsCalculator {
       pressure: 1013.25,
       humidity: 50.0,
     );
-  }static BallisticsResult calculateWithProfiles(
+  }  static BallisticsResult calculateWithProfiles(
     double distance, 
     double windSpeed, 
     double windDirection,
@@ -235,6 +233,8 @@ class BallisticsCalculator {
     required double temperature,  // Made required
     required double pressure,     // Made required  
     required double humidity,     // Made required
+    double elevationAngle = 0.0,  // Elevation angle in degrees
+    double azimuthAngle = 0.0,    // Azimuth angle in degrees
   }) {
     // Strict validation - no fallbacks allowed
     if (gun == null) {
@@ -278,16 +278,17 @@ class BallisticsCalculator {
     final int sightHeightUnits = scope.units; // 0: inches, 1: cm
     final double visorHeight = sightHeightUnits == 0 
         ? sightHeightValue * 0.0254 // Convert inches to meters
-        : sightHeightValue * 0.01; // Convert cm to meters
-
-    // Convert wind direction to wind vector (simplified)
+        : sightHeightValue * 0.01; // Convert cm to meters    // Convert wind direction to wind vector (simplified)
     final double windX = windSpeed * cos(windDirection * pi / 180);
     final double windY = windSpeed * sin(windDirection * pi / 180);
     final List<double> windVector = [windX, windY, 0.0];
     
+    // Convert elevation angle from degrees to radians
+    final double elevationAngleRad = elevationAngle * pi / 180;
+    
     // Initial state
     List<double> pos = [0.0, 0.0, 0.0];
-    List<double> vel = [muzzleVelocity * cos(elevationAngle), 0.0, muzzleVelocity * sin(elevationAngle)];
+    List<double> vel = [muzzleVelocity * cos(elevationAngleRad), 0.0, muzzleVelocity * sin(elevationAngleRad)];
     
     double? driftH;
     double? dropZ;

@@ -397,8 +397,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     );
   }
 
-  void _calculateBallistics() {
-    if (_distance > 0 && _selectedGun != null && _selectedCartridge != null && _selectedScope != null) {
+  void _calculateBallistics() {    if (_distance > 0 && _selectedGun != null && _selectedCartridge != null && _selectedScope != null) {
       try {
         final result = BallisticsCalculator.calculateWithProfiles(
           _distance,
@@ -410,6 +409,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           temperature: _temperature,  // Always use current screen value
           pressure: _pressure,        // Always use current screen value
           humidity: _humidity,        // Always use current screen value
+          elevationAngle: _angle,     // Use elevation angle from user input
+          azimuthAngle: _windDirection, // Use azimuth from compass/wind direction
         );
         setState(() {
           _ballisticsResult = result;

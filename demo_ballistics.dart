@@ -47,15 +47,16 @@ void main() {
     final windSpeed = scenario['windSpeed'] as double;
     final windDirection = scenario['windDirection'] as double;
     final name = scenario['name'] as String;    print('--- $name ---');
-    print('Distance: ${distance}m, Wind: ${windSpeed}m/s at ${windDirection}°\n');
-
-    final result = BallisticsCalculator.calculateWithProfiles(
+    print('Distance: ${distance}m, Wind: ${windSpeed}m/s at ${windDirection}°\n');    final result = BallisticsCalculator.calculateWithProfiles(
       distance, 
       windSpeed, 
       windDirection,
       demoGun,
       demoCartridge,
       demoScope,
+      temperature: 20.0,  // Standard temperature
+      pressure: 1013.0,   // Standard pressure
+      humidity: 50.0,     // Standard humidity
     );
 
     // Display results in a formatted table

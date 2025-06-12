@@ -75,8 +75,7 @@ void main() {
       sightHeight: 2.17, // inches (old hardcoded value)
       units: 0, // inches
     );
-    
-    // Test with default profiles (equivalent to old hardcoded constants)
+      // Test with default profiles (equivalent to old hardcoded constants)
     final resultDefault = BallisticsCalculator.calculateWithProfiles(
       distance,
       windSpeed,
@@ -84,6 +83,9 @@ void main() {
       defaultGun,
       defaultCartridge,
       defaultScope,
+      temperature: 20.0,
+      pressure: 1013.0,
+      humidity: 50.0,
     );
     
     // Test with custom profiles
@@ -94,6 +96,9 @@ void main() {
       testGun,
       testCartridge,
       testScope,
+      temperature: 20.0,
+      pressure: 1013.0,
+      humidity: 50.0,
     );
     
     print('DEFAULT PROFILES (equivalent to old hardcoded .308 150gr):');    print('Drift: ${resultDefault.driftMrad.toStringAsFixed(2)} MRAD, Drop: ${resultDefault.dropMrad.toStringAsFixed(2)} MRAD');

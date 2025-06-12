@@ -54,8 +54,7 @@ void main() {
   print('Distance: ${distance}m');
   print('Wind: ${windSpeed}m/s at ${windDirection}°');
   print('');
-  
-  // Calculate with original gun profile
+    // Calculate with original gun profile
   print('CALCULATION WITH ORIGINAL PROFILE (800 m/s):');
   final result1 = BallisticsCalculator.calculateWithProfiles(
     distance,
@@ -64,6 +63,9 @@ void main() {
     gun1,
     cartridge,
     scope,
+    temperature: 20.0,
+    pressure: 1013.0,
+    humidity: 50.0,
   );
   print('Drift: ${result1.driftMrad.toStringAsFixed(2)} MRAD');
   print('Drop: ${result1.dropMrad.toStringAsFixed(2)} MRAD');
@@ -78,6 +80,9 @@ void main() {
     gun2,
     cartridge,
     scope,
+    temperature: 20.0,
+    pressure: 1013.0,
+    humidity: 50.0,
   );
   print('Drift: ${result2.driftMrad.toStringAsFixed(2)} MRAD');
   print('Drop: ${result2.dropMrad.toStringAsFixed(2)} MRAD');

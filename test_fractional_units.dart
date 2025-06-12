@@ -31,10 +31,12 @@ void main() async {
     sightHeight: 2.17,
     units: 0,
   );
-  
-  // Create a test ballistics result
+    // Create a test ballistics result
   final result = BallisticsCalculator.calculateWithProfiles(
-    200.0, 5.0, 45.0, testGun, testCartridge, testScope
+    200.0, 5.0, 45.0, testGun, testCartridge, testScope,
+    temperature: 20.0,
+    pressure: 1013.0,
+    humidity: 50.0,
   );
   
   print('Distance: 200m, Wind: 5m/s at 45°');
