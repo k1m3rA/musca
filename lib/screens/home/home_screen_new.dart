@@ -156,6 +156,16 @@ class _HomeContentState extends State<HomeContent> {
                 ),
                 const SizedBox(height: 16),
                 _buildLatestCorrectionDisplay(latest),
+                // Add shot conditions summary
+                const SizedBox(height: 8),
+                Text(
+                  'Angle: ${latest.angle.toStringAsFixed(1)}° • Wind: ${latest.windSpeed.toStringAsFixed(1)}m/s @ ${latest.windDirection.toStringAsFixed(0)}°',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                ),
+                const SizedBox(height: 16),
               ],
             ),
           ),
