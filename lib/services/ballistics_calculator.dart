@@ -491,7 +491,7 @@ class BallisticsCalculator {
         : g1DragCoefficient(mach);
     
     // Drag force magnitude
-    final double dragMagnitude = 0.5 * rhoAir * A * CD * vMagnitude * vMagnitude / ballisticCoefficient;
+    final double dragMagnitude = 0.5 * rhoAir * A * (CD / ballisticCoefficient) * vMagnitude * vMagnitude;
     
     // Unit vector in direction of relative velocity
     final double vRelMag = vMagnitude;
@@ -571,9 +571,15 @@ class BallisticsCalculator {
     final double coriolisFy = mass * coriolisY;
     final double coriolisFz = mass * coriolisZ;
     
-    // Total accelerations (drag + Magnus + lift + Coriolis + gravity)
-    final double ax = (dragFx + magFx + liftFx + coriolisFx) / mass;
-    final double ay = (dragFy + magFy + liftFy + coriolisFy) / mass;
+    // Sail force calculation (wind pressure on bullet surface)
+    final double CF = 1.0; // sail coefficient (≈1 for smooth cylinder)
+    final double sailFx = 0.5 * rhoAir * A * CF * windVector[0] * windVector[0] * (windVector[0] > 0 ? 1 : -1);
+    final double sailFy = 0.5 * rhoAir * A * CF * windVector[1] * windVector[1] * (windVector[1] > 0 ? 1 : -1);
+    final double sailFz = 0.0; // No vertical sail force from horizontal wind
+    
+    // Total accelerations (drag + Magnus + lift + Coriolis + sail + gravity)
+    final double ax = (dragFx + magFx + liftFx + coriolisFx) / mass + sailFx / mass;
+    final double ay = (dragFy + magFy + liftFy + coriolisFy) / mass + sailFy / mass;
     final double az = (dragFz + magFz + liftFz + coriolisFz) / mass - gLoc;
     
     // Spin decay (due to air resistance)
