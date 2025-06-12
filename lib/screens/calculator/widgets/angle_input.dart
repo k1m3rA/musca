@@ -15,6 +15,11 @@ class AngleInput extends StatelessWidget {
     this.onCameraPressed,
   });
 
+  // Helper method to clamp angle between -90 and 90 degrees
+  double _clampAngle(double angle) {
+    return angle.clamp(-90.0, 90.0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final iconColor = Theme.of(context).colorScheme.primary;
@@ -22,8 +27,10 @@ class AngleInput extends StatelessWidget {
     return Listener(
       onPointerSignal: (pointerSignal) {
         if (pointerSignal is PointerScrollEvent) {
+          final currentAngle = double.tryParse(controller.text) ?? 0.0;
           final delta = pointerSignal.scrollDelta.dy > 0 ? -scrollStep : scrollStep;
-          onUpdateAngle(delta);
+          final newAngle = _clampAngle(currentAngle + delta);
+          onUpdateAngle(newAngle - currentAngle);
         }
       },
       child: Container(
@@ -34,9 +41,22 @@ class AngleInput extends StatelessWidget {
               child: TextField(
                 controller: controller,
                 keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  final angle = double.tryParse(value);
+                  if (angle != null) {
+                    final clampedAngle = _clampAngle(angle);
+                    if (angle != clampedAngle) {
+                      controller.text = clampedAngle.toString();
+                      controller.selection = TextSelection.fromPosition(
+                        TextPosition(offset: controller.text.length),
+                      );
+                    }
+                  }
+                },
                 decoration: InputDecoration(
                   labelText: 'Vertical angle',
                   labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+                  helperText: 'Range: -90° to 90°',
                   border: const OutlineInputBorder(
                     borderSide: BorderSide(width: 2.0),
                   ),

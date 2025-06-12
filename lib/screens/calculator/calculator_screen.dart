@@ -148,6 +148,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       try {
         final newValue = double.parse(_angleController.text);
         setState(() => _angle = newValue);
+        _calculateBallistics(); // Add this line to recalculate when angle changes
       } catch (_) {}
     }
   }
@@ -166,6 +167,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       try {
         final newValue = double.parse(_temperatureController.text);
         setState(() => _temperature = newValue);
+        _calculateBallistics(); // Add this line to recalculate when temperature changes
       } catch (_) {}
     }
   }
@@ -175,6 +177,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       try {
         final newValue = double.parse(_pressureController.text);
         setState(() => _pressure = newValue);
+        _calculateBallistics(); // Add this line to recalculate when pressure changes
       } catch (_) {}
     }
   }
@@ -184,6 +187,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       try {
         final newValue = double.parse(_humidityController.text);
         setState(() => _humidity = newValue);
+        _calculateBallistics(); // Add this line to recalculate when humidity changes
       } catch (_) {}
     }
   }
@@ -200,12 +204,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   void _updateAngle(double delta) {
     final newAngle = _angle + delta;
-    if (newAngle >= 0) {
-      setState(() {
-        _angle = newAngle;
-        _angleController.text = _angle.toStringAsFixed(1);
-      });
-    }
+    // Apply the same 90-degree limit as in AngleInput widget
+    final clampedAngle = newAngle.clamp(-90.0, 90.0);
+    setState(() {
+      _angle = clampedAngle;
+      _angleController.text = _angle.toStringAsFixed(1);
+    });
+    _calculateBallistics(); // Add this line to recalculate when angle changes
   }
   void _updateWindSpeed(double delta) {
     final newWindSpeed = _windSpeed + delta;
@@ -232,6 +237,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       _temperature = newTemperature;
       _temperatureController.text = _temperature.toStringAsFixed(1);
     });
+    _calculateBallistics(); // Add this line to recalculate when temperature changes
   }
 
   void _updatePressure(double delta) {
@@ -241,6 +247,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _pressure = newPressure;
         _pressureController.text = _pressure.toStringAsFixed(1);
       });
+      _calculateBallistics(); // Add this line to recalculate when pressure changes
     }
   }
 
@@ -251,6 +258,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _humidity = newHumidity;
         _humidityController.text = _humidity.toStringAsFixed(1);
       });
+      _calculateBallistics(); // Add this line to recalculate when humidity changes
     }
   }
 
@@ -261,11 +269,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     );
     
     if (measuredAngle != null) {
+      // Apply the same 90-degree limit as in AngleInput widget
+      final clampedAngle = measuredAngle.clamp(-90.0, 90.0);
       setState(() {
-        _angle = measuredAngle;
+        _angle = clampedAngle;
         _angleController.text = _angle.toStringAsFixed(1);
       });
-    }  }
+      _calculateBallistics(); // Add this line to recalculate when camera angle is captured
+    }
+  }
 
   Future<void> _saveCalculation() async {
     // Validate that all required profiles are selected
@@ -281,17 +293,20 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     }
     
     try {
-      // Always calculate fresh ballistics with current form data
-      final ballisticsResult = BallisticsCalculator.calculateWithProfiles(
+      // Use the SAME ballistics result that's already calculated and displayed
+      // This ensures perfect consistency between display and saved data
+      final ballisticsResult = _ballisticsResult ?? BallisticsCalculator.calculateWithProfiles(
         _distance,
         _windSpeed,
         _windDirection,
         _selectedGun!,
         _selectedCartridge!,
         _selectedScope!,
-        temperature: _temperature,  // Always use current screen value
-        pressure: _pressure,        // Always use current screen value
-        humidity: _humidity,        // Always use current screen value
+        temperature: _temperature,
+        pressure: _pressure,
+        humidity: _humidity,
+        elevationAngle: _angle,     // Include elevation angle in save as well
+        azimuthAngle: _windDirection,
       );
       
       final calculation = Calculation(

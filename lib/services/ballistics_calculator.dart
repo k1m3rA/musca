@@ -251,6 +251,11 @@ class BallisticsCalculator {
       throw ArgumentError('Distance must be greater than 0');
     }
     
+    // Validate elevation angle range
+    if (elevationAngle < -90.0 || elevationAngle > 90.0) {
+      throw ArgumentError('Elevation angle must be between -90 and 90 degrees');
+    }
+    
     // Use strictly the provided environmental data from calculator screen
     final double envTemperature = temperature; // °C - strictly from screen
     final double envPressure = pressure; // mbar - strictly from screen
