@@ -204,13 +204,30 @@ class _HomeContentState extends State<HomeContent> {
     final bool isNegative = value < 0;
     final String displayValue = value.abs().toStringAsFixed(_getPrecisionForUnit(unit));
     
+    // Determine correct icon and direction based on correction type and value
+    IconData correctionIcon;
+    String correctionDirection;
+    Color correctionColor;
+    
+    if (label.contains('Horizontal')) {
+      // For horizontal drift: positive = adjust right, negative = adjust left
+      correctionIcon = value > 0 ? Icons.arrow_forward : Icons.arrow_back;
+      correctionDirection = value > 0 ? 'Right' : 'Left';
+      correctionColor = value > 0 ? Colors.green : Colors.red;
+    } else {
+      // For vertical drop: positive = adjust up, negative = adjust down
+      correctionIcon = value > 0 ? Icons.arrow_upward : Icons.arrow_downward;
+      correctionDirection = value > 0 ? 'Up' : 'Down';
+      correctionColor = value > 0 ? Colors.green : Colors.red;
+    }
+    
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isNegative ? Colors.red.withOpacity(0.3) : Colors.green.withOpacity(0.3),
+          color: value == 0 ? Colors.grey.withOpacity(0.3) : correctionColor.withOpacity(0.3),
         ),
       ),
       child: Column(
@@ -219,8 +236,8 @@ class _HomeContentState extends State<HomeContent> {
           Row(
             children: [
               Icon(
-                icon,
-                color: isNegative ? Colors.red : Colors.green,
+                correctionIcon,
+                color: value == 0 ? Colors.grey : correctionColor,
                 size: 18,
               ),
               const SizedBox(width: 6),
@@ -242,11 +259,11 @@ class _HomeContentState extends State<HomeContent> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: isNegative ? Colors.red : Colors.green,
+              color: value == 0 ? Colors.grey : correctionColor,
             ),
           ),
           Text(
-            value == 0 ? 'No correction' : 'Adjust ${isNegative && label.contains('Horizontal') ? 'Left' : direction}',
+            value == 0 ? 'No correction' : 'Adjust $correctionDirection',
             style: TextStyle(
               fontSize: 11,
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
