@@ -34,7 +34,7 @@ class SightHeightInput extends StatelessWidget {
             Expanded(
               child: TextField(
                 controller: controller,
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
                   labelText: 'Sight Height',
                   labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
@@ -53,8 +53,19 @@ class SightHeightInput extends StatelessWidget {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
-                  suffixText: 'cm', // Always use cm instead of units parameter
+                  suffixText: 'cm',
+                  helperText: 'Min: 0 cm', // Add helper text to indicate 0 is allowed
                 ),
+                onChanged: (value) {
+                  // Allow empty string and 0 value
+                  if (value.isEmpty || value == '0' || value == '0.0') {
+                    return;
+                  }
+                  final parsedValue = double.tryParse(value);
+                  if (parsedValue != null && parsedValue >= 0) {
+                    // Accept any non-negative value including 0
+                  }
+                },
               ),
             ),
             const SizedBox(width: 10),

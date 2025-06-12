@@ -107,7 +107,7 @@ class _ScopeSettingsScreenState extends State<ScopeSettingsScreen> {
       try {
         final newValue = double.parse(_sightHeightController.text);
         setState(() {
-          _sightHeight = newValue.clamp(0.1, 10.0);
+          _sightHeight = newValue.clamp(0.0, 10.0); // Changed from 0.1 to 0.0
         });
       } catch (_) {}
     }
@@ -115,7 +115,7 @@ class _ScopeSettingsScreenState extends State<ScopeSettingsScreen> {
   
   void _updateSightHeightDelta(double delta) {
     final currentHeight = double.tryParse(_sightHeightController.text) ?? _sightHeight;
-    final newHeight = (currentHeight + delta).clamp(0.1, 10.0);  // Reasonable range for sight height
+    final newHeight = (currentHeight + delta).clamp(0.0, 10.0);  // Changed from 0.1 to 0.0
     setState(() {
       _sightHeight = newHeight;
       _sightHeightController.text = newHeight.toStringAsFixed(2);
