@@ -49,7 +49,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
     } else {
       // Default values for new cartridge
       _name = "My Cartridge";
-      _diameter = "0.356";
+      _diameter = "0.782";
       _bulletWeight = 168.0;
       _bulletLength = "3.550";
       _ballisticCoefficient = 0.5;
@@ -172,19 +172,17 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
     setState(() {
       _bcModelType = modelType;
     });
-  }
-
-  void _updateDiameterDelta(double delta) {
+  }  void _updateDiameterDelta(double delta) {
     double currentValue;
     try {
       // Try to parse the controller text first
-      currentValue = double.tryParse(_diameterController.text) ?? 0.356;
+      currentValue = double.tryParse(_diameterController.text) ?? 0.782;
     } catch (e) {
       // Fallback to a default value if parsing fails
-      currentValue = 0.356;
+      currentValue = 0.782;
     }
     
-    final newValue = (currentValue + delta).clamp(0.01, 20.0); // Reasonable range for bullet diameters in cm
+    final newValue = (currentValue + delta).clamp(0.432, 2.032); // Reasonable range for bullet diameters in cm (.17" to .80" converted to cm)
     setState(() {
       _diameter = newValue.toStringAsFixed(3);
       _diameterController.text = _diameter;
@@ -261,8 +259,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
                     controller: _nameController,
                     onUpdateName: _updateName,
                   ),
-                  const SizedBox(height: 16),
-                  
+                  const SizedBox(height: 16),                  
                   // Diameter Input - using our updated DiameterInput widget
                   DiameterInput(
                     controller: _diameterController,

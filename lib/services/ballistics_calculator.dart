@@ -67,7 +67,6 @@ class BallisticsCalculator {
   static double speedOfSound(double tC) {
     return 20.05 * sqrt(tC + 273.15);
   }
-
   static double g1BallisticCoefficient(double mach) {
     final machValues = [
       0.00, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45,
@@ -100,6 +99,42 @@ class BallisticsCalculator {
     }
     
     return g1DragCoeffValues.last;
+  }
+
+  static double g7BallisticCoefficient(double mach) {
+    final machValues = [
+      0.00, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45,
+      0.50, 0.55, 0.60, 0.65, 0.70, 0.725, 0.75, 0.775, 0.80, 0.825,
+      0.85, 0.875, 0.90, 0.925, 0.95, 0.975, 1.00, 1.025, 1.05, 1.075,
+      1.10, 1.125, 1.15, 1.20, 1.25, 1.30, 1.35, 1.40, 1.50, 1.55,
+      1.60, 1.65, 1.70, 1.75, 1.80, 1.85, 1.90, 1.95, 2.00, 2.05,
+      2.10, 2.15, 2.20, 2.25, 2.30, 2.35, 2.40, 2.45, 2.50, 2.55,
+      2.60, 2.65, 2.70, 2.75, 2.80, 2.85, 2.90, 2.95, 3.00, 3.10,
+      3.20, 3.30, 3.40, 3.50, 3.60, 3.70, 3.80, 3.90, 4.00, 4.20,
+      4.40, 4.60, 4.80, 5.00
+    ];
+    
+    final g7DragCoeffValues = [
+      0.1198, 0.1197, 0.1196, 0.1194, 0.1193, 0.1194, 0.1194, 0.1194, 0.1193, 0.1193,
+      0.1194, 0.1193, 0.1194, 0.1197, 0.1202, 0.1207, 0.1215, 0.1226, 0.1242, 0.1266,
+      0.1306, 0.1368, 0.1464, 0.1660, 0.2054, 0.2993, 0.3803, 0.4015, 0.4043, 0.4034,
+      0.4014, 0.3987, 0.3955, 0.3884, 0.3810, 0.3732, 0.3657, 0.3580, 0.3440, 0.3376,
+      0.3315, 0.3260, 0.3209, 0.3160, 0.3117, 0.3078, 0.3042, 0.3010, 0.2980, 0.2951,
+      0.2922, 0.2892, 0.2864, 0.2835, 0.2807, 0.2779, 0.2752, 0.2725, 0.2697, 0.2670,
+      0.2643, 0.2615, 0.2588, 0.2561, 0.2533, 0.2506, 0.2479, 0.2451, 0.2424, 0.2368,
+      0.2313, 0.2258, 0.2205, 0.2154, 0.2106, 0.2060, 0.2017, 0.1975, 0.1935, 0.1861,
+      0.1793, 0.1730, 0.1672, 0.1618
+    ];
+    
+    // Linear interpolation
+    for (int i = 0; i < machValues.length - 1; i++) {
+      if (mach >= machValues[i] && mach <= machValues[i + 1]) {
+        final t = (mach - machValues[i]) / (machValues[i + 1] - machValues[i]);
+        return g7DragCoeffValues[i] + t * (g7DragCoeffValues[i + 1] - g7DragCoeffValues[i]);
+      }
+    }
+    
+    return g7DragCoeffValues.last;
   }
   static double gravity(double latDeg, double altM) {
     const double Re = 6378137.0; // m
@@ -137,36 +172,17 @@ class BallisticsCalculator {
     final double waterVaporDensity = vaporPressure / (waterVaporConstant * tempK);
     
     return dryAirDensity + waterVaporDensity;
-  }
-  static double? _getDiameterFromCartridge(Cartridge? cartridge) {
-    if (cartridge == null) return null;
-    
-    // Convert common cartridge diameter names to meters
-    switch (cartridge.diameter.toLowerCase()) {
-      case '.308':
-      case '308':
-      case '7.62':
-      case '7.62mm':
-        return 0.00782; // .308 inch = 7.82mm
-      case '.223':
-      case '223':
-      case '5.56':
-      case '5.56mm':
-        return 0.00556; // 5.56mm
-      case '.30-06':
-      case '30-06':
-        return 0.00782; // Same as .308
-      case '.243':
-      case '243':
-      case '6mm':
-        return 0.006; // 6mm
-      case '.270':
-      case '270':
-        return 0.00686; // 6.86mm
-      default:
-        return 0.00782; // Default to .308
+  }  static double _getDiameterFromCartridge(Cartridge cartridge) {
+    // Parse the diameter directly from user input
+    // Assume the diameter is provided in centimeters as a string (e.g., "0.782")
+    try {
+      final double diameterCm = double.parse(cartridge.diameter);
+      return diameterCm * 0.01; // Convert centimeters to meters
+    } catch (e) {
+      // If parsing fails, throw an error since user input is required
+      throw ArgumentError('Invalid cartridge diameter: "${cartridge.diameter}". Please enter a valid diameter in centimeters (e.g., "0.782")');
     }
-  }  static BallisticsResult calculate(double distance, double windSpeed, double windDirection) {
+  }static BallisticsResult calculate(double distance, double windSpeed, double windDirection) {
     // Legacy method for backward compatibility - uses default test profiles
     // For production use, always use calculateWithProfiles with actual user profiles
     
@@ -247,12 +263,11 @@ class BallisticsCalculator {
     final double rhoAir = calculateAirDensity(envTemperature, pressurePa, envHumidity);
     
     // Extract ballistics data from profiles
-    
-    // Projectile properties from cartridge
+      // Projectile properties from cartridge
     final double bulletWeightGrains = cartridge.bulletWeight; // grains
     final double mass = bulletWeightGrains * 0.0000648; // Convert grains to kg
-    final double ballisticCoefficient = cartridge.ballisticCoefficient; // G1
-    final double diameter = _getDiameterFromCartridge(cartridge) ?? 0.00782; // m
+    final double ballisticCoefficient = cartridge.ballisticCoefficient; // G1 or G7
+    final double diameter = _getDiameterFromCartridge(cartridge); // m
       
     // Gun properties
     final double muzzleVelocity = gun.muzzleVelocity; // m/s
@@ -294,9 +309,10 @@ class BallisticsCalculator {
       
       final double vMagnitude = sqrt(vRel[0] * vRel[0] + vRel[1] * vRel[1] + vRel[2] * vRel[2]);
       final double mach = vMagnitude / a;
-      
-      // Updated coefficients
-      final double CD = g1BallisticCoefficient(mach) * ballisticCoefficient;
+        // Updated coefficients
+      final double CD = cartridge.bcModelType == 1 
+          ? g7BallisticCoefficient(mach) * ballisticCoefficient
+          : g1BallisticCoefficient(mach) * ballisticCoefficient;
       
       // Drag force (use calculated air density instead of constant)
       final double dragMagnitude = 0.5 * rhoAir * A * CD * vMagnitude * vMagnitude;
