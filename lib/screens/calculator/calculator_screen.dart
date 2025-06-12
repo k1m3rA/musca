@@ -330,7 +330,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       if (!mounted) return;
       
       final snackBar = SnackBar(
-        content: Text('Shot saved! Distance: ${_distance.toStringAsFixed(1)}m, Wind: ${_windSpeed.toStringAsFixed(1)}km/h'),
+        content: Text('Shot saved! Distance: ${_distance.toStringAsFixed(1)}m, Wind: ${_windSpeed.toStringAsFixed(1)}m/s'), // Changed from km/h to m/s
         backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.only(left: 16.0, right: 16.0),
@@ -496,7 +496,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   const SizedBox(height: 20),
                   WindSpeedInput(
                     controller: _windSpeedController,
-                    scrollStep: 0.5,
+                    scrollStep: 0.1, // Changed from 0.5 to 0.1 for m/s
                     onUpdateWindSpeed: _updateWindSpeed,
                   ),
                   const SizedBox(height: 20),

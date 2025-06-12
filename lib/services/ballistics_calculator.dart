@@ -258,9 +258,23 @@ class BallisticsCalculator {
       pressure: 1013.25,
       humidity: 50.0,
     );
-  }  static BallisticsResult calculateWithProfiles(
+  }  /// Calculate ballistics with user profiles
+  /// 
+  /// Parameters:
+  /// - distance: target distance in meters
+  /// - windSpeed: wind speed in m/s (meters per second)
+  /// - windDirection: wind direction in degrees (0° = North, clockwise)
+  /// - gun: gun profile with muzzle velocity, twist rate, etc.
+  /// - cartridge: cartridge profile with bullet data
+  /// - scope: scope profile with sight height
+  /// - temperature: air temperature in Celsius
+  /// - pressure: air pressure in mbar or Pa (auto-detected)
+  /// - humidity: relative humidity as percentage (0-100)
+  /// - elevationAngle: elevation angle in degrees (-90 to +90)
+  /// - azimuthAngle: azimuth angle in degrees (0-360)
+  static BallisticsResult calculateWithProfiles(
     double distance, 
-    double windSpeed, 
+    double windSpeed, // Wind speed in m/s
     double windDirection,
     Gun? gun,
     Cartridge? cartridge,
@@ -508,6 +522,38 @@ class BallisticsCalculator {
     final double magFy = magnusMagnitude * magnusY;
     final double magFz = magnusMagnitude * magnusZ;
     
+    // Lift force calculation
+    // Lift coefficient (empirical, depends on bullet shape and angle of attack)
+    final double CL = 0.1; // Typical value for pointed bullets
+    
+    // Calculate angle of attack (angle between velocity vector and bullet axis)
+    // For simplicity, assume bullet axis is aligned with initial velocity direction
+    final double initialVx = state[3]; // Could be stored separately for more accuracy
+    final double initialVy = state[4];
+    final double initialVz = state[5];
+    final double initialVMag = sqrt(initialVx * initialVx + initialVy * initialVy + initialVz * initialVz);
+    
+    // Normalized bullet axis (approximated as initial velocity direction)
+    final double axisX = initialVMag > 0 ? initialVx / initialVMag : 1.0;
+    final double axisY = initialVMag > 0 ? initialVy / initialVMag : 0.0;
+    final double axisZ = initialVMag > 0 ? initialVz / initialVMag : 0.0;
+    
+    // Cross product of bullet axis and velocity for lift direction
+    final double liftDirX = (axisY * vRelZ - axisZ * vRelY);
+    final double liftDirY = (axisZ * vRelX - axisX * vRelZ);
+    final double liftDirZ = (axisX * vRelY - axisY * vRelX);
+    
+    // Normalize lift direction
+    final double liftDirMag = sqrt(liftDirX * liftDirX + liftDirY * liftDirY + liftDirZ * liftDirZ);
+    
+    // Lift force magnitude
+    final double liftMagnitude = 0.5 * rhoAir * A * CL * vMagnitude * vMagnitude;
+    
+    // Lift forces
+    final double liftFx = liftDirMag > 0 ? liftMagnitude * (liftDirX / liftDirMag) : 0.0;
+    final double liftFy = liftDirMag > 0 ? liftMagnitude * (liftDirY / liftDirMag) : 0.0;
+    final double liftFz = liftDirMag > 0 ? liftMagnitude * (liftDirZ / liftDirMag) : 0.0;
+    
     // Coriolis effect calculation
     // Earth's angular velocity vector in Earth-fixed coordinates
     final double latRad = latitude * pi / 180;
@@ -525,10 +571,10 @@ class BallisticsCalculator {
     final double coriolisFy = mass * coriolisY;
     final double coriolisFz = mass * coriolisZ;
     
-    // Total accelerations (drag + Magnus + Coriolis + gravity)
-    final double ax = (dragFx + magFx + coriolisFx) / mass;
-    final double ay = (dragFy + magFy + coriolisFy) / mass;
-    final double az = (dragFz + magFz + coriolisFz) / mass - gLoc;
+    // Total accelerations (drag + Magnus + lift + Coriolis + gravity)
+    final double ax = (dragFx + magFx + liftFx + coriolisFx) / mass;
+    final double ay = (dragFy + magFy + liftFy + coriolisFy) / mass;
+    final double az = (dragFz + magFz + liftFz + coriolisFz) / mass - gLoc;
     
     // Spin decay (due to air resistance)
     final double spinDecay = -0.001 * spinMagnitude; // Empirical spin decay rate

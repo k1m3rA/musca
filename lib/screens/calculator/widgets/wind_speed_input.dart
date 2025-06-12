@@ -9,7 +9,7 @@ class WindSpeedInput extends StatelessWidget {
   const WindSpeedInput({
     super.key,
     required this.controller,
-    this.scrollStep = 0.25,
+    this.scrollStep = 0.1, // Changed from 0.25 to 0.1 for m/s precision
     required this.onUpdateWindSpeed,
   });
 
@@ -50,15 +50,15 @@ class WindSpeedInput extends StatelessWidget {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
-                  suffixText: 'km/h',
+                  suffixText: 'm/s', // Changed from 'km/h' to 'm/s'
                 ),
               ),
             ),
             const SizedBox(width: 10),
             GestureDetector(
               onVerticalDragUpdate: (details) {
-                // Factor to control sensitivity - reduced from 0.5 to 0.2
-                double delta = -details.delta.dy * 0.2;
+                // Reduced sensitivity for m/s values
+                double delta = -details.delta.dy * 0.05; // Reduced from 0.2
                 onUpdateWindSpeed(delta);
               },
               child: Container(
