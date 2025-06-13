@@ -62,5 +62,59 @@ void main() {
       print('1/2 MOA rounded: ${result.driftMoa2.toStringAsFixed(1)}');
       print('1/4 MOA rounded: ${result.driftMoa4.toStringAsFixed(2)}');
     });
+
+    test('Verify zero range interpolation accuracy', () {
+      // Test with different zero ranges to ensure interpolation works correctly
+      final testGun = Gun(
+        id: 'test-gun',
+        name: 'Test Rifle',
+        twistRate: 12.0,
+        twistDirection: 1,
+        muzzleVelocity: 800.0,
+        zeroRange: 200.0, // 200m zero
+      );
+      
+      final testCartridge = Cartridge(
+        id: 'test-cartridge',
+        name: 'Test .308',
+        diameter: '7.62',
+        bulletWeight: 175.0,
+        bulletLength: 0.0,
+        ballisticCoefficient: 0.475,
+        bcModelType: 0,
+      );
+      
+      final testScope = Scope(
+        id: 'test-scope',
+        name: 'Test Scope',
+        sightHeight: 1.5,
+        units: 0,
+      );
+
+      print('\n=== ZERO RANGE INTERPOLATION TEST ===');
+      
+      // Test at exactly zero range
+      final resultAtZero = BallisticsCalculator.calculateWithProfiles(
+        200.0, 0.0, 0.0, testGun, testCartridge, testScope,
+        temperature: 15.0, pressure: 1013.0, humidity: 50.0,
+      );
+      
+      // Test at a different distance to ensure consistency
+      final resultAt300 = BallisticsCalculator.calculateWithProfiles(
+        300.0, 0.0, 0.0, testGun, testCartridge, testScope,
+        temperature: 15.0, pressure: 1013.0, humidity: 50.0,
+      );
+      
+      print('Drop at zero range (200m): ${resultAtZero.dropMrad.toStringAsFixed(3)} MRAD');
+      print('Drop at 300m: ${resultAt300.dropMrad.toStringAsFixed(3)} MRAD');
+      
+      // At zero range, drop should be very close to zero
+      expect(resultAtZero.dropMrad.abs(), lessThan(0.1)); // Within 0.1 MRAD
+      
+      // At 300m, there should be measurable drop
+      expect(resultAt300.dropMrad.abs(), greaterThan(0.1));
+      
+      print('✅ Zero range interpolation test passed');
+    });
   });
 }

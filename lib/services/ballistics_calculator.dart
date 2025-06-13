@@ -374,6 +374,7 @@ class BallisticsCalculator {
     double? driftH;
     double? dropZ;
     int impactStep = 0;
+    double timeOfFlight = 0.0; // Track time of flight
     
     // Variables to capture bullet height at zero range
     double zAtZero = 0.0;
@@ -406,19 +407,32 @@ class BallisticsCalculator {
         state[i] += dt / 6.0 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
       }
       
+      // Update time of flight
+      timeOfFlight += dt;
+      
       final double xNew = state[0];
       final double zNew = state[2];
       
-      // Capture bullet height at zero range through linear interpolation
+      // Improved zero range interpolation with better validation
       if (!gotZero && calibrationDistance > 0 && xNew >= calibrationDistance) {
-        if (xPrev < calibrationDistance) {
-          // Linear interpolation between previous and current step
-          final double t = (calibrationDistance - xPrev) / (xNew - xPrev);
-          zAtZero = zPrev + t * (zNew - zPrev);
-          gotZero = true;
-        } else {
+        if (xPrev < calibrationDistance && xNew > xPrev) {
+          // Ensure interpolation factor is within [0,1] bounds
+          final double denominator = xNew - xPrev;
+          if (denominator > 0) {
+            final double t = (calibrationDistance - xPrev) / denominator;
+            // Clamp t to [0,1] to prevent extrapolation errors
+            final double clampedT = t.clamp(0.0, 1.0);
+            zAtZero = zPrev + clampedT * (zNew - zPrev);
+            gotZero = true;
+            
+            // Debug output for zero range capture
+            print('Zero range captured at ${calibrationDistance}m: bullet height = ${zAtZero.toStringAsFixed(4)}m, interpolation factor = ${clampedT.toStringAsFixed(3)}');
+          }
+        } else if (xPrev <= calibrationDistance) {
+          // Direct capture if we're exactly at zero range
           zAtZero = zNew;
           gotZero = true;
+          print('Zero range captured directly at ${calibrationDistance}m: bullet height = ${zAtZero.toStringAsFixed(4)}m');
         }
       }
       
@@ -431,56 +445,78 @@ class BallisticsCalculator {
       }
     }
 
-    // Calculate time of flight and empirical lateral drift
-    final double timeOfFlight = impactStep * dt;
-    
-    // Calculate crosswind component (perpendicular to bullet path)
-    // Wind direction: 0° = North, 90° = East, 180° = South, 270° = West
-    // Crosswind component: positive = wind from left (causes right drift)
-    //                     negative = wind from right (causes left drift)
-    final double crossWindComponent = windSpeed * sin(windDirection * pi / 180);
-    
-    // Empirical coefficient, adjust until values match your tables
-    // Different values for G1 vs G7 ballistic models
-    final double Kd = ((cartridge.bcModelType ?? 0) == 1 ? 0.03 : 0.05);
-    
-    // Calculate lateral drift based on crosswind component
-    // Positive crosswind (from left/south) causes positive drift (rightward)
-    // Negative crosswind (from right/north) causes negative drift (leftward)
-    final double lateralDrift = crossWindComponent * timeOfFlight / ballisticCoefficient * Kd;
-    
-    // Override the "very small" drift from integrator with empirical value
-    driftH = lateralDrift;
-
     // Calculate corrections based on line of sight vs trajectory difference
     final double trajZ = dropZ ?? 0.0;
     final double trajY = driftH ?? 0.0;
     final double D = distance;
     
-    // Calculate line of sight height at target distance
+    // Enhanced line of sight calculation with multiple fallback mechanisms
     double losHeightAtTarget;
     
-    if (calibrationDistance == 0.0 || !gotZero) {
-      // No zero range or couldn't capture zero height - horizontal line of sight
+    if (calibrationDistance == 0.0) {
+      // No zero range - horizontal line of sight from scope height
       losHeightAtTarget = visorHeight;
-    } else {
-      // Line of sight from scope to bullet at zero range
-      // Slope of line of sight
+      print('Zero range = 0: Using horizontal line of sight at scope height ${visorHeight.toStringAsFixed(4)}m');
+    } else if (!gotZero) {
+      // Failed to capture zero height - use ballistic approximation as fallback
+      print('Warning: Failed to capture bullet height at zero range ${calibrationDistance}m, using ballistic approximation');
+      
+      // Fallback calculation using simple ballistics
+      final double timeOfFlightToZero = calibrationDistance / muzzleVelocity;
+      final double estimatedDropAtZero = 0.5 * 9.81 * timeOfFlightToZero * timeOfFlightToZero;
+      
+      // Estimate bullet height at zero (positive = above bore)
+      zAtZero = estimatedDropAtZero; // Simple drop calculation
+      
+      // Calculate line of sight slope and height at target
       final double losSlope = (zAtZero - visorHeight) / calibrationDistance;
       losHeightAtTarget = visorHeight + losSlope * D;
+      
+      print('Fallback: Estimated bullet height at zero = ${zAtZero.toStringAsFixed(4)}m, LOS slope = ${losSlope.toStringAsFixed(6)}');
+    } else {
+      // Successfully captured zero height - calculate proper line of sight
+      final double losSlope = (zAtZero - visorHeight) / calibrationDistance;
+      losHeightAtTarget = visorHeight + losSlope * D;
+      
+      print('Normal calculation: Zero height = ${zAtZero.toStringAsFixed(4)}m, scope height = ${visorHeight.toStringAsFixed(4)}m, LOS slope = ${losSlope.toStringAsFixed(6)}');
     }
     
     // Calculate differences between trajectory and line of sight
-    final double heightDifference = trajZ - losHeightAtTarget; // Positive = bullet above LOS
+    double heightDifference = trajZ - losHeightAtTarget; // Positive = bullet above LOS
     final double lateralDifference = trajY; // Horizontal drift from centerline
+    
+    // Apply Time of Flight (ToF) correction factor to height difference
+    // Get ToF polynomial coefficients from cartridge (with defaults if not set)
+    final double a0 = cartridge.tofA0 ?? 1.0;
+    final double a1 = cartridge.tofA1 ?? 0.0;
+    final double a2 = cartridge.tofA2 ?? 0.0;
+    final double a3 = cartridge.tofA3 ?? 0.0;
+    
+    // Calculate adjusted time of flight using polynomial correction
+    final double rawTof = timeOfFlight;
+    final double adjTof = a0 + a1 * rawTof + a2 * pow(rawTof, 2) + a3 * pow(rawTof, 3);
+    
+    // Apply ToF correction factor only if polynomial is meaningful (not default values)
+    if (a1 != 0.0 || a2 != 0.0 || a3 != 0.0) {
+      final double tofFactor = adjTof / rawTof;
+      heightDifference *= tofFactor;
+      
+      print('ToF correction applied: raw=${rawTof.toStringAsFixed(4)}s, adj=${adjTof.toStringAsFixed(4)}s, factor=${tofFactor.toStringAsFixed(4)}');
+    }
     
     // Convert differences to angular corrections (mrad)
     // Positive correction = bullet above LOS, scope needs DOWN adjustment
     // Negative correction = bullet below LOS, scope needs UP adjustment
-    // For drift: Positive = bullet drifts right, scope needs LEFT adjustment
-    //           Negative = bullet drifts left, scope needs RIGHT adjustment
     final double correctedDropMrad = heightDifference / distance * 1000;
     final double correctedDriftMrad = lateralDifference / distance * 1000;
+    
+    // Debug output for final calculations
+    print('Final calculations at ${distance}m:');
+    print('  Time of flight: ${timeOfFlight.toStringAsFixed(4)}s');
+    print('  Trajectory height: ${trajZ.toStringAsFixed(4)}m');
+    print('  Line of sight height: ${losHeightAtTarget.toStringAsFixed(4)}m');
+    print('  Height difference (after ToF): ${heightDifference.toStringAsFixed(4)}m');
+    print('  Drop correction: ${correctedDropMrad.toStringAsFixed(3)} MRAD');
     
     // Calculate all unit variations
     // MRAD units
