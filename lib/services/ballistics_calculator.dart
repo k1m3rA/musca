@@ -426,17 +426,20 @@ class BallisticsCalculator {
     final double D = distance;
     final double zeroRange = calibrationDistance;
     
+    // Handle zero range of 0 as infinity (no zero)
+    final double effectiveZeroRange = zeroRange == 0.0 ? 1000000.0 : zeroRange;
+    
     // Calculate bullet position at zero range for line of sight reference
     double bulletAtZero = 0.0;
-    if (distance != zeroRange) {
+    if (distance != effectiveZeroRange) {
       // We need the bullet height at zero range to define the line of sight
       // For now, use a simplified calculation based on ballistic arc
       // This should ideally be calculated by running the simulation to zero range
-      bulletAtZero = -0.5 * 9.81 * pow(zeroRange / muzzleVelocity, 2); // Simple parabolic approximation
+      bulletAtZero = -0.5 * 9.81 * pow(effectiveZeroRange / muzzleVelocity, 2); // Simple parabolic approximation
     }
     
     // Line of sight from scope height to bullet at zero range
-    final double losSlope = (bulletAtZero - visorHeight) / zeroRange;
+    final double losSlope = (bulletAtZero - visorHeight) / effectiveZeroRange;
     final double losHeightAtTarget = visorHeight + (losSlope * D);
     
     // Perpendicular distance from trajectory to line of sight
