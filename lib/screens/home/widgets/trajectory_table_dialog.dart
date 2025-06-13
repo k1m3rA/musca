@@ -72,10 +72,15 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
           azimuthAngle: widget.calculation.windDirection,
         );
 
+        // Use line of sight corrected values instead of raw trajectory values
+        // Convert angular corrections (mrad) back to linear measurements at target distance
+        final double dropLineOfSight = result.dropMrad * distance / 1000.0; // mrad to meters
+        final double driftLineOfSight = result.driftMrad * distance / 1000.0; // mrad to meters
+
         _tableData.add(TrajectoryDataPoint(
           distance: distance,
-          dropVertical: result.dropVertical,
-          driftHorizontal: result.driftHorizontal,
+          dropVertical: dropLineOfSight,
+          driftHorizontal: driftLineOfSight,
         ));
       } catch (e) {
         print('Error calculating trajectory at ${distance}m: $e');
