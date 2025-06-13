@@ -1,10 +1,10 @@
 // Test script to demonstrate profile reload functionality
 // Run with: dart run test_profile_reload.dart
 
-import 'lib/services/ballistics_calculator.dart';
-import 'lib/models/gun_model.dart';
-import 'lib/models/cartridge_model.dart';
-import 'lib/models/scope_model.dart';
+import '../lib/services/ballistics_calculator.dart';
+import '../lib/models/gun_model.dart';
+import '../lib/models/cartridge_model.dart';
+import '../lib/models/scope_model.dart';
 
 void main() {
   print('=== PROFILE RELOAD TEST ===\n');

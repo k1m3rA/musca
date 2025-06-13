@@ -1,10 +1,10 @@
 // Test script to verify G7 ballistic coefficient table
 // Run with: dart run test_g7_ballistics.dart
 
-import 'lib/services/ballistics_calculator.dart';
-import 'lib/models/gun_model.dart';
-import 'lib/models/cartridge_model.dart';
-import 'lib/models/scope_model.dart';
+import '../lib/services/ballistics_calculator.dart';
+import '../lib/models/gun_model.dart';
+import '../lib/models/cartridge_model.dart';
+import '../lib/models/scope_model.dart';
 
 void main() async {
   print('=== G7 BALLISTICS COEFFICIENT TABLE TEST ===\n');

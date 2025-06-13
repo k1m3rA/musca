@@ -1,13 +1,13 @@
 // Test script to verify profile reloading functionality
 // Run with: dart run test_profile_reload_simple.dart
 
-import 'lib/services/gun_storage.dart';
-import 'lib/services/cartridge_storage.dart';
-import 'lib/services/scope_storage.dart';
-import 'lib/services/ballistics_calculator.dart';
-import 'lib/models/gun_model.dart';
-import 'lib/models/cartridge_model.dart';
-import 'lib/models/scope_model.dart';
+import '../lib/services/gun_storage.dart';
+import '../lib/services/cartridge_storage.dart';
+import '../lib/services/scope_storage.dart';
+import '../lib/services/ballistics_calculator.dart';
+import '../lib/models/gun_model.dart';
+import '../lib/models/cartridge_model.dart';
+import '../lib/models/scope_model.dart';
 
 void main() async {
   print('=== TESTING PROFILE RELOAD FUNCTIONALITY ===\n');

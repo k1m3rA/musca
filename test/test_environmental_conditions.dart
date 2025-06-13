@@ -1,10 +1,10 @@
 // Test script to verify environmental conditions affect ballistics calculations
 // Run with: dart run test_environmental_conditions.dart
 
-import 'lib/services/ballistics_calculator.dart';
-import 'lib/models/gun_model.dart';
-import 'lib/models/cartridge_model.dart';
-import 'lib/models/scope_model.dart';
+import '../lib/services/ballistics_calculator.dart';
+import '../lib/models/gun_model.dart';
+import '../lib/models/cartridge_model.dart';
+import '../lib/models/scope_model.dart';
 
 void main() {
   print('=== ENVIRONMENTAL CONDITIONS BALLISTICS TEST ===\n');

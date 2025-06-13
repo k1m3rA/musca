@@ -1,10 +1,10 @@
 // Test to verify BC model type switching
 // Run with: dart run test_bc_model_switching.dart
 
-import 'lib/services/ballistics_calculator.dart';
-import 'lib/models/gun_model.dart';
-import 'lib/models/cartridge_model.dart';
-import 'lib/models/scope_model.dart';
+import '../lib/services/ballistics_calculator.dart';
+import '../lib/models/gun_model.dart';
+import '../lib/models/cartridge_model.dart';
+import '../lib/models/scope_model.dart';
 
 void main() async {
   print('=== BALLISTIC COEFFICIENT MODEL SWITCHING TEST ===\n');

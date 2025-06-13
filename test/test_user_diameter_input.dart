@@ -1,10 +1,10 @@
 // Test script to verify user-input diameter handling
 // Run with: dart run test_user_diameter_input.dart
 
-import 'lib/services/ballistics_calculator.dart';
-import 'lib/models/gun_model.dart';
-import 'lib/models/cartridge_model.dart';
-import 'lib/models/scope_model.dart';
+import '../lib/services/ballistics_calculator.dart';
+import '../lib/models/gun_model.dart';
+import '../lib/models/cartridge_model.dart';
+import '../lib/models/scope_model.dart';
 
 void main() async {
   print('=== USER DIAMETER INPUT TEST ===\n');
