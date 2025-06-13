@@ -337,11 +337,11 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
               child: ElevatedButton.icon(
                 onPressed: _exportToPdf,
                 icon: Icon(Icons.picture_as_pdf, 
-                  color: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.black),
+                  color: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.grey[900]),
                 label: Text(
                   'Export to PDF',
                   style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.black,
+                    color: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.grey[900],
                     fontWeight: FontWeight.bold,
                   ),
                 ),

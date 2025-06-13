@@ -267,7 +267,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                   interval: (_maxDrop - _minDrop) / 5,
                   getTitlesWidget: (value, meta) {
                     return Text(
-                      '${(-value * 100).toStringAsFixed(0)}cm',
+                      '${(value * 100).toStringAsFixed(0)}cm',
                       style: const TextStyle(fontSize: 12),
                     );
                   },
