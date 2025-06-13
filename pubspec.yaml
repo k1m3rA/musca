@@ -43,6 +43,7 @@ dependencies:
   uuid: ^4.3.3  # Added for generating unique identifiers
   geolocator: ^10.0.0
   http: ^1.1.0
+  fl_chart: ^0.68.0
 
 dev_dependencies:
   flutter_test:

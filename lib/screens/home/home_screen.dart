@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../profile/profile_details_screen.dart';
+import 'widgets/ballistics_chart_screen.dart';
 
 // New widget for just the content
 class HomeContent extends StatefulWidget {
@@ -96,20 +97,49 @@ class _HomeContentState extends State<HomeContent> {
                         color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        '${latest.distance.toStringAsFixed(0)}m',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${latest.distance.toStringAsFixed(0)}m',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        // Add trajectory chart button
+                        IconButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => BallisticsChartScreen(
+                                  calculation: latest,
+                                ),
+                              ),
+                            );
+                          },
+                          icon: Icon(
+                            Icons.trending_down,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 24,
+                          ),
+                          tooltip: 'View Trajectory Chart',
+                          padding: const EdgeInsets.all(8),
+                          constraints: const BoxConstraints(
+                            minWidth: 40,
+                            minHeight: 40,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
