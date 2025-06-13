@@ -592,7 +592,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
         : (_selectedScope?.sightHeight ?? 0) * 0.01;
     final double zeroRange = _selectedGun?.zeroRange ?? 0;
 
-    String description = 'X-axis: Distance (m) • Y-axis: Height relative to bore (cm)\nPositive values = bullet drop below bore axis';
+    String description = 'X-axis: Distance (m) • Y-axis: Height relative to bore (cm)\nPositive values = upward drop, negative values = downward drop';
     
     if (visorHeight == 0.0 && zeroRange == 0.0) {
       description += '\nLine of sight coincides with bore axis';

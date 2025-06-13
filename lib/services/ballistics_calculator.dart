@@ -467,8 +467,9 @@ class BallisticsCalculator {
     final double lateralDifference = trajY; // Horizontal drift from centerline
     
     // Convert differences to angular corrections (mrad)
-    // Negative correction = scope needs to be adjusted DOWN/LEFT
-    final double correctedDropMrad = -heightDifference / distance * 1000;
+    // Positive correction = bullet above LOS, scope needs DOWN adjustment
+    // Negative correction = bullet below LOS, scope needs UP adjustment
+    final double correctedDropMrad = heightDifference / distance * 1000;
     final double correctedDriftMrad = lateralDifference / distance * 1000;
     
     // Calculate all unit variations
@@ -493,9 +494,9 @@ class BallisticsCalculator {
     
     // Linear distance corrections at target distance
     final double driftInches = (driftH ?? 0) * 39.3701; // meters to inches
-    final double dropInches = -(dropZ ?? 0) * 39.3701; // meters to inches (negative for upward)
+    final double dropInches = (dropZ ?? 0) * 39.3701; // meters to inches
     final double driftCm = (driftH ?? 0) * 100; // meters to centimeters
-    final double dropCm = -(dropZ ?? 0) * 100; // meters to centimeters (negative for upward)
+    final double dropCm = (dropZ ?? 0) * 100; // meters to centimeters
     
     return BallisticsResult(
       driftHorizontal: driftH ?? 0,
