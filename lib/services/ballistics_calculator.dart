@@ -433,13 +433,21 @@ class BallisticsCalculator {
 
     // Calculate time of flight and empirical lateral drift
     final double timeOfFlight = impactStep * dt;
-    final double crossWind = windSpeed; // assumed 100% transversal
+    
+    // Calculate crosswind component (perpendicular to bullet path)
+    // Wind direction: 0° = North, 90° = East, 180° = South, 270° = West
+    // Crosswind component: positive = wind from left (causes right drift)
+    //                     negative = wind from right (causes left drift)
+    final double crossWindComponent = windSpeed * sin(windDirection * pi / 180);
     
     // Empirical coefficient, adjust until values match your tables
     // Different values for G1 vs G7 ballistic models
     final double Kd = ((cartridge.bcModelType ?? 0) == 1 ? 0.03 : 0.05);
     
-    final double lateralDrift = crossWind * timeOfFlight / ballisticCoefficient * Kd;
+    // Calculate lateral drift based on crosswind component
+    // Positive crosswind (from left/south) causes positive drift (rightward)
+    // Negative crosswind (from right/north) causes negative drift (leftward)
+    final double lateralDrift = crossWindComponent * timeOfFlight / ballisticCoefficient * Kd;
     
     // Override the "very small" drift from integrator with empirical value
     driftH = lateralDrift;
@@ -469,6 +477,8 @@ class BallisticsCalculator {
     // Convert differences to angular corrections (mrad)
     // Positive correction = bullet above LOS, scope needs DOWN adjustment
     // Negative correction = bullet below LOS, scope needs UP adjustment
+    // For drift: Positive = bullet drifts right, scope needs LEFT adjustment
+    //           Negative = bullet drifts left, scope needs RIGHT adjustment
     final double correctedDropMrad = heightDifference / distance * 1000;
     final double correctedDriftMrad = lateralDifference / distance * 1000;
     
