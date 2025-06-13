@@ -375,11 +375,19 @@ class BallisticsCalculator {
     double? dropZ;
     int impactStep = 0;
     
+    // Variables to capture bullet height at zero range
+    double zAtZero = 0.0;
+    bool gotZero = false;
+    
     // Area for drag calculation
     final double A = pi * (diameter / 2) * (diameter / 2);
 
     // RK4 Integration loop
     for (int step = 0; step < (30.0 / dt).round(); step++) {
+      // Store previous state for interpolation
+      final double xPrev = state[0];
+      final double zPrev = state[2];
+      
       // RK4 step
       final int bcModelType = cartridge.bcModelType ?? 0;
       final List<double> k1 = _calculateDerivatives(state, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad);
@@ -396,6 +404,22 @@ class BallisticsCalculator {
       // Update state using RK4 formula
       for (int i = 0; i < 7; i++) {
         state[i] += dt / 6.0 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
+      }
+      
+      final double xNew = state[0];
+      final double zNew = state[2];
+      
+      // Capture bullet height at zero range through linear interpolation
+      if (!gotZero && calibrationDistance > 0 && xNew >= calibrationDistance) {
+        if (xPrev < calibrationDistance) {
+          // Linear interpolation between previous and current step
+          final double t = (calibrationDistance - xPrev) / (xNew - xPrev);
+          zAtZero = zPrev + t * (zNew - zPrev);
+          gotZero = true;
+        } else {
+          zAtZero = zNew;
+          gotZero = true;
+        }
       }
       
       // Check if we've reached target distance along shooting plane
@@ -420,39 +444,32 @@ class BallisticsCalculator {
     // Override the "very small" drift from integrator with empirical value
     driftH = lateralDrift;
 
-    // Calculate corrections considering line of sight intersection at zero range
+    // Calculate corrections based on line of sight vs trajectory difference
     final double trajZ = dropZ ?? 0.0;
     final double trajY = driftH ?? 0.0;
     final double D = distance;
-    final double zeroRange = calibrationDistance;
     
-    // Handle zero range of 0 as infinity (no zero)
-    final double effectiveZeroRange = zeroRange == 0.0 ? 1000000.0 : zeroRange;
+    // Calculate line of sight height at target distance
+    double losHeightAtTarget;
     
-    // Calculate bullet position at zero range for line of sight reference
-    double bulletAtZero = 0.0;
-    if (distance != effectiveZeroRange) {
-      // We need the bullet height at zero range to define the line of sight
-      // For now, use a simplified calculation based on ballistic arc
-      // This should ideally be calculated by running the simulation to zero range
-      bulletAtZero = -0.5 * 9.81 * pow(effectiveZeroRange / muzzleVelocity, 2); // Simple parabolic approximation
+    if (calibrationDistance == 0.0 || !gotZero) {
+      // No zero range or couldn't capture zero height - horizontal line of sight
+      losHeightAtTarget = visorHeight;
+    } else {
+      // Line of sight from scope to bullet at zero range
+      // Slope of line of sight
+      final double losSlope = (zAtZero - visorHeight) / calibrationDistance;
+      losHeightAtTarget = visorHeight + losSlope * D;
     }
     
-    // Line of sight from scope height to bullet at zero range
-    final double losSlope = (bulletAtZero - visorHeight) / effectiveZeroRange;
-    final double losHeightAtTarget = visorHeight + (losSlope * D);
+    // Calculate differences between trajectory and line of sight
+    final double heightDifference = trajZ - losHeightAtTarget; // Positive = bullet above LOS
+    final double lateralDifference = trajY; // Horizontal drift from centerline
     
-    // Perpendicular distance from trajectory to line of sight
-    final double perpDrop = trajZ - losHeightAtTarget;
-    final double perpDrift = trajY; // Horizontal drift unchanged
-    
-    // Calculate raw corrections using perpendicular distances
-    final double rawDriftMrad = perpDrift / distance * 1000;
-    final double rawDropMrad = -perpDrop / distance * 1000; // Negative for upward correction
-    
-    // No additional scope height correction needed since LOS already accounts for it
-    final double correctedDriftMrad = rawDriftMrad;
-    final double correctedDropMrad = rawDropMrad;
+    // Convert differences to angular corrections (mrad)
+    // Negative correction = scope needs to be adjusted DOWN/LEFT
+    final double correctedDropMrad = -heightDifference / distance * 1000;
+    final double correctedDriftMrad = lateralDifference / distance * 1000;
     
     // Calculate all unit variations
     // MRAD units
@@ -644,5 +661,94 @@ class BallisticsCalculator {
     final double spinDecay = -0.001 * spinMagnitude; // Empirical spin decay rate
     
     return [vx, vy, vz, ax, ay, az, spinDecay];
+  }
+
+  /// Generate a ballistic table using the same calculation engine as the main calculator
+  /// 
+  /// Parameters:
+  /// - startDistance: starting distance in meters
+  /// - endDistance: ending distance in meters
+  /// - interval: distance interval in meters
+  /// - windSpeed: wind speed in m/s
+  /// - windDirection: wind direction in degrees
+  /// - gun: gun profile
+  /// - cartridge: cartridge profile
+  /// - scope: scope profile
+  /// - temperature: air temperature in Celsius
+  /// - pressure: air pressure in mbar or Pa (auto-detected)
+  /// - humidity: relative humidity as percentage (0-100)
+  /// - elevationAngle: elevation angle in degrees
+  /// - azimuthAngle: azimuth angle in degrees
+  /// - slopeAngle: terrain slope angle in degrees
+  static List<BallisticsResult> generateBallisticTable(
+    double startDistance,
+    double endDistance,
+    double interval,
+    double windSpeed,
+    double windDirection,
+    Gun gun,
+    Cartridge cartridge,
+    Scope scope, {
+    required double temperature,
+    required double pressure,
+    required double humidity,
+    double elevationAngle = 0.0,
+    double azimuthAngle = 0.0,
+    double slopeAngle = 0.0,
+  }) {
+    final List<BallisticsResult> results = [];
+    
+    // Validate input parameters
+    if (startDistance <= 0 || endDistance <= startDistance || interval <= 0) {
+      throw ArgumentError('Invalid distance parameters for table generation');
+    }
+    
+    // Generate results for each distance point using the same calculation engine
+    for (double distance = startDistance; distance <= endDistance; distance += interval) {
+      try {
+        final result = calculateWithProfiles(
+          distance,
+          windSpeed,
+          windDirection,
+          gun,
+          cartridge,
+          scope,
+          temperature: temperature,
+          pressure: pressure,
+          humidity: humidity,
+          elevationAngle: elevationAngle,
+          azimuthAngle: azimuthAngle,
+          slopeAngle: slopeAngle,
+        );
+        results.add(result);
+      } catch (e) {
+        // If calculation fails for a specific distance, skip it
+        continue;
+      }
+    }
+    
+    return results;
+  }
+
+  /// Generate a ballistic table with legacy method (for backward compatibility)
+  static List<BallisticsResult> generateBallisticTableLegacy(
+    double startDistance,
+    double endDistance,
+    double interval,
+    double windSpeed,
+    double windDirection,
+  ) {
+    final List<BallisticsResult> results = [];
+    
+    for (double distance = startDistance; distance <= endDistance; distance += interval) {
+      try {
+        final result = calculate(distance, windSpeed, windDirection);
+        results.add(result);
+      } catch (e) {
+        continue;
+      }
+    }
+    
+    return results;
   }
 }
