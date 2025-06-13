@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
 
 class ZeroRangeInput extends StatelessWidget {
@@ -13,6 +14,13 @@ class ZeroRangeInput extends StatelessWidget {
     required this.onUpdateZeroRange,
   });
 
+  void _handleZeroRangeUpdate(double delta) {
+    final currentValue = double.tryParse(controller.text) ?? 0.0;
+    final newValue = currentValue + delta;
+    final finalValue = newValue == 0.0 ? 99999.0 : newValue;
+    onUpdateZeroRange(finalValue - currentValue);
+  }
+
   @override
   Widget build(BuildContext context) {
     // Define colors based on theme
@@ -22,7 +30,7 @@ class ZeroRangeInput extends StatelessWidget {
       onPointerSignal: (pointerSignal) {
         if (pointerSignal is PointerScrollEvent) {
           final delta = pointerSignal.scrollDelta.dy > 0 ? -scrollStep * 5 : scrollStep * 5;
-          onUpdateZeroRange(delta);
+          _handleZeroRangeUpdate(delta);
         }
       },
       child: Container(
@@ -33,6 +41,19 @@ class ZeroRangeInput extends StatelessWidget {
               child: TextField(
                 controller: controller,
                 keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                  TextInputFormatter.withFunction((oldValue, newValue) {
+                    // Check if the new value is "0" and replace with "99999"
+                    if (newValue.text == '0' || newValue.text == '0.0') {
+                      return const TextEditingValue(
+                        text: '99999',
+                        selection: TextSelection.collapsed(offset: 5),
+                      );
+                    }
+                    return newValue;
+                  }),
+                ],
                 decoration: InputDecoration(
                   labelText: 'Zero Range',
                   labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
@@ -59,7 +80,7 @@ class ZeroRangeInput extends StatelessWidget {
             GestureDetector(
               onVerticalDragUpdate: (details) {
                 double delta = -details.delta.dy * 0.5;
-                onUpdateZeroRange(delta);
+                _handleZeroRangeUpdate(delta);
               },
               child: Container(
                 width: 40,
@@ -72,7 +93,7 @@ class ZeroRangeInput extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     InkWell(
-                      onTap: () => onUpdateZeroRange(scrollStep * 5),
+                      onTap: () => _handleZeroRangeUpdate(scrollStep * 5),
                       child: Container(
                         height: 30,
                         width: 40,
@@ -90,7 +111,7 @@ class ZeroRangeInput extends StatelessWidget {
                       ),
                     ),
                     InkWell(
-                      onTap: () => onUpdateZeroRange(-scrollStep * 5),
+                      onTap: () => _handleZeroRangeUpdate(-scrollStep * 5),
                       child: Container(
                         height: 30,
                         width: 40,
