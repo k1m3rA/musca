@@ -144,15 +144,15 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                   ),
                   pw.SizedBox(height: 8),
                   pw.Text(
-                    'Wind: ${widget.calculation.windSpeed.toStringAsFixed(1)}m/s @ ${widget.calculation.windDirection.toStringAsFixed(0)}°',
+                    'Wind: ${widget.calculation.windSpeed.toStringAsFixed(1)}m/s at ${widget.calculation.windDirection.toStringAsFixed(0)} degrees',
                     style: const pw.TextStyle(fontSize: 12),
                   ),
                   pw.Text(
-                    'Angle: ${widget.calculation.angle.toStringAsFixed(1)}° • Temperature: ${widget.calculation.temperature.toStringAsFixed(1)}°C',
+                    'Angle: ${widget.calculation.angle.toStringAsFixed(1)} degrees - Temperature: ${widget.calculation.temperature.toStringAsFixed(1)} degrees C',
                     style: const pw.TextStyle(fontSize: 12),
                   ),
                   pw.Text(
-                    'Step Size: ${_stepSize}m • Units: ${_unitLabels[_selectedUnits]}',
+                    'Step Size: ${_stepSize}m - Units: ${_unitLabels[_selectedUnits]}',
                     style: const pw.TextStyle(fontSize: 12),
                   ),
                 ],
@@ -198,6 +198,7 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
 
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => pdf.save(),
+      name: 'MuscaBallisticChart.pdf',
     );
   }
 
@@ -234,18 +235,9 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.picture_as_pdf),
-                      onPressed: _exportToPdf,
-                      tooltip: 'Export to PDF',
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
             ),
@@ -339,6 +331,29 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                   ),
                 ),
               ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _exportToPdf,
+                icon: Icon(Icons.picture_as_pdf, 
+                  color: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.black),
+                label: Text(
+                  'Export to PDF',
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
