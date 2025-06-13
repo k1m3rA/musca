@@ -44,6 +44,8 @@ dependencies:
   geolocator: ^10.0.0
   http: ^1.1.0
   fl_chart: ^0.68.0
+  pdf: ^3.10.7
+  printing: ^5.11.1
 
 dev_dependencies:
   flutter_test:

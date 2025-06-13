@@ -8,6 +8,7 @@ import '../../../services/scope_storage.dart';
 import '../../../models/gun_model.dart';
 import '../../../models/cartridge_model.dart';
 import '../../../models/scope_model.dart';
+import 'trajectory_table_dialog.dart';
 
 class BallisticsChartScreen extends StatefulWidget {
   final Calculation calculation;
@@ -161,6 +162,13 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.table_chart),
+            onPressed: _showTrajectoryTable,
+            tooltip: 'Generate Trajectory Table',
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -422,6 +430,18 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showTrajectoryTable() {
+    showDialog(
+      context: context,
+      builder: (context) => TrajectoryTableDialog(
+        calculation: widget.calculation,
+        selectedGun: _selectedGun,
+        selectedCartridge: _selectedCartridge,
+        selectedScope: _selectedScope,
       ),
     );
   }
