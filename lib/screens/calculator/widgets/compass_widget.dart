@@ -88,9 +88,9 @@ class _CompassWidgetState extends State<CompassWidget> {
 
   // Calculate wind direction relative to current north
   double _getRelativeWindDirection() {
-    // Return wind direction relative to bullet direction (center of compass)
-    // This makes wind direction independent of device orientation
-    return _windDirection;
+    // Return inverted wind direction: 90° = right, 270° = left
+    // This inverts the degrees while keeping the same compass behavior
+    return (360 - _windDirection) % 360;
   }
 
   @override
