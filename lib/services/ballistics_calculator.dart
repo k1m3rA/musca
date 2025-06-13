@@ -420,16 +420,36 @@ class BallisticsCalculator {
     // Override the "very small" drift from integrator with empirical value
     driftH = lateralDrift;
 
-    // Calculate raw corrections (referred to bore axis)
-    final double rawDriftMrad = (driftH ?? 0) / distance * 1000;
-    final double rawDropMrad = -(dropZ ?? 0) / distance * 1000; // Negative for upward correction
+    // Calculate corrections considering line of sight intersection at zero range
+    final double trajZ = dropZ ?? 0.0;
+    final double trajY = driftH ?? 0.0;
+    final double D = distance;
+    final double zeroRange = calibrationDistance;
     
-    // Calculate scope height correction angle
-    final double scopeHeightCorrectionMrad = atan(visorHeight / calibrationDistance) * 1000;
+    // Calculate bullet position at zero range for line of sight reference
+    double bulletAtZero = 0.0;
+    if (distance != zeroRange) {
+      // We need the bullet height at zero range to define the line of sight
+      // For now, use a simplified calculation based on ballistic arc
+      // This should ideally be calculated by running the simulation to zero range
+      bulletAtZero = -0.5 * 9.81 * pow(zeroRange / muzzleVelocity, 2); // Simple parabolic approximation
+    }
     
-    // Apply corrections considering scope height and calibration distance
-    final double correctedDriftMrad = rawDriftMrad; // Drift is not affected by scope height
-    final double correctedDropMrad = rawDropMrad - scopeHeightCorrectionMrad;
+    // Line of sight from scope height to bullet at zero range
+    final double losSlope = (bulletAtZero - visorHeight) / zeroRange;
+    final double losHeightAtTarget = visorHeight + (losSlope * D);
+    
+    // Perpendicular distance from trajectory to line of sight
+    final double perpDrop = trajZ - losHeightAtTarget;
+    final double perpDrift = trajY; // Horizontal drift unchanged
+    
+    // Calculate raw corrections using perpendicular distances
+    final double rawDriftMrad = perpDrift / distance * 1000;
+    final double rawDropMrad = -perpDrop / distance * 1000; // Negative for upward correction
+    
+    // No additional scope height correction needed since LOS already accounts for it
+    final double correctedDriftMrad = rawDriftMrad;
+    final double correctedDropMrad = rawDropMrad;
     
     // Calculate all unit variations
     // MRAD units

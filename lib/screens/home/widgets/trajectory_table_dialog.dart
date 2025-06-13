@@ -94,11 +94,12 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
       case 1: // inches
         return valueInMeters * 39.3701;
       case 2: // MOA
-        // MOA conversion: 1 MOA = 1.047 inches at 100 yards
-        return (valueInMeters * 39.3701) / 1.047;
+        // Use distance-based MOA calculation for proper angular measurement
+        // 1 MOA = 1.047 inches at 100 yards = 2.908 cm at 100 meters
+        return (valueInMeters * 100) / 2.908; // Convert cm to MOA at 100m
       case 3: // MIL
-        // MIL conversion: 1 MIL = 3.6 inches at 100 yards
-        return (valueInMeters * 39.3701) / 3.6;
+        // 1 MIL = 10 cm at 100 meters
+        return (valueInMeters * 100) / 10; // Convert cm to MIL
       default:
         return valueInMeters * 100;
     }

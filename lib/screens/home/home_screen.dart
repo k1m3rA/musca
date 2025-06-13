@@ -115,7 +115,7 @@ class _HomeContentState extends State<HomeContent> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        // Add trajectory chart button
+                        // Add trajectory chart button with proper LOS visualization
                         IconButton(
                           onPressed: () {
                             Navigator.push(
@@ -128,11 +128,11 @@ class _HomeContentState extends State<HomeContent> {
                             );
                           },
                           icon: Icon(
-                            Icons.trending_down,
+                            Icons.show_chart, // Changed to more appropriate icon for trajectory
                             color: Theme.of(context).colorScheme.primary,
                             size: 24,
                           ),
-                          tooltip: 'View Trajectory Chart',
+                          tooltip: 'View Trajectory Chart with Line of Sight',
                           padding: const EdgeInsets.all(8),
                           constraints: const BoxConstraints(
                             minWidth: 40,

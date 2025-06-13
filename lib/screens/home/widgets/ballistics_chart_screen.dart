@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'dart:math';
 import '../../../models/calculation.dart';
 import '../../../services/ballistics_calculator.dart';
 import '../../../services/gun_storage.dart';
@@ -85,21 +86,22 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
 
     // Zero range for line of sight calculation
     final double zeroRange = _selectedGun!.zeroRange;
-
-    for (int i = 0; i <= 100; i++) {
-      final distance = i * step;
-      
-      if (distance == 0) {
-        // At muzzle: bullet is at bore height, sight line is at sight height
-        trajectory.add(FlSpot(0, 0));
-        lineOfSight.add(FlSpot(0, visorHeight));
-        continue;
-      }
-
+    
+    // Handle special cases for line of sight calculation
+    double losSlope = 0.0;
+    bool useSimpleCalculation = false;
+    
+    if (zeroRange == 0.0) {
+      // When zero range is 0, line of sight is horizontal (no zeroing)
+      losSlope = 0.0;
+      useSimpleCalculation = true;
+      print('Special case: Zero range = 0, LOS is horizontal at scope height');
+    } else {
+      // Normal case: calculate bullet trajectory at zero range to find intersection point
+      double bulletHeightAtZero = 0.0;
       try {
-        // Calculate ballistics for this distance
-        final result = BallisticsCalculator.calculateWithProfiles(
-          distance,
+        final zeroResult = BallisticsCalculator.calculateWithProfiles(
+          zeroRange,
           widget.calculation.windSpeed,
           widget.calculation.windDirection,
           _selectedGun!,
@@ -111,33 +113,129 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
           elevationAngle: widget.calculation.angle,
           azimuthAngle: widget.calculation.windDirection,
         );
-
-        // Bullet trajectory point (relative to bore axis)
-        final bulletDrop = result.dropVertical; // Get the drop value from calculator
-        // Ensure the trajectory curves downward (negative Y values)
-        final trajectoryY = bulletDrop > 0 ? -bulletDrop : bulletDrop;
-        trajectory.add(FlSpot(distance, trajectoryY));
-
-        // Line of sight calculation - straight line from scope height to zero point
-        // The line of sight angle to intersect bullet at zero range
-        final sightLineAngle = -visorHeight / zeroRange; // Negative angle (downward slope)
-        final sightLineHeight = visorHeight + (sightLineAngle * distance);
-        lineOfSight.add(FlSpot(distance, sightLineHeight));
-
+        bulletHeightAtZero = zeroResult.dropVertical;
       } catch (e) {
-        print('Error calculating ballistics at distance $distance: $e');
+        print('Error calculating zero point: $e');
+        // Fallback: use simple ballistic approximation
+        final muzzleVelocity = _selectedGun!.muzzleVelocity;
+        bulletHeightAtZero = 0.5 * 9.81 * pow(zeroRange / muzzleVelocity, 2); // Positive = downward drop
+      }
+
+      // Calculate line of sight slope: from scope height at x=0 to bullet height at zero range
+      losSlope = (bulletHeightAtZero - visorHeight) / zeroRange;
+    }
+
+    for (int i = 0; i <= 100; i++) {
+      final distance = i * step;
+      
+      if (distance == 0) {
+        // At muzzle: bullet is at bore height (0), line of sight starts at scope height
+        trajectory.add(FlSpot(0, 0));
+        lineOfSight.add(FlSpot(0, visorHeight));
+        continue;
+      }
+
+      if (useSimpleCalculation) {
+        // Use simple ballistic calculation when zero range is 0
+        final muzzleVelocity = _selectedGun!.muzzleVelocity;
+        if (muzzleVelocity > 0) {
+          final timeOfFlight = distance / muzzleVelocity;
+          final simpleDrop = 0.5 * 9.81 * timeOfFlight * timeOfFlight;
+          
+          // Bullet drops downward (positive Y value)
+          trajectory.add(FlSpot(distance, simpleDrop));
+        }
+        
+        // Line of sight is horizontal at scope height
+        lineOfSight.add(FlSpot(distance, visorHeight));
+        
+      } else {
+        // Normal calculation for non-zero zero range
+        try {
+          final result = BallisticsCalculator.calculateWithProfiles(
+            distance,
+            widget.calculation.windSpeed,
+            widget.calculation.windDirection,
+            _selectedGun!,
+            _selectedCartridge!,
+            _selectedScope!,
+            temperature: widget.calculation.temperature,
+            pressure: widget.calculation.pressure,
+            humidity: widget.calculation.humidity,
+            elevationAngle: widget.calculation.angle,
+            azimuthAngle: widget.calculation.windDirection,
+          );
+
+          // Validate and use ballistics result
+          if (result.dropVertical.isFinite && result.driftHorizontal.isFinite) {
+            final bulletDrop = result.dropVertical;
+            trajectory.add(FlSpot(distance, bulletDrop));
+          } else {
+            // Fallback to simple calculation
+            final muzzleVelocity = _selectedGun!.muzzleVelocity;
+            final timeOfFlight = distance / muzzleVelocity;
+            final simpleDrop = 0.5 * 9.81 * timeOfFlight * timeOfFlight;
+            trajectory.add(FlSpot(distance, simpleDrop));
+          }
+
+          // Line of sight: straight line from scope height with calculated slope
+          final sightLineHeight = visorHeight + (distance * losSlope);
+          lineOfSight.add(FlSpot(distance, sightLineHeight));
+
+        } catch (e) {
+          print('Error calculating ballistics at distance $distance: $e');
+          // Use simple fallback
+          final muzzleVelocity = _selectedGun!.muzzleVelocity;
+          final timeOfFlight = distance / muzzleVelocity;
+          final simpleDrop = 0.5 * 9.81 * timeOfFlight * timeOfFlight;
+          trajectory.add(FlSpot(distance, simpleDrop));
+          
+          final sightLineHeight = visorHeight + (distance * losSlope);
+          lineOfSight.add(FlSpot(distance, sightLineHeight));
+        }
       }
     }
 
-    // Find the min and max values for chart scaling
-    double maxDrop = trajectory.fold<double>(0, (max, spot) => spot.y > max ? spot.y : max);
-    double minDrop = trajectory.fold<double>(0, (min, spot) => spot.y < min ? spot.y : min);
+    // Ensure we have reasonable data
+    if (trajectory.isEmpty) {
+      // Emergency fallback
+      final muzzleVelocity = _selectedGun?.muzzleVelocity ?? 800.0;
+      for (int i = 0; i <= 100; i++) {
+        final distance = i * step;
+        final timeOfFlight = distance / muzzleVelocity;
+        final simpleDrop = 0.5 * 9.81 * timeOfFlight * timeOfFlight;
+        trajectory.add(FlSpot(distance, simpleDrop));
+        lineOfSight.add(FlSpot(distance, visorHeight + (distance * losSlope)));
+      }
+    }
+
+    // Find the min and max values for chart scaling with safety checks
+    double maxDrop = trajectory.fold<double>(-double.infinity, (max, spot) => 
+        spot.y.isFinite && spot.y > max ? spot.y : max);
+    double minDrop = trajectory.fold<double>(double.infinity, (min, spot) => 
+        spot.y.isFinite && spot.y < min ? spot.y : min);
     
     // Include line of sight in min/max calculation
-    maxDrop = lineOfSight.fold<double>(maxDrop, (max, spot) => spot.y > max ? spot.y : max);
-    minDrop = lineOfSight.fold<double>(minDrop, (min, spot) => spot.y < min ? spot.y : min);
+    maxDrop = lineOfSight.fold<double>(maxDrop, (max, spot) => 
+        spot.y.isFinite && spot.y > max ? spot.y : max);
+    minDrop = lineOfSight.fold<double>(minDrop, (min, spot) => 
+        spot.y.isFinite && spot.y < min ? spot.y : min);
 
-    // Add some padding to the chart
+    // Ensure we have reasonable bounds to prevent division by zero
+    if (!maxDrop.isFinite || !minDrop.isFinite || maxDrop == minDrop) {
+      maxDrop = 0.1;  // 10cm
+      minDrop = -0.05; // -5cm (scope height)
+    }
+
+    // Ensure minimum range for grid intervals
+    final range = maxDrop - minDrop;
+    if (range < 0.01) { // Less than 1cm range
+      final center = (maxDrop + minDrop) / 2;
+      maxDrop = center + 0.01;
+      minDrop = center - 0.01;
+    }
+
+    // Add padding to the chart
     final padding = (maxDrop - minDrop) * 0.1;
     maxDrop += padding;
     minDrop -= padding;
@@ -149,6 +247,10 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
       _maxDrop = maxDrop;
       _minDrop = minDrop;
     });
+
+    // Debug information
+    print('Chart bounds: minDrop=${minDrop.toStringAsFixed(4)}m, maxDrop=${maxDrop.toStringAsFixed(4)}m');
+    print('Range: ${(maxDrop - minDrop).toStringAsFixed(4)}m');
   }
 
   @override
@@ -245,8 +347,9 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
             gridData: FlGridData(
               show: true,
               drawVerticalLine: true,
-              horizontalInterval: (_maxDrop - _minDrop) / 10,
-              verticalInterval: _maxDistance / 10,
+              // Ensure intervals are never zero
+              horizontalInterval: (_maxDrop - _minDrop) > 0 ? (_maxDrop - _minDrop) / 10 : 0.01,
+              verticalInterval: _maxDistance > 0 ? _maxDistance / 10 : 10,
               getDrawingHorizontalLine: (value) {
                 return FlLine(
                   color: Colors.grey.withOpacity(0.3),
@@ -264,10 +367,11 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
               leftTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
-                  interval: (_maxDrop - _minDrop) / 5,
+                  interval: (_maxDrop - _minDrop) > 0 ? (_maxDrop - _minDrop) / 5 : 0.02,
                   getTitlesWidget: (value, meta) {
+                    final cmValue = value * 100;
                     return Text(
-                      '${(value * 100).toStringAsFixed(0)}cm',
+                      '${cmValue.toStringAsFixed(0)}cm',
                       style: const TextStyle(fontSize: 12),
                     );
                   },
@@ -277,7 +381,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
-                  interval: _maxDistance / 5,
+                  interval: _maxDistance > 0 ? _maxDistance / 5 : 20,
                   getTitlesWidget: (value, meta) {
                     return Text(
                       '${value.toStringAsFixed(0)}m',
@@ -353,9 +457,27 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                     labelResolver: (line) => 'Target\n${widget.calculation.distance.toStringAsFixed(0)}m',
                   ),
                 ),
+                // Only show zero range line if it's greater than 0
+                if ((_selectedGun?.zeroRange ?? 0) > 0)
+                  VerticalLine(
+                    x: _selectedGun!.zeroRange,
+                    color: Colors.green.withOpacity(0.6),
+                    strokeWidth: 1,
+                    dashArray: [3, 3],
+                    label: VerticalLineLabel(
+                      show: true,
+                      alignment: Alignment.topLeft,
+                      style: const TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                      ),
+                      labelResolver: (line) => 'Zero\n${_selectedGun!.zeroRange.toStringAsFixed(0)}m',
+                    ),
+                  ),
               ],
               horizontalLines: [
-                // Zero line
+                // Zero line (bore axis)
                 HorizontalLine(
                   y: 0,
                   color: Colors.grey.withOpacity(0.8),
@@ -364,6 +486,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                 ),
               ],
             ),
+            // ...existing other properties...
           ),
         ),
       ),
@@ -392,7 +515,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                   color: Colors.blue,
                 ),
                 const SizedBox(width: 8),
-                const Text('Line of sight'),
+                Text(_buildLegendText()),
               ],
             ),
             const SizedBox(height: 4),
@@ -419,10 +542,24 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                 const Text('Target distance'),
               ],
             ),
+            if ((_selectedGun?.zeroRange ?? 0) > 0) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Container(
+                    width: 20,
+                    height: 3,
+                    color: Colors.green,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text('Zero range'),
+                ],
+              ),
+            ],
             const SizedBox(height: 12),
-            const Text(
-              'X-axis: Distance (m) • Y-axis: Height (cm)',
-              style: TextStyle(
+            Text(
+              _buildDescriptionText(),
+              style: const TextStyle(
                 fontSize: 12,
                 fontStyle: FontStyle.italic,
                 color: Colors.grey,
@@ -432,6 +569,40 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
         ),
       ),
     );
+  }
+
+  String _buildLegendText() {
+    final double visorHeight = (_selectedScope?.units == 0) 
+        ? (_selectedScope?.sightHeight ?? 0) * 0.0254
+        : (_selectedScope?.sightHeight ?? 0) * 0.01;
+    final double zeroRange = _selectedGun?.zeroRange ?? 0;
+
+    if (visorHeight == 0.0 && zeroRange == 0.0) {
+      return 'Line of sight (bore axis)';
+    } else if (zeroRange == 0.0) {
+      return 'Line of sight (horizontal)';
+    } else {
+      return 'Line of sight (zeroed)';
+    }
+  }
+
+  String _buildDescriptionText() {
+    final double visorHeight = (_selectedScope?.units == 0) 
+        ? (_selectedScope?.sightHeight ?? 0) * 0.0254
+        : (_selectedScope?.sightHeight ?? 0) * 0.01;
+    final double zeroRange = _selectedGun?.zeroRange ?? 0;
+
+    String description = 'X-axis: Distance (m) • Y-axis: Height relative to bore (cm)\nPositive values = bullet drop below bore axis';
+    
+    if (visorHeight == 0.0 && zeroRange == 0.0) {
+      description += '\nLine of sight coincides with bore axis';
+    } else if (zeroRange == 0.0) {
+      description += '\nLine of sight is horizontal at scope height';
+    } else {
+      description += '\nLine of sight intersects trajectory at zero range';
+    }
+
+    return description;
   }
 
   void _showTrajectoryTable() {
