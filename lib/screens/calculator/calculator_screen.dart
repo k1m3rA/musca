@@ -33,8 +33,8 @@ class CalculatorScreen extends StatefulWidget {
 }
 
 class _CalculatorScreenState extends State<CalculatorScreen> {
-  final TextEditingController _distanceController = TextEditingController(text: '0.0');
-  double _distance = 0.0;
+  final TextEditingController _distanceController = TextEditingController(text: '100.0');
+  double _distance = 100.0;
   final double _scrollStep = 0.5;
   final TextEditingController _angleController = TextEditingController(text: '0.0');
   double _angle = 0.0;
