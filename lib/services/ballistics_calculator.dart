@@ -272,6 +272,7 @@ class BallisticsCalculator {
   /// - humidity: relative humidity as percentage (0-100)
   /// - elevationAngle: elevation angle in degrees (-90 to +90)
   /// - azimuthAngle: azimuth angle in degrees (0-360)
+  /// - slopeAngle: terrain slope angle in degrees (-90 to +90, positive = uphill)
   static BallisticsResult calculateWithProfiles(
     double distance, 
     double windSpeed, // Wind speed in m/s
@@ -284,6 +285,7 @@ class BallisticsCalculator {
     required double humidity,
     double elevationAngle = 0.0,
     double azimuthAngle = 0.0,
+    double slopeAngle = 0.0, // New parameter for terrain slope
   }) {
     // Strict validation - no fallbacks allowed
     if (gun == null) {
@@ -303,6 +305,11 @@ class BallisticsCalculator {
     // Validate elevation angle range
     if (elevationAngle < -90.0 || elevationAngle > 90.0) {
       throw ArgumentError('Elevation angle must be between -90 and 90 degrees');
+    }
+    
+    // Validate slope angle range
+    if (slopeAngle < -90.0 || slopeAngle > 90.0) {
+      throw ArgumentError('Slope angle must be between -90 and 90 degrees');
     }
     
     // Use strictly the provided environmental data from calculator screen
@@ -344,15 +351,23 @@ class BallisticsCalculator {
     final double windY = windSpeed * sin(windDirection * pi / 180);
     final List<double> windVector = [windX, windY, 0.0];
     
-    // Convert elevation angle from degrees to radians
+    // Convert angles from degrees to radians
     final double elevationAngleRad = elevationAngle * pi / 180;
+    final double slopeAngleRad = slopeAngle * pi / 180;
     
-    // Initial state [x, y, z, vx, vy, vz, p] - added spin rate p
+    // Calculate initial velocity components in shooting plane coordinates
+    // x' = along shooting plane (inclined line of sight)
+    // y' = lateral (wind drift direction)  
+    // z' = perpendicular to shooting plane
+    final double vxPrime = muzzleVelocity * cos(elevationAngleRad);
+    final double vzPrime = muzzleVelocity * sin(elevationAngleRad);
+    
+    // Initial state [x', y', z', vx', vy', vz', p] in shooting plane coordinates
     List<double> state = [
       0.0, 0.0, 0.0,
-      muzzleVelocity * cos(elevationAngleRad), 
+      vxPrime, 
       0.0, 
-      muzzleVelocity * sin(elevationAngleRad),
+      vzPrime,
       spinRate
     ];
     
@@ -367,23 +382,23 @@ class BallisticsCalculator {
     for (int step = 0; step < (30.0 / dt).round(); step++) {
       // RK4 step
       final int bcModelType = cartridge.bcModelType ?? 0;
-      final List<double> k1 = _calculateDerivatives(state, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter);
+      final List<double> k1 = _calculateDerivatives(state, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad);
       
       final List<double> state2 = List.generate(7, (i) => state[i] + k1[i] * dt * 0.5);
-      final List<double> k2 = _calculateDerivatives(state2, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter);
+      final List<double> k2 = _calculateDerivatives(state2, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad);
       
       final List<double> state3 = List.generate(7, (i) => state[i] + k2[i] * dt * 0.5);
-      final List<double> k3 = _calculateDerivatives(state3, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter);
+      final List<double> k3 = _calculateDerivatives(state3, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad);
       
       final List<double> state4 = List.generate(7, (i) => state[i] + k3[i] * dt);
-      final List<double> k4 = _calculateDerivatives(state4, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter);
+      final List<double> k4 = _calculateDerivatives(state4, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad);
       
       // Update state using RK4 formula
       for (int i = 0; i < 7; i++) {
         state[i] += dt / 6.0 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
       }
       
-      // Check if we've reached target distance
+      // Check if we've reached target distance along shooting plane
       if (state[0] >= distance) {
         impactStep = step;
         driftH = state[1];
@@ -466,8 +481,8 @@ class BallisticsCalculator {
     );
   }
 
-  /// Calculate derivatives for RK4 integration
-  /// Returns [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt, dp/dt]
+  /// Calculate derivatives for RK4 integration with slope support
+  /// Returns [dx'/dt, dy'/dt, dz'/dt, dvx'/dt, dvy'/dt, dvz'/dt, dp/dt]
   static List<double> _calculateDerivatives(
     List<double> state,
     List<double> windVector,
@@ -477,7 +492,8 @@ class BallisticsCalculator {
     double mass,
     double ballisticCoefficient,
     int bcModelType,
-    double diameter
+    double diameter,
+    double slopeAngleRad, // New parameter for slope
   ) {
     final double x = state[0];
     final double y = state[1];
@@ -491,6 +507,10 @@ class BallisticsCalculator {
     final double tLoc = envTemperature - 0.0065 * z;
     final double a = speedOfSound(tLoc);
     final double gLoc = gravity(latitude, z);
+    
+    // Decompose gravity into shooting plane components
+    final double gxPrime = gLoc * sin(slopeAngleRad); // Component along shooting plane
+    final double gzPrime = gLoc * cos(slopeAngleRad); // Component perpendicular to shooting plane
     
     // Relative velocity to air
     final double vRelX = vx - windVector[0];
@@ -592,10 +612,10 @@ class BallisticsCalculator {
     final double sailFy = 0.5 * rhoAir * A * CF * windVector[1] * windVector[1] * (windVector[1] > 0 ? 1 : -1);
     final double sailFz = 0.0; // No vertical sail force from horizontal wind
     
-    // Total accelerations (drag + Magnus + lift + Coriolis + sail + gravity)
-    final double ax = (dragFx + magFx + liftFx + coriolisFx) / mass + sailFx / mass;
+    // Total accelerations (drag + Magnus + lift + Coriolis + sail + gravity components)
+    final double ax = (dragFx + magFx + liftFx + coriolisFx) / mass + sailFx / mass - gxPrime;
     final double ay = (dragFy + magFy + liftFy + coriolisFy) / mass + sailFy / mass;
-    final double az = (dragFz + magFz + liftFz + coriolisFz) / mass - gLoc;
+    final double az = (dragFz + magFz + liftFz + coriolisFz) / mass - gzPrime;
     
     // Spin decay (due to air resistance)
     final double spinDecay = -0.001 * spinMagnitude; // Empirical spin decay rate
