@@ -112,14 +112,16 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
         );
 
         // Bullet trajectory point (relative to bore axis)
-        final bulletDrop = -result.dropVertical; // Negative because drop is downward
-        trajectory.add(FlSpot(distance, bulletDrop));
+        final bulletDrop = result.dropVertical; // Get the drop value from calculator
+        // Ensure the trajectory curves downward (negative Y values)
+        final trajectoryY = bulletDrop > 0 ? -bulletDrop : bulletDrop;
+        trajectory.add(FlSpot(distance, trajectoryY));
 
-        // Line of sight calculation
-        // At zero range, line of sight and bullet trajectory intersect
-        // Line of sight drops by scope height over zero range, then continues linearly
-        final sightLineDrop = visorHeight - (visorHeight * distance / zeroRange);
-        lineOfSight.add(FlSpot(distance, sightLineDrop));
+        // Line of sight calculation - straight line from scope height to zero point
+        // The line of sight angle to intersect bullet at zero range
+        final sightLineAngle = -visorHeight / zeroRange; // Negative angle (downward slope)
+        final sightLineHeight = visorHeight + (sightLineAngle * distance);
+        lineOfSight.add(FlSpot(distance, sightLineHeight));
 
       } catch (e) {
         print('Error calculating ballistics at distance $distance: $e');
@@ -170,14 +172,15 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                     style: TextStyle(fontSize: 16),
                   ),
                 )
-              : Padding(
+              : SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _buildChartHeader(),
                       const SizedBox(height: 20),
-                      Expanded(
+                      SizedBox(
+                        height: 400,
                         child: _buildChart(),
                       ),
                       const SizedBox(height: 20),
@@ -228,7 +231,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
   Widget _buildChart() {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(24.0),
         child: LineChart(
           LineChartData(
             gridData: FlGridData(
@@ -256,18 +259,11 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                   interval: (_maxDrop - _minDrop) / 5,
                   getTitlesWidget: (value, meta) {
                     return Text(
-                      '${(value * 100).toStringAsFixed(0)}cm',
+                      '${(-value * 100).toStringAsFixed(0)}cm',
                       style: const TextStyle(fontSize: 12),
                     );
                   },
                   reservedSize: 50,
-                ),
-                axisNameWidget: const RotatedBox(
-                  quarterTurns: 3,
-                  child: Text(
-                    'Height (cm)',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
                 ),
               ),
               bottomTitles: AxisTitles(
@@ -281,10 +277,6 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                     );
                   },
                   reservedSize: 30,
-                ),
-                axisNameWidget: const Text(
-                  'Distance (m)',
-                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
               topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -418,6 +410,15 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                 const SizedBox(width: 8),
                 const Text('Target distance'),
               ],
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'X-axis: Distance (m) • Y-axis: Height (cm)',
+              style: TextStyle(
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+                color: Colors.grey,
+              ),
             ),
           ],
         ),
