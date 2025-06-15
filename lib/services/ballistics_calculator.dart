@@ -696,7 +696,7 @@ class BallisticsCalculator {
     final double coriolisFz = mass * coriolisZ;
     
     // Sail force calculation (wind pressure on bullet surface)
-    final double CF = 1.0; // sail coefficient (≈1 for smooth cylinder)
+    final double CF = 3000.0; // sail coefficient (≈1 for smooth cylinder)
     final double sailFx = 0.5 * rhoAir * A * CF * windVector[0] * windVector[0] * (windVector[0] > 0 ? 1 : -1);
     final double sailFy = 0.5 * rhoAir * A * CF * windVector[1] * windVector[1] * (windVector[1] > 0 ? 1 : -1);
     final double sailFz = 0.0; // No vertical sail force from horizontal wind
