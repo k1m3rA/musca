@@ -60,7 +60,6 @@ class BallisticsCalculator {
   // Fixed simulation parameters
   static const double dt = 0.001; // s
   static const double omega = 7.292115e-5; // rad/s (Earth rotation)
-  static const double latitude = 0.0; // degrees North
 
   static double speedOfSound(double tC) {
     return 20.05 * sqrt(tC + 273.15);
@@ -273,6 +272,7 @@ class BallisticsCalculator {
   /// - elevationAngle: elevation angle in degrees (-90 to +90)
   /// - azimuthAngle: azimuth angle in degrees (0-360)
   /// - slopeAngle: terrain slope angle in degrees (-90 to +90, positive = uphill)
+  /// - latitude: latitude in degrees (positive = North, negative = South)
   static BallisticsResult calculateWithProfiles(
     double distance, 
     double windSpeed, // Wind speed in m/s
@@ -285,7 +285,8 @@ class BallisticsCalculator {
     required double humidity,
     double elevationAngle = 0.0,
     double azimuthAngle = 0.0,
-    double slopeAngle = 0.0, // New parameter for terrain slope
+    double slopeAngle = 0.0,
+    double latitude = 0.0, // Add latitude parameter with default value
   }) {
     // Strict validation - no fallbacks allowed
     if (gun == null) {
@@ -391,16 +392,16 @@ class BallisticsCalculator {
       
       // RK4 step
       final int bcModelType = cartridge.bcModelType ?? 0;
-      final List<double> k1 = _calculateDerivatives(state, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad);
+      final List<double> k1 = _calculateDerivatives(state, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad, latitude);
       
       final List<double> state2 = List.generate(7, (i) => state[i] + k1[i] * dt * 0.5);
-      final List<double> k2 = _calculateDerivatives(state2, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad);
+      final List<double> k2 = _calculateDerivatives(state2, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad, latitude);
       
       final List<double> state3 = List.generate(7, (i) => state[i] + k2[i] * dt * 0.5);
-      final List<double> k3 = _calculateDerivatives(state3, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad);
+      final List<double> k3 = _calculateDerivatives(state3, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad, latitude);
       
       final List<double> state4 = List.generate(7, (i) => state[i] + k3[i] * dt);
-      final List<double> k4 = _calculateDerivatives(state4, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad);
+      final List<double> k4 = _calculateDerivatives(state4, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad, latitude);
       
       // Update state using RK4 formula
       for (int i = 0; i < 7; i++) {
@@ -580,7 +581,8 @@ class BallisticsCalculator {
     double ballisticCoefficient,
     int bcModelType,
     double diameter,
-    double slopeAngleRad, // New parameter for slope
+    double slopeAngleRad,
+    double latitude, // Add latitude parameter
   ) {
     final double x = state[0];
     final double y = state[1];
@@ -593,7 +595,7 @@ class BallisticsCalculator {
     // Local conditions
     final double tLoc = envTemperature - 0.0065 * z;
     final double a = speedOfSound(tLoc);
-    final double gLoc = gravity(latitude, z);
+    final double gLoc = gravity(latitude, z); // Use the passed latitude
     
     // Decompose gravity into shooting plane components
     final double gxPrime = gLoc * sin(slopeAngleRad); // Component along shooting plane
@@ -678,7 +680,7 @@ class BallisticsCalculator {
     
     // Coriolis effect calculation
     // Earth's angular velocity vector in Earth-fixed coordinates
-    final double latRad = latitude * pi / 180;
+    final double latRad = latitude * pi / 180; // Use the passed latitude
     final double omegaX = 0.0; // No rotation about local X-axis
     final double omegaY = omega * cos(latRad); // East component
     final double omegaZ = omega * sin(latRad); // Up component
@@ -742,6 +744,7 @@ class BallisticsCalculator {
     double elevationAngle = 0.0,
     double azimuthAngle = 0.0,
     double slopeAngle = 0.0,
+    double latitude = 0.0, // Add latitude parameter
   }) {
     final List<BallisticsResult> results = [];
     
@@ -766,6 +769,7 @@ class BallisticsCalculator {
           elevationAngle: elevationAngle,
           azimuthAngle: azimuthAngle,
           slopeAngle: slopeAngle,
+          latitude: latitude, // Pass the latitude
         );
         results.add(result);
       } catch (e) {

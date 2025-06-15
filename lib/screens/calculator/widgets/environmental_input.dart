@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:musca/config/api_keys.dart'; // Import the API keys file
+import 'package:musca/config/api_keys.dart';
 
 class EnvironmentalInput extends StatefulWidget {
   final TextEditingController temperatureController;
@@ -12,6 +12,7 @@ class EnvironmentalInput extends StatefulWidget {
   final Function(double) onUpdateTemperature;
   final Function(double) onUpdatePressure;
   final Function(double) onUpdateHumidity;
+  final Function(double)? onUpdateLatitude; // Add callback for latitude updates
 
   const EnvironmentalInput({
     super.key,
@@ -22,6 +23,7 @@ class EnvironmentalInput extends StatefulWidget {
     required this.onUpdateTemperature,
     required this.onUpdatePressure,
     required this.onUpdateHumidity,
+    this.onUpdateLatitude, // Add this parameter
   });
 
   @override
@@ -31,6 +33,7 @@ class EnvironmentalInput extends StatefulWidget {
 class _EnvironmentalInputState extends State<EnvironmentalInput> {
   bool _isLoading = false;
   String _errorMessage = '';
+  double _latitude = 0.0; // Add state variable for latitude
   
   Future<void> _getLocationWeatherData() async {
     setState(() {
@@ -57,8 +60,18 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
         desiredAccuracy: LocationAccuracy.high,
       );
       
+      // Update latitude and notify parent
+      setState(() {
+        _latitude = position.latitude;
+      });
+      
+      // Notify parent component about latitude change
+      if (widget.onUpdateLatitude != null) {
+        widget.onUpdateLatitude!(_latitude);
+      }
+      
       // Fetch weather data using WeatherAPI.com
-      final apiKey = ApiKeys.weatherApi; // Update to use weatherApi key from config
+      final apiKey = ApiKeys.weatherApi;
       final response = await http.get(
         Uri.parse('http://api.weatherapi.com/v1/current.json?key=$apiKey&q=${position.latitude},${position.longitude}&aqi=no'),
       );
@@ -67,7 +80,6 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
         final data = jsonDecode(response.body);
         
         // Update controller values with fetched data
-        // WeatherAPI.com JSON structure is different from OpenWeatherMap
         widget.temperatureController.text = data['current']['temp_c'].toStringAsFixed(1);
         widget.pressureController.text = data['current']['pressure_mb'].toString();
         widget.humidityController.text = data['current']['humidity'].toString();

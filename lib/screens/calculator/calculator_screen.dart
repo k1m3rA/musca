@@ -54,7 +54,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   // Profile data
   Gun? _selectedGun;
   Cartridge? _selectedCartridge;
-  Scope? _selectedScope;  @override
+  Scope? _selectedScope;  
+  
+  // Add new variable for latitude
+  double _latitude = 0.0;
+
+  @override
   void initState() {
     super.initState();
     
@@ -412,7 +417,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     );
   }
 
-  void _calculateBallistics() {    if (_distance > 0 && _selectedGun != null && _selectedCartridge != null && _selectedScope != null) {
+  void _calculateBallistics() {
+    if (_distance > 0 && _selectedGun != null && _selectedCartridge != null && _selectedScope != null) {
       try {
         final result = BallisticsCalculator.calculateWithProfiles(
           _distance,
@@ -426,6 +432,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           humidity: _humidity,        // Always use current screen value
           elevationAngle: _angle,     // Use elevation angle from user input
           azimuthAngle: _windDirection, // Use azimuth from compass/wind direction
+          latitude: _latitude, // Pass the latitude to the calculator
         );
         setState(() {
           _ballisticsResult = result;
@@ -441,7 +448,16 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _ballisticsResult = null;
       });
     }
-  }@override
+  }
+  
+  void _updateLatitude(double newLatitude) {
+    setState(() {
+      _latitude = newLatitude;
+    });
+    _calculateBallistics(); // Recalculate with new latitude
+  }
+
+  @override
   void dispose() {
     // Remove profile reload listener
     widget.reloadProfilesNotifier?.removeListener(_onReloadProfilesNotification);
@@ -526,8 +542,23 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     onUpdateTemperature: _updateTemperature,
                     onUpdatePressure: _updatePressure,
                     onUpdateHumidity: _updateHumidity,
+                    onUpdateLatitude: _updateLatitude, // Pass the latitude callback
                   ),
                     const SizedBox(height: 20),
+                  
+                  // Display the current latitude value (optional)
+                  if (_latitude != 0.0)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Text(
+                        'Coriolis: Using latitude ${_latitude.toStringAsFixed(4)}°',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                      ),
+                    ),
                   
                   // Ballistics Results Display
                   BallisticsResultsWidget(
