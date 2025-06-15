@@ -626,6 +626,7 @@ class BallisticsCalculator {
     // Magnus force calculation
     // Magnus coefficient (empirical, depends on bullet shape)
     final double CM = 0.3; // Typical value for spitzer bullets
+    final double QM = 1.0; // Magnus factor (STANAG 4355 adjustment factor)
     
     // Spin vector (aligned with bullet axis, approximately with velocity)
     final double spinMagnitude = p.abs();
@@ -638,18 +639,15 @@ class BallisticsCalculator {
     final double magnusY = (spinZ * vRelX - spinX * vRelZ);
     final double magnusZ = (spinX * vRelY - spinY * vRelX);
     
-    // Magnus force magnitude
-    final double magnusMagnitude = 0.5 * rhoAir * A * CM * vMagnitude;
+    // Magnus force magnitude with STANAG adjustment factor
+    final double magnusMagnitude = 0.5 * rhoAir * A * QM * CM * vMagnitude;
     
     // Magnus forces
     final double magFx = magnusMagnitude * magnusX;
     final double magFy = magnusMagnitude * magnusY;
     final double magFz = magnusMagnitude * magnusZ;
     
-    // Lift force calculation
-    // Lift coefficient (empirical, depends on bullet shape and angle of attack)
-    final double CL = 0.1; // Typical value for pointed bullets
-    
+    // Lift force calculation using proper angle of attack
     // Calculate angle of attack (angle between velocity vector and bullet axis)
     // For simplicity, assume bullet axis is aligned with initial velocity direction
     final double initialVx = state[3]; // Could be stored separately for more accuracy
@@ -670,7 +668,15 @@ class BallisticsCalculator {
     // Normalize lift direction
     final double liftDirMag = sqrt(liftDirX * liftDirX + liftDirY * liftDirY + liftDirZ * liftDirZ);
     
-    // Lift force magnitude
+    // Calculate angle of attack using the small-angle model from STANAG 4355
+    final double alpha = vRelMag > 0 ? atan2(liftDirMag, vRelMag) : 0.0;
+    
+    // Apply linear small-angle model for lift coefficient
+    final double CLa = 2 * pi;          // Theoretical slope for subsonic/transonic
+    final double fL = 1.0;              // Lift adjustment factor (STANAG 4355)
+    final double CL = fL * CLa * alpha;
+    
+    // Lift force magnitude - now properly based on angle of attack
     final double liftMagnitude = 0.5 * rhoAir * A * CL * vMagnitude * vMagnitude;
     
     // Lift forces
@@ -678,8 +684,19 @@ class BallisticsCalculator {
     final double liftFy = liftDirMag > 0 ? liftMagnitude * (liftDirY / liftDirMag) : 0.0;
     final double liftFz = liftDirMag > 0 ? liftMagnitude * (liftDirZ / liftDirMag) : 0.0;
     
+    // Basic yaw-of-repose calculation (simplified)
+    // This adds a small bias to the angle of attack, which creates realistic drift
+    final double spinParameter = spinMagnitude * diameter / vMagnitude;
+    final double yawOfRepose = 0.00015 * spinParameter; // Simplified approximation
+    
+    // Apply yaw-of-repose to increase the effective lift
+    // This increases the lateral drift without an artificial sail force
+    final double yawOfReposeEffect = yawOfRepose * liftMagnitude * 0.5;
+    final double yawLiftFx = liftDirMag > 0 ? yawOfReposeEffect * (liftDirX / liftDirMag) : 0.0;
+    final double yawLiftFy = liftDirMag > 0 ? yawOfReposeEffect * (liftDirY / liftDirMag) : 0.0;
+    final double yawLiftFz = liftDirMag > 0 ? yawOfReposeEffect * (liftDirZ / liftDirMag) : 0.0;
+    
     // Coriolis effect calculation
-    // Earth's angular velocity vector in Earth-fixed coordinates
     final double latRad = latitude * pi / 180; // Use the passed latitude
     final double omegaX = 0.0; // No rotation about local X-axis
     final double omegaY = omega * cos(latRad); // East component
@@ -695,16 +712,10 @@ class BallisticsCalculator {
     final double coriolisFy = mass * coriolisY;
     final double coriolisFz = mass * coriolisZ;
     
-    // Sail force calculation (wind pressure on bullet surface)
-    final double CF = 3000.0; // sail coefficient (≈1 for smooth cylinder)
-    final double sailFx = 0.5 * rhoAir * A * CF * windVector[0] * windVector[0] * (windVector[0] > 0 ? 1 : -1);
-    final double sailFy = 0.5 * rhoAir * A * CF * windVector[1] * windVector[1] * (windVector[1] > 0 ? 1 : -1);
-    final double sailFz = 0.0; // No vertical sail force from horizontal wind
-    
-    // Total accelerations (drag + Magnus + lift + Coriolis + sail + gravity components)
-    final double ax = (dragFx + magFx + liftFx + coriolisFx) / mass + sailFx / mass - gxPrime;
-    final double ay = (dragFy + magFy + liftFy + coriolisFy) / mass + sailFy / mass;
-    final double az = (dragFz + magFz + liftFz + coriolisFz) / mass - gzPrime;
+    // Total accelerations (drag + Magnus + lift + yaw effects + Coriolis + gravity components)
+    final double ax = (dragFx + magFx + liftFx + yawLiftFx + coriolisFx) / mass - gxPrime;
+    final double ay = (dragFy + magFy + liftFy + yawLiftFy + coriolisFy) / mass;
+    final double az = (dragFz + magFz + liftFz + yawLiftFz + coriolisFz) / mass - gzPrime;
     
     // Spin decay (due to air resistance)
     final double spinDecay = -0.001 * spinMagnitude; // Empirical spin decay rate
