@@ -275,7 +275,7 @@ class BallisticsCalculator {
   /// - latitude: latitude in degrees (positive = North, negative = South)
   static BallisticsResult calculateWithProfiles(
     double distance, 
-    double windSpeed, // Wind speed in m/s
+    double windSpeed,
     double windDirection,
     Gun? gun,
     Cartridge? cartridge,
@@ -286,7 +286,7 @@ class BallisticsCalculator {
     double elevationAngle = 0.0,
     double azimuthAngle = 0.0,
     double slopeAngle = 0.0,
-    double latitude = 0.0, // Add latitude parameter with default value
+    double latitude = 0.0,
   }) {
     // Strict validation - no fallbacks allowed
     if (gun == null) {
@@ -347,14 +347,23 @@ class BallisticsCalculator {
         ? sightHeightValue * 0.0254
         : sightHeightValue * 0.01;
 
-    // Convert wind direction to wind vector
-    final double windX = windSpeed * cos(windDirection * pi / 180);
-    final double windY = windSpeed * sin(windDirection * pi / 180);
-    final List<double> windVector = [windX, windY, 0.0];
-    
     // Convert angles from degrees to radians
     final double elevationAngleRad = elevationAngle * pi / 180;
     final double slopeAngleRad = slopeAngle * pi / 180;
+    
+    // --- Wind in the shooting system coordinates ---
+    final double windAngle = (windDirection - azimuthAngle) * pi / 180;
+    final double windSide = windSpeed * sin(windAngle);  // lateral component
+    final double windHead = -windSpeed * cos(windAngle);  // headwind(+) or tailwind(-)
+    final List<double> windVectorLocal = [windHead, windSide, 0.0];
+    
+    // Store crossWind value for windage jump calculation
+    final double crossWind = windSide;
+    
+    // Convert wind to vector (modified to respect shooting azimuth)
+    final double windX = windSpeed * cos(windDirection * pi / 180);
+    final double windY = windSpeed * sin(windDirection * pi / 180);
+    final List<double> windVectorFull = [windX, windY, 0.0];
     
     // Calculate initial velocity components in shooting plane coordinates
     // x' = along shooting plane (inclined line of sight)
@@ -372,6 +381,17 @@ class BallisticsCalculator {
       spinRate
     ];
     
+    // Calculate windage-jump with proper parameters
+    final double Rs = diameter * 0.5;          // d/2
+    final double fL = 1.25; // NATO standard lift factor
+    final double qm = 1.15; // NATO standard Magnus factor
+    
+    // Correct wind jump calculation
+    final double deltaVy0 = -0.625 * diameter / Rs * fL * qm * crossWind;
+    double vyJump = deltaVy0; // This will decay over time
+    
+    print('Applied initial windage-jump: ${deltaVy0.toStringAsFixed(3)} m/s from crosswind ${crossWind.toStringAsFixed(3)} m/s');
+    
     double? driftH;
     double? dropZ;
     int impactStep = 0;
@@ -383,30 +403,43 @@ class BallisticsCalculator {
     
     // Area for drag calculation
     final double A = pi * (diameter / 2) * (diameter / 2);
+    
+    // Correct damping constant per STANAG 4355
+    const double dYaw = 35.0; // s⁻¹ (updated from 5.0)
 
     // RK4 Integration loop
     for (int step = 0; step < (30.0 / dt).round(); step++) {
+      // Add the current windage jump to lateral velocity
+      state[4] += vyJump;
+      
+      // Exponentially decay the jump for next step
+      vyJump *= exp(-dYaw * dt);
+      
       // Store previous state for interpolation
       final double xPrev = state[0];
       final double zPrev = state[2];
       
       // RK4 step
       final int bcModelType = cartridge.bcModelType ?? 0;
-      final List<double> k1 = _calculateDerivatives(state, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad, latitude);
+      final List<double> k1 = _calculateDerivatives(state, windVectorLocal, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad, latitude);
       
       final List<double> state2 = List.generate(7, (i) => state[i] + k1[i] * dt * 0.5);
-      final List<double> k2 = _calculateDerivatives(state2, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad, latitude);
+      final List<double> k2 = _calculateDerivatives(state2, windVectorLocal, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad, latitude);
       
       final List<double> state3 = List.generate(7, (i) => state[i] + k2[i] * dt * 0.5);
-      final List<double> k3 = _calculateDerivatives(state3, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad, latitude);
+      final List<double> k3 = _calculateDerivatives(state3, windVectorLocal, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad, latitude);
       
       final List<double> state4 = List.generate(7, (i) => state[i] + k3[i] * dt);
-      final List<double> k4 = _calculateDerivatives(state4, windVector, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad, latitude);
+      final List<double> k4 = _calculateDerivatives(state4, windVectorLocal, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad, latitude);
       
       // Update state using RK4 formula
       for (int i = 0; i < 7; i++) {
         state[i] += dt / 6.0 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
       }
+      
+      // Add advection effects - bullet moves with the air mass
+      state[0] += windHead * dt;   // advection in x′
+      state[1] += windSide * dt;   // advection in y′
       
       // Update time of flight
       timeOfFlight += dt;
@@ -582,7 +615,7 @@ class BallisticsCalculator {
     int bcModelType,
     double diameter,
     double slopeAngleRad,
-    double latitude, // Add latitude parameter
+    double latitude,
   ) {
     final double x = state[0];
     final double y = state[1];
@@ -610,12 +643,12 @@ class BallisticsCalculator {
     final double mach = vMagnitude / a;
     
     // Drag coefficient
-    final double CD = bcModelType == 1 
+    final double cd = bcModelType == 1 
         ? g7DragCoefficient(mach)
         : g1DragCoefficient(mach);
     
     // Drag force magnitude
-    final double dragMagnitude = 0.5 * rhoAir * A * (CD / ballisticCoefficient) * vMagnitude * vMagnitude;
+    final double dragMagnitude = 0.5 * rhoAir * A * (cd / ballisticCoefficient) * vMagnitude * vMagnitude;
     
     // Unit vector in direction of relative velocity
     final double vRelMag = vMagnitude;
@@ -623,42 +656,34 @@ class BallisticsCalculator {
     final double dragFy = vRelMag > 0 ? -dragMagnitude * (vRelY / vRelMag) : 0.0;
     final double dragFz = vRelMag > 0 ? -dragMagnitude * (vRelZ / vRelMag) : 0.0;
     
-    // Magnus force calculation
+    // Magnus force calculation with proper v² scaling
     // Magnus coefficient (empirical, depends on bullet shape)
-    final double CM = 0.3; // Typical value for spitzer bullets
-    final double QM = 1.0; // Magnus factor (STANAG 4355 adjustment factor)
+    final double cm = 0.3; // Typical value for spitzer bullets
+    final double qm = 1.15; // NATO standard value
     
-    // Spin vector (aligned with bullet axis, approximately with velocity)
+    // Updated: Bullet axis now aligns with current velocity vector
+    final double axisX = vRelMag > 0 ? vRelX / vRelMag : 1.0;
+    final double axisY = vRelMag > 0 ? vRelY / vRelMag : 0.0;
+    final double axisZ = vRelMag > 0 ? vRelZ / vRelMag : 0.0;
+    
+    // Spin vector (aligned with bullet axis)
     final double spinMagnitude = p.abs();
-    final double spinX = vRelMag > 0 ? spinMagnitude * (vRelX / vRelMag) : 0.0;
-    final double spinY = vRelMag > 0 ? spinMagnitude * (vRelY / vRelMag) : 0.0;
-    final double spinZ = vRelMag > 0 ? spinMagnitude * (vRelZ / vRelMag) : 0.0;
+    final double spinX = spinMagnitude * axisX;
+    final double spinY = spinMagnitude * axisY;
+    final double spinZ = spinMagnitude * axisZ;
     
     // Cross product: spin × velocity
     final double magnusX = (spinY * vRelZ - spinZ * vRelY);
     final double magnusY = (spinZ * vRelX - spinX * vRelZ);
     final double magnusZ = (spinX * vRelY - spinY * vRelX);
     
-    // Magnus force magnitude with STANAG adjustment factor
-    final double magnusMagnitude = 0.5 * rhoAir * A * QM * CM * vMagnitude;
+    // Magnus force magnitude with STANAG adjustment factor and proper v² scaling
+    final double magnusMagnitude = 0.5 * rhoAir * A * qm * cm * vMagnitude * vMagnitude;
     
     // Magnus forces
     final double magFx = magnusMagnitude * magnusX;
     final double magFy = magnusMagnitude * magnusY;
     final double magFz = magnusMagnitude * magnusZ;
-    
-    // Lift force calculation using proper angle of attack
-    // Calculate angle of attack (angle between velocity vector and bullet axis)
-    // For simplicity, assume bullet axis is aligned with initial velocity direction
-    final double initialVx = state[3]; // Could be stored separately for more accuracy
-    final double initialVy = state[4];
-    final double initialVz = state[5];
-    final double initialVMag = sqrt(initialVx * initialVx + initialVy * initialVy + initialVz * initialVz);
-    
-    // Normalized bullet axis (approximated as initial velocity direction)
-    final double axisX = initialVMag > 0 ? initialVx / initialVMag : 1.0;
-    final double axisY = initialVMag > 0 ? initialVy / initialVMag : 0.0;
-    final double axisZ = initialVMag > 0 ? initialVz / initialVMag : 0.0;
     
     // Cross product of bullet axis and velocity for lift direction
     final double liftDirX = (axisY * vRelZ - axisZ * vRelY);
@@ -668,16 +693,16 @@ class BallisticsCalculator {
     // Normalize lift direction
     final double liftDirMag = sqrt(liftDirX * liftDirX + liftDirY * liftDirY + liftDirZ * liftDirZ);
     
-    // Calculate angle of attack using the small-angle model from STANAG 4355
-    final double alpha = vRelMag > 0 ? atan2(liftDirMag, vRelMag) : 0.0;
+    // Updated: Calculate angle of attack using improved formula
+    final double alpha = vRelMag > 0 ? asin(liftDirMag / vRelMag) : 0.0;
     
-    // Apply linear small-angle model for lift coefficient
-    final double CLa = 2 * pi;          // Theoretical slope for subsonic/transonic
-    final double fL = 1.0;              // Lift adjustment factor (STANAG 4355)
-    final double CL = fL * CLa * alpha;
+    // Apply linear small-angle model for lift coefficient with NATO standard factor
+    final double cLa = 2 * pi;          // Theoretical slope for subsonic/transonic
+    final double fL = 1.25;              // NATO standard value (table A-1, STANAG)
+    final double cL = fL * cLa * alpha;
     
     // Lift force magnitude - now properly based on angle of attack
-    final double liftMagnitude = 0.5 * rhoAir * A * CL * vMagnitude * vMagnitude;
+    final double liftMagnitude = 0.5 * rhoAir * A * cL * vMagnitude * vMagnitude;
     
     // Lift forces
     final double liftFx = liftDirMag > 0 ? liftMagnitude * (liftDirX / liftDirMag) : 0.0;
@@ -687,14 +712,13 @@ class BallisticsCalculator {
     // Basic yaw-of-repose calculation (simplified)
     // This adds a small bias to the angle of attack, which creates realistic drift
     final double spinParameter = spinMagnitude * diameter / vMagnitude;
-    final double yawOfRepose = 0.00015 * spinParameter; // Simplified approximation
+    final double yawOfRepose = (spinMagnitude / (2*pi)) * gLoc * diameter / 
+        (8 * vMagnitude * vMagnitude);
     
-    // Apply yaw-of-repose to increase the effective lift
-    // This increases the lateral drift without an artificial sail force
-    final double yawOfReposeEffect = yawOfRepose * liftMagnitude * 0.5;
-    final double yawLiftFx = liftDirMag > 0 ? yawOfReposeEffect * (liftDirX / liftDirMag) : 0.0;
-    final double yawLiftFy = liftDirMag > 0 ? yawOfReposeEffect * (liftDirY / liftDirMag) : 0.0;
-    final double yawLiftFz = liftDirMag > 0 ? yawOfReposeEffect * (liftDirZ / liftDirMag) : 0.0;
+    // Apply yaw lift without the 0.5 factor
+    final double yawLiftFx = yawOfRepose * liftFx;
+    final double yawLiftFy = yawOfRepose * liftFy;
+    final double yawLiftFz = yawOfRepose * liftFz;
     
     // Coriolis effect calculation
     final double latRad = latitude * pi / 180; // Use the passed latitude
@@ -712,7 +736,7 @@ class BallisticsCalculator {
     final double coriolisFy = mass * coriolisY;
     final double coriolisFz = mass * coriolisZ;
     
-    // Total accelerations (drag + Magnus + lift + yaw effects + Coriolis + gravity components)
+    // Total accelerations (all forces combined + gravity components)
     final double ax = (dragFx + magFx + liftFx + yawLiftFx + coriolisFx) / mass - gxPrime;
     final double ay = (dragFy + magFy + liftFy + yawLiftFy + coriolisFy) / mass;
     final double az = (dragFz + magFz + liftFz + yawLiftFz + coriolisFz) / mass - gzPrime;
@@ -785,6 +809,7 @@ class BallisticsCalculator {
         results.add(result);
       } catch (e) {
         // If calculation fails for a specific distance, skip it
+        print('Error calculating ballistics at distance ${distance}m: $e');
         continue;
       }
     }
@@ -807,6 +832,8 @@ class BallisticsCalculator {
         final result = calculate(distance, windSpeed, windDirection);
         results.add(result);
       } catch (e) {
+        // If calculation fails for a specific distance, skip it
+        print('Error calculating legacy ballistics at distance ${distance}m: $e');
         continue;
       }
     }
