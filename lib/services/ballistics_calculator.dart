@@ -326,14 +326,14 @@ class BallisticsCalculator {
     final int sightHeightUnits = scope.units;
     final double visorHeight = sightHeightUnits == 0 
         ? sightHeightValue * 0.0254
-        : sightHeightValue * 0.01;
-
-    // Convert angles from degrees to radians
+        : sightHeightValue * 0.01;    // Convert angles from degrees to radians
     final double elevationAngleRad = elevationAngle * pi / 180;
     final double slopeAngleRad = slopeAngle * pi / 180;
     
     // --- Wind in the shooting system coordinates ---
-    final double windAngle = (windDirection - azimuthAngle) * pi / 180;
+    // Wind direction is absolute (independent of shooting azimuth)
+    // 0° = headwind, 90° = wind from left to right, 180° = tailwind, 270° = wind from right to left
+    final double windAngle = windDirection * pi / 180;
     final double windSide = windSpeed * sin(windAngle);  // lateral component
     final double windHead = -windSpeed * cos(windAngle);  // headwind(+) or tailwind(-)
     final List<double> windVectorLocal = [windHead, windSide, 0.0];
@@ -341,31 +341,29 @@ class BallisticsCalculator {
     // Store crossWind value for windage jump calculation
     final double crossWind = windSide;    // Convert wind to vector (modified to respect shooting azimuth)
     // windX and windY variables removed as they are not used in current implementation
-    
-    // Calculate initial velocity components in shooting plane coordinates
+      // Calculate initial velocity components in shooting plane coordinates
     // x' = along shooting plane (inclined line of sight)
     // y' = lateral (wind drift direction)  
     // z' = perpendicular to shooting plane
     final double vxPrime = muzzleVelocity * cos(elevationAngleRad);
     final double vzPrime = muzzleVelocity * sin(elevationAngleRad);
     
+    // Calculate windage-jump parameters
+    final double fL = 1.25; // NATO standard lift factor
+    final double qm = 1.15; // NATO standard Magnus factor
+    
+    // Wind-jump: Apply initial lateral velocity once
+    // Simplified: d/(d/2)=2, 2*0.625 = 1.25
+    final double deltaVy0 = -1.25 * fL * qm * crossWind;
+    
     // Initial state [x', y', z', vx', vy', vz', p] in shooting plane coordinates
     List<double> state = [
       0.0, 0.0, 0.0,
       vxPrime, 
-      0.0, 
+      deltaVy0,  // Initial lateral velocity from wind-jump
       vzPrime,
       spinRate
     ];
-    
-    // Calculate windage-jump with proper parameters
-    final double Rs = diameter * 0.5;          // d/2
-    final double fL = 1.25; // NATO standard lift factor
-    final double qm = 1.15; // NATO standard Magnus factor
-    
-    // Correct wind jump calculation
-    final double deltaVy0 = -0.625 * diameter / Rs * fL * qm * crossWind;
-    double vyJump = deltaVy0; // This will decay over time
     
     print('Applied initial windage-jump: ${deltaVy0.toStringAsFixed(3)} m/s from crosswind ${crossWind.toStringAsFixed(3)} m/s');
       double? driftH;
@@ -375,21 +373,11 @@ class BallisticsCalculator {
     // Variables to capture bullet height at zero range
     double zAtZero = 0.0;
     bool gotZero = false;
-    
-    // Area for drag calculation
+      // Area for drag calculation
     final double A = pi * (diameter / 2) * (diameter / 2);
     
-    // Correct damping constant per STANAG 4355
-    const double dYaw = 35.0; // s⁻¹ (updated from 5.0)
-
     // RK4 Integration loop
     for (int step = 0; step < (30.0 / dt).round(); step++) {
-      // Add the current windage jump to lateral velocity
-      state[4] += vyJump;
-      
-      // Exponentially decay the jump for next step
-      vyJump *= exp(-dYaw * dt);
-      
       // Store previous state for interpolation
       final double xPrev = state[0];
       final double zPrev = state[2];
