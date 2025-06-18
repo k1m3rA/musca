@@ -58,7 +58,7 @@ class BallisticsResult {
 
 class BallisticsCalculator {
   // Fixed simulation parameters
-  static const double dt = 0.005; // s
+  static const double dt = 0.0001; // s
   static const double omega = 7.292115e-5; // rad/s (Earth rotation)
 
   static double speedOfSound(double tC) {
@@ -193,27 +193,9 @@ class BallisticsCalculator {
     
     return dryAirDensity + waterVaporDensity;
   }  static double _getDiameterFromCartridge(Cartridge cartridge) {
-    // Parse the diameter from user input
-    // The diameter is collected in millimeters in the UI
-    try {
-      final double diameterMm = double.parse(cartridge.diameter);
-      return diameterMm * 0.001; // Convert millimeters to meters
-    } catch (e) {
-      // If parsing fails, try to handle common caliber formats like ".308", "7.62", etc.
-      String cleanDiameter = cartridge.diameter.replaceAll(RegExp(r'[^\d.]'), '');
-      final double parsedValue = double.parse(cleanDiameter);
-      
-      // If value is less than 1, assume it's in inches (like .308) and convert to meters
-      if (parsedValue < 1.0) {
-        return parsedValue * 0.0254; // Convert inches to meters
-      } else if (parsedValue < 50.0) {
-        // Values between 1-50 are likely millimeters (common rifle calibers)
-        return parsedValue * 0.001; // Convert millimeters to meters
-      } else {
-        // Larger values might be in hundredths of millimeters or other units
-        return parsedValue * 0.001; // Default to millimeters
-      }
-    }
+    // Diameter is provided by user in centimeters, convert to meters
+    final double diameterCm = double.parse(cartridge.diameter);
+    return diameterCm * 0.01; // Convert centimeters to meters
   }static BallisticsResult calculate(double distance, double windSpeed, double windDirection) {
     // Legacy method for backward compatibility - uses default test profiles
     // For production use, always use calculateWithProfiles with actual user profiles
@@ -227,11 +209,10 @@ class BallisticsCalculator {
       muzzleVelocity: 820.0, // m/s
       zeroRange: 100.0, // 100m zero
     );
-    
-    final defaultCartridge = Cartridge(
+      final defaultCartridge = Cartridge(
       id: 'default-test-cartridge',
       name: 'Default Test .308',
-      diameter: '0.782', // .308" converted to centimeters
+      diameter: '0.782', // .308" in centimeters
       bulletWeight: 150.0, // grains
       bulletLength: 0.0,
       ballisticCoefficient: 0.504, // G1
@@ -358,12 +339,8 @@ class BallisticsCalculator {
     final List<double> windVectorLocal = [windHead, windSide, 0.0];
     
     // Store crossWind value for windage jump calculation
-    final double crossWind = windSide;
-    
-    // Convert wind to vector (modified to respect shooting azimuth)
-    final double windX = windSpeed * cos(windDirection * pi / 180);
-    final double windY = windSpeed * sin(windDirection * pi / 180);
-    final List<double> windVectorFull = [windX, windY, 0.0];
+    final double crossWind = windSide;    // Convert wind to vector (modified to respect shooting azimuth)
+    // windX and windY variables removed as they are not used in current implementation
     
     // Calculate initial velocity components in shooting plane coordinates
     // x' = along shooting plane (inclined line of sight)
@@ -391,10 +368,8 @@ class BallisticsCalculator {
     double vyJump = deltaVy0; // This will decay over time
     
     print('Applied initial windage-jump: ${deltaVy0.toStringAsFixed(3)} m/s from crosswind ${crossWind.toStringAsFixed(3)} m/s');
-    
-    double? driftH;
+      double? driftH;
     double? dropZ;
-    int impactStep = 0;
     double timeOfFlight = 0.0; // Track time of flight
     
     // Variables to capture bullet height at zero range
@@ -469,10 +444,8 @@ class BallisticsCalculator {
           print('Zero range captured directly at ${calibrationDistance}m: bullet height = ${zAtZero.toStringAsFixed(4)}m');
         }
       }
-      
-      // Check if we've reached target distance along shooting plane
+        // Check if we've reached target distance along shooting plane
       if (state[0] >= distance) {
-        impactStep = step;
         driftH = state[1];
         dropZ = state[2];
         break;
@@ -601,7 +574,6 @@ class BallisticsCalculator {
       dropCm: dropCm,
     );
   }
-
   /// Calculate derivatives for RK4 integration with slope support
   /// Returns [dx'/dt, dy'/dt, dz'/dt, dvx'/dt, dvy'/dt, dvz'/dt, dp/dt]
   static List<double> _calculateDerivatives(
@@ -617,8 +589,6 @@ class BallisticsCalculator {
     double slopeAngleRad,
     double latitude,
   ) {
-    final double x = state[0];
-    final double y = state[1];
     final double z = state[2];
     final double vx = state[3];
     final double vy = state[4];
@@ -720,10 +690,8 @@ class BallisticsCalculator {
     final double liftFx = liftDirMag > 0 ? liftMagnitude * (liftDirX / liftDirMag) : 0.0;
     final double liftFy = liftDirMag > 0 ? liftMagnitude * (liftDirY / liftDirMag) : 0.0;
     final double liftFz = liftDirMag > 0 ? liftMagnitude * (liftDirZ / liftDirMag) : 0.0;
-    
-    // Basic yaw-of-repose calculation (simplified)
+      // Basic yaw-of-repose calculation (simplified)
     // This adds a small bias to the angle of attack, which creates realistic drift
-    final double spinParameter = spinMagnitude * diameter / vMagnitude;
     final double yawOfRepose = (spinMagnitude / (2*pi)) * gLoc * diameter / 
         (8 * vMagnitude * vMagnitude);
     
