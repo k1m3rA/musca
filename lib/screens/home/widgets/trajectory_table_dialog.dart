@@ -70,17 +70,37 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
           humidity: widget.calculation.humidity,
           elevationAngle: widget.calculation.angle,
           azimuthAngle: widget.calculation.windDirection,
-        );
-
-        // Use line of sight corrected values instead of raw trajectory values
-        // Convert angular corrections (mrad) back to linear measurements at target distance
-        final double dropLineOfSight = result.dropMrad * distance / 1000.0; // mrad to meters
-        final double driftLineOfSight = result.driftMrad * distance / 1000.0; // mrad to meters
+        );        double dropValue, driftValue;
+        
+        // Determine values based on selected units
+        switch (_selectedUnits) {
+          case 0: // cm - linear displacement
+            // 1 mrad = distance_in_meters / 1000 * 100 (to convert to cm)
+            dropValue = -result.dropMrad * distance / 10.0; // Convert mrad to cm at distance
+            driftValue = result.driftMrad * distance / 10.0;
+            break;
+          case 1: // inches - linear displacement  
+            // 1 mrad = distance_in_meters * 39.37 / 1000 (to convert to inches)
+            dropValue = -result.dropMrad * distance * 39.37 / 1000.0; // Convert mrad to inches at distance
+            driftValue = result.driftMrad * distance * 39.37 / 1000.0;
+            break;
+          case 2: // MOA - angular correction
+            dropValue = -result.dropMoa; // Direct MOA correction
+            driftValue = result.driftMoa;
+            break;
+          case 3: // MIL - angular correction
+            dropValue = -result.dropMrad; // Direct MRAD correction
+            driftValue = result.driftMrad;
+            break;
+          default:
+            dropValue = -result.dropMrad * distance / 10.0;
+            driftValue = result.driftMrad * distance / 10.0;
+        }
 
         _tableData.add(TrajectoryDataPoint(
           distance: distance,
-          dropVertical: dropLineOfSight,
-          driftHorizontal: driftLineOfSight,
+          dropVertical: dropValue,
+          driftHorizontal: driftValue,
         ));
       } catch (e) {
         print('Error calculating trajectory at ${distance}m: $e');
@@ -90,24 +110,10 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
     setState(() {
       _isCalculating = false;
     });
-  }
-
-  double _convertToSelectedUnit(double valueInMeters) {
-    switch (_selectedUnits) {
-      case 0: // cm
-        return valueInMeters * 100;
-      case 1: // inches
-        return valueInMeters * 39.3701;
-      case 2: // MOA
-        // Use distance-based MOA calculation for proper angular measurement
-        // 1 MOA = 1.047 inches at 100 yards = 2.908 cm at 100 meters
-        return (valueInMeters * 100) / 2.908; // Convert cm to MOA at 100m
-      case 3: // MIL
-        // 1 MIL = 10 cm at 100 meters
-        return (valueInMeters * 100) / 10; // Convert cm to MIL
-      default:
-        return valueInMeters * 100;
-    }
+  }  double _convertToSelectedUnit(double value) {
+    // Values are already in the correct units based on _selectedUnits
+    // No conversion needed - just return the value
+    return value;
   }
 
   Future<void> _exportToPdf() async {
@@ -118,11 +124,10 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
         build: (pw.Context context) {
-          return [
-            pw.Header(
+          return [            pw.Header(
               level: 0,
               child: pw.Text(
-                'Ballistics Trajectory Table',
+                'Line of Sight Corrections Table',
                 style: pw.TextStyle(
                   fontSize: 24,
                   fontWeight: pw.FontWeight.bold,
@@ -156,10 +161,14 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                   pw.Text(
                     'Angle: ${widget.calculation.angle.toStringAsFixed(1)} degrees - Temperature: ${widget.calculation.temperature.toStringAsFixed(1)} degrees C',
                     style: const pw.TextStyle(fontSize: 12),
-                  ),
-                  pw.Text(
+                  ),                  pw.Text(
                     'Step Size: ${_stepSize}m - Units: ${_unitLabels[_selectedUnits]}',
                     style: const pw.TextStyle(fontSize: 12),
+                  ),
+                  pw.SizedBox(height: 8),
+                  pw.Text(
+                    'Note: Positive drop = bullet hits below line of sight, Positive drift = bullet hits to the right',
+                    style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
                   ),
                 ],
               ),
@@ -234,18 +243,35 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Trajectory Table',
+              children: [                Text(
+                  'Line of Sight Corrections',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
-                ),
-                IconButton(
+                ),                IconButton(
                   icon: const Icon(Icons.close),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                ),
+              ),
+              child: Text(
+                'Corrections relative to line of sight. Positive drop = bullet hits below line of sight. Positive drift = bullet hits to the right.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.primary,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
             ),
             const SizedBox(height: 16),
             Row(
@@ -288,12 +314,12 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                             value: entry.key,
                             child: Text(entry.value),
                           );
-                        }).toList(),
-                        onChanged: (value) {
+                        }).toList(),                        onChanged: (value) {
                           if (value != null) {
                             setState(() {
                               _selectedUnits = value;
                             });
+                            _calculateTableData(); // Recalculate when units change
                           }
                         },
                       ),
