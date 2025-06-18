@@ -58,7 +58,7 @@ class BallisticsResult {
 
 class BallisticsCalculator {
   // Fixed simulation parameters
-  static const double dt = 0.001; // s
+  static const double dt = 0.005; // s
   static const double omega = 7.292115e-5; // rad/s (Earth rotation)
 
   static double speedOfSound(double tC) {
@@ -642,13 +642,25 @@ class BallisticsCalculator {
     final double vMagnitude = sqrt(vRelX * vRelX + vRelY * vRelY + vRelZ * vRelZ);
     final double mach = vMagnitude / a;
     
-    // Drag coefficient
-    final double cd = bcModelType == 1 
+    // Drag coefficient from model (G1 or G7)
+    final double cdModel = bcModelType == 1 
         ? g7DragCoefficient(mach)
         : g1DragCoefficient(mach);
     
-    // Drag force magnitude
-    final double dragMagnitude = 0.5 * rhoAir * A * (cd / ballisticCoefficient) * vMagnitude * vMagnitude;
+    // Calculate sectional density (SD) in lb/in²
+    // mass is in kg, diameter is in meters
+    final double massGrains = mass * 15432.3583529; // kg to grains
+    final double diameterInches = diameter * 39.37; // cm to inches
+    final double sectionalDensity = massGrains / 7000 / (diameterInches * diameterInches); // lb/in²
+    
+    // Form factor: i = SD/BC
+    final double formFactor = sectionalDensity / ballisticCoefficient;
+    
+    // Apply form factor to scale the drag coefficient: Cd = i * Cd_model
+    final double cd = formFactor * cdModel;
+    
+    // Drag force magnitude with corrected formula
+    final double dragMagnitude = 0.5 * rhoAir * A * cd * vMagnitude * vMagnitude;
     
     // Unit vector in direction of relative velocity
     final double vRelMag = vMagnitude;
