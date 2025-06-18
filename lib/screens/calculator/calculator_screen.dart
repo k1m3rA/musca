@@ -6,7 +6,6 @@ import 'widgets/compass_widget.dart';
 import 'widgets/wind_direction_input.dart';
 import 'widgets/camera_angle_screen.dart';
 import 'widgets/environmental_input.dart';
-import 'widgets/ballistics_results_widget.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import '../../models/calculation.dart';
 import '../../services/calculation_storage.dart';
@@ -104,8 +103,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   void _onReloadProfilesNotification() {
     print('Profile reload notification received!'); // Debug print
     _loadSelectedProfiles();
-  }
-  Future<void> _loadSelectedProfiles() async {
+  }  Future<void> _loadSelectedProfiles() async {
     try {
       final gun = await GunStorage.getSelectedGun();
       final cartridge = await CartridgeStorage.getSelectedCartridge();
@@ -117,8 +115,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _selectedScope = scope;
       });
       
-      // Recalculate ballistics with new profiles
-      _calculateBallistics();
+      // Profile loaded, calculations will run when calculate button is pressed
     } catch (e) {
       print('Error loading selected profiles: $e');
     }
@@ -128,13 +125,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     setState(() {
       _hasCompass = FlutterCompass.events != null;
     });
-  }
-  void _updateWindDirectionFromText() {
+  }  void _updateWindDirectionFromText() {
     if (_windDirectionController.text.isNotEmpty) {
       try {
         final newValue = double.parse(_windDirectionController.text);
         setState(() => _windDirection = newValue);
-        _calculateBallistics();
       } catch (_) {}
     }
   }
@@ -143,17 +138,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       try {
         final newValue = double.parse(_distanceController.text);
         setState(() => _distance = newValue);
-        _calculateBallistics();
       } catch (_) {}
     }
   }
-
   void _updateAngleFromText() {
     if (_angleController.text.isNotEmpty) {
       try {
         final newValue = double.parse(_angleController.text);
         setState(() => _angle = newValue);
-        _calculateBallistics(); // Add this line to recalculate when angle changes
       } catch (_) {}
     }
   }
@@ -162,7 +154,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       try {
         final newValue = double.parse(_windSpeedController.text);
         setState(() => _windSpeed = newValue);
-        _calculateBallistics();
       } catch (_) {}
     }
   }
@@ -172,7 +163,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       try {
         final newValue = double.parse(_temperatureController.text);
         setState(() => _temperature = newValue);
-        _calculateBallistics(); // Add this line to recalculate when temperature changes
       } catch (_) {}
     }
   }
@@ -182,7 +172,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       try {
         final newValue = double.parse(_pressureController.text);
         setState(() => _pressure = newValue);
-        _calculateBallistics(); // Add this line to recalculate when pressure changes
       } catch (_) {}
     }
   }
@@ -192,18 +181,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       try {
         final newValue = double.parse(_humidityController.text);
         setState(() => _humidity = newValue);
-        _calculateBallistics(); // Add this line to recalculate when humidity changes
       } catch (_) {}
     }
-  }
-  void _updateDistance(double delta) {
+  }  void _updateDistance(double delta) {
     final newDistance = _distance + delta;
     if (newDistance >= 0) {
       setState(() {
         _distance = newDistance;
         _distanceController.text = _distance.toStringAsFixed(1);
       });
-      _calculateBallistics();
     }
   }
 
@@ -215,16 +201,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       _angle = clampedAngle;
       _angleController.text = _angle.toStringAsFixed(1);
     });
-    _calculateBallistics(); // Add this line to recalculate when angle changes
-  }
-  void _updateWindSpeed(double delta) {
+  }  void _updateWindSpeed(double delta) {
     final newWindSpeed = _windSpeed + delta;
     if (newWindSpeed >= 0) {
       setState(() {
         _windSpeed = newWindSpeed;
         _windSpeedController.text = _windSpeed.toStringAsFixed(1);
       });
-      _calculateBallistics();
     }
   }
   void _updateWindDirection(double delta) {
@@ -233,7 +216,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       if (_windDirection < 0) _windDirection += 360;
       _windDirectionController.text = _windDirection.round().toString();
     });
-    _calculateBallistics();
   }
 
   void _updateTemperature(double delta) {
@@ -242,7 +224,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       _temperature = newTemperature;
       _temperatureController.text = _temperature.toStringAsFixed(1);
     });
-    _calculateBallistics(); // Add this line to recalculate when temperature changes
   }
 
   void _updatePressure(double delta) {
@@ -252,10 +233,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _pressure = newPressure;
         _pressureController.text = _pressure.toStringAsFixed(1);
       });
-      _calculateBallistics(); // Add this line to recalculate when pressure changes
     }
   }
-
   void _updateHumidity(double delta) {
     final newHumidity = _humidity + delta;
     if (newHumidity >= 0 && newHumidity <= 100) {
@@ -263,10 +242,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _humidity = newHumidity;
         _humidityController.text = _humidity.toStringAsFixed(1);
       });
-      _calculateBallistics(); // Add this line to recalculate when humidity changes
     }
   }
-
   Future<void> _openCameraForAngle() async {
     final measuredAngle = await Navigator.push<double>(
       context,
@@ -280,7 +257,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _angle = clampedAngle;
         _angleController.text = _angle.toStringAsFixed(1);
       });
-      _calculateBallistics(); // Add this line to recalculate when camera angle is captured
     }
   }
 
@@ -417,6 +393,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     );
   }
 
+  /// Calculate ballistics - called when user presses calculate button
   void _calculateBallistics() {
     if (_distance > 0 && _selectedGun != null && _selectedCartridge != null && _selectedScope != null) {
       try {
@@ -449,12 +426,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       });
     }
   }
-  
-  void _updateLatitude(double newLatitude) {
+    void _updateLatitude(double newLatitude) {
     setState(() {
       _latitude = newLatitude;
     });
-    _calculateBallistics(); // Recalculate with new latitude
   }
 
   @override
@@ -517,13 +492,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   ),
                   const SizedBox(height: 20),
                     _hasCompass 
-                    ? CompassWidget(
-                        onWindDirectionChanged: (direction) {
+                    ? CompassWidget(                        onWindDirectionChanged: (direction) {
                           setState(() {
                             _windDirection = direction;
                             _windDirectionController.text = _windDirection.round().toString();
                           });
-                          _calculateBallistics();
                         },
                       )
                     : WindDirectionInput(
@@ -544,9 +517,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     onUpdateHumidity: _updateHumidity,
                     onUpdateLatitude: _updateLatitude, // Pass the latitude callback
                   ),
-                    const SizedBox(height: 20),
-                  
-                  // Display the current latitude value (optional)
+                    const SizedBox(height: 20),                  // Display the current latitude value (optional)
                   if (_latitude != 0.0)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8.0),
@@ -559,12 +530,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                         ),
                       ),
                     ),
-                  
-                  // Ballistics Results Display
-                  BallisticsResultsWidget(
-                    result: _ballisticsResult,
-                    distance: _distance,
-                  ),
                   
                   const SizedBox(height: 20),
                 ],
