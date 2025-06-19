@@ -35,6 +35,15 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
   String _errorMessage = '';
   double _latitude = 0.0; // Add state variable for latitude
   
+  @override
+  void initState() {
+    super.initState();
+    // Automatically get location data when widget initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _getLocationWeatherData();
+    });
+  }
+  
   Future<void> _getLocationWeatherData() async {
     setState(() {
       _isLoading = true;
@@ -96,17 +105,13 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
       });
     }
   }
-  
-  @override
-  Widget build(BuildContext context) {
-    final iconColor = Theme.of(context).colorScheme.primary;
-    
+    @override
+  Widget build(BuildContext context) {    
     return Container(
       padding: const EdgeInsets.all(10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title row with location button
+        children: [// Title row
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -116,23 +121,6 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Material(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(24),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(24),
-                  onTap: _isLoading ? null : _getLocationWeatherData,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Icon(
-                      Icons.location_on,
-                      color: iconColor,
-                      size: 28,
-                    ),
-                  ),
                 ),
               ),
             ],

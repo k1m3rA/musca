@@ -38,8 +38,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   final TextEditingController _angleController = TextEditingController(text: '0.0');
   double _angle = 0.0;
   final TextEditingController _windSpeedController = TextEditingController(text: '0.0');
-  double _windSpeed = 0.0;
-  final TextEditingController _windDirectionController = TextEditingController(text: '0.0');  double _windDirection = 0.0;  bool _hasCompass = false;
+  double _windSpeed = 0.0;  final TextEditingController _windDirectionController = TextEditingController(text: '0.0');
+  double _windDirection = 0.0;
+  bool _hasCompass = false;
   BallisticsResult? _ballisticsResult;
 
   // Add new controllers and variables for environmental data
@@ -258,6 +259,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _angleController.text = _angle.toStringAsFixed(1);
       });
     }
+  }    void _updateLatitude(double newLatitude) {
+    setState(() {
+      _latitude = newLatitude;
+    });
   }
 
   Future<void> _saveCalculation() async {
@@ -274,22 +279,23 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     }
     
     try {
-      // Use the SAME ballistics result that's already calculated and displayed
-      // This ensures perfect consistency between display and saved data
-      final ballisticsResult = _ballisticsResult ?? BallisticsCalculator.calculateWithProfiles(
+      // Calculate ballistics result for saving
+      final ballisticsResult = BallisticsCalculator.calculateWithProfiles(
         _distance,
         _windSpeed,
         _windDirection,
         _selectedGun!,
         _selectedCartridge!,
-        _selectedScope!,        temperature: _temperature,
+        _selectedScope!,
+        temperature: _temperature,
         pressure: _pressure,
         humidity: _humidity,
-        elevationAngle: _angle,     // Include elevation angle in save as well
+        elevationAngle: _angle,
         azimuthAngle: _windDirection,
-        latitude: _latitude, // Add missing latitude parameter
+        latitude: _latitude,
       );
-        final calculation = Calculation(
+      
+      final calculation = Calculation(
         distance: _distance,
         angle: _angle,
         windSpeed: _windSpeed,
@@ -297,7 +303,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         temperature: _temperature,
         pressure: _pressure,
         humidity: _humidity,
-        latitude: _latitude, // Add latitude to saved calculation
+        latitude: _latitude,
         driftHorizontal: ballisticsResult.driftHorizontal,
         dropVertical: ballisticsResult.dropVertical,
         driftMrad: ballisticsResult.driftMrad,
@@ -311,7 +317,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       if (!mounted) return;
       
       final snackBar = SnackBar(
-        content: Text('Shot saved! Distance: ${_distance.toStringAsFixed(1)}m, Wind: ${_windSpeed.toStringAsFixed(1)}m/s'), // Changed from km/h to m/s
+        content: Text('Shot saved! Distance: ${_distance.toStringAsFixed(1)}m, Wind: ${_windSpeed.toStringAsFixed(1)}m/s'),
         backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.only(left: 16.0, right: 16.0),
@@ -364,7 +370,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 if (widget.onNavigate != null) {
-                  widget.onNavigate!(2); // Navigate to profiles tab
+                  widget.onNavigate!(2);
                 }
               },
               child: const Text('Go to Profiles'),
@@ -391,45 +397,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         );
       },
     );
-  }
-
-  /// Calculate ballistics - called when user presses calculate button
-  void _calculateBallistics() {
-    if (_distance > 0 && _selectedGun != null && _selectedCartridge != null && _selectedScope != null) {
-      try {
-        final result = BallisticsCalculator.calculateWithProfiles(
-          _distance,
-          _windSpeed,
-          _windDirection,
-          _selectedGun!,
-          _selectedCartridge!,
-          _selectedScope!,
-          temperature: _temperature,  // Always use current screen value
-          pressure: _pressure,        // Always use current screen value
-          humidity: _humidity,        // Always use current screen value
-          elevationAngle: _angle,     // Use elevation angle from user input
-          azimuthAngle: _windDirection, // Use azimuth from compass/wind direction
-          latitude: _latitude, // Pass the latitude to the calculator
-        );
-        setState(() {
-          _ballisticsResult = result;
-        });
-      } catch (e) {
-        print('Error calculating ballistics: $e');
-        setState(() {
-          _ballisticsResult = null;
-        });
-      }
-    } else {
-      setState(() {
-        _ballisticsResult = null;
-      });
-    }
-  }
-    void _updateLatitude(double newLatitude) {
-    setState(() {
-      _latitude = newLatitude;
-    });
   }
 
   @override
@@ -529,22 +496,20 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                           color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                         ),
                       ),
-                    ),
-                  
-                  const SizedBox(height: 20),
+                    ),                  const SizedBox(height: 20),
                 ],
               ),
             ),
           ),
         ],
-      ),
-      floatingActionButton: Padding(
+      ),      floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 0.0, right: 7.0),
         child: FloatingActionButton(
           onPressed: _saveCalculation,
           backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.8),
-          child: Icon(Icons.my_location, color: Theme.of(context).scaffoldBackgroundColor),
+          child: Icon(Icons.gps_fixed, color: Theme.of(context).scaffoldBackgroundColor),
         ),
       ),
-    );  }
+    );
+  }
 }
