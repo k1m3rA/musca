@@ -8,17 +8,18 @@ class EnvironmentalInput extends StatefulWidget {
   final TextEditingController temperatureController;
   final TextEditingController pressureController;
   final TextEditingController humidityController;
+  final TextEditingController latitudeController;
   final double scrollStep;
   final Function(double) onUpdateTemperature;
   final Function(double) onUpdatePressure;
   final Function(double) onUpdateHumidity;
   final Function(double)? onUpdateLatitude; // Add callback for latitude updates
-
   const EnvironmentalInput({
     super.key,
     required this.temperatureController,
     required this.pressureController,
     required this.humidityController,
+    required this.latitudeController,
     this.scrollStep = 0.5,
     required this.onUpdateTemperature,
     required this.onUpdatePressure,
@@ -68,11 +69,13 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-      
-      // Update latitude and notify parent
+        // Update latitude and notify parent
       setState(() {
         _latitude = position.latitude;
       });
+      
+      // Update latitude controller with the fetched value
+      widget.latitudeController.text = _latitude.toStringAsFixed(6);
       
       // Notify parent component about latitude change
       if (widget.onUpdateLatitude != null) {
@@ -161,7 +164,6 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
             controller: widget.pressureController,
             label: 'Pressure',
             suffix: 'mbar/Pa',
-            hint: '800-1200 = mbar, >10000 = Pa',
             onIncrease: () => widget.onUpdatePressure(widget.scrollStep * 2),
             onDecrease: () => widget.onUpdatePressure(-widget.scrollStep * 2),
             onDrag: (delta) => widget.onUpdatePressure(-delta * 0.5),
@@ -169,8 +171,7 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
           ),
           
           const SizedBox(height: 10),
-          
-          // Humidity input
+            // Humidity input
           _buildInputRow(
             controller: widget.humidityController,
             label: 'Humidity',
@@ -178,6 +179,40 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
             onIncrease: () => widget.onUpdateHumidity(widget.scrollStep),
             onDecrease: () => widget.onUpdateHumidity(-widget.scrollStep),
             onDrag: (delta) => widget.onUpdateHumidity(-delta * 0.2),
+            context: context,
+          ),
+          
+          const SizedBox(height: 10),
+          
+          // Latitude input
+          _buildInputRow(
+            controller: widget.latitudeController,
+            label: 'Latitude',
+            suffix: '°',
+            onIncrease: () {
+              final currentValue = double.tryParse(widget.latitudeController.text) ?? 0.0;
+              final newValue = currentValue + 0.000001;
+              widget.latitudeController.text = newValue.toStringAsFixed(6);
+              if (widget.onUpdateLatitude != null) {
+                widget.onUpdateLatitude!(newValue);
+              }
+            },
+            onDecrease: () {
+              final currentValue = double.tryParse(widget.latitudeController.text) ?? 0.0;
+              final newValue = currentValue - 0.000001;
+              widget.latitudeController.text = newValue.toStringAsFixed(6);
+              if (widget.onUpdateLatitude != null) {
+                widget.onUpdateLatitude!(newValue);
+              }
+            },
+            onDrag: (delta) {
+              final currentValue = double.tryParse(widget.latitudeController.text) ?? 0.0;
+              final newValue = currentValue + (-delta * 0.000001);
+              widget.latitudeController.text = newValue.toStringAsFixed(6);
+              if (widget.onUpdateLatitude != null) {
+                widget.onUpdateLatitude!(newValue);
+              }
+            },
             context: context,
           ),
         ],

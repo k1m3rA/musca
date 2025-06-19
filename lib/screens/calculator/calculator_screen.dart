@@ -42,22 +42,19 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   double _windDirection = 0.0;
   bool _hasCompass = false;
   BallisticsResult? _ballisticsResult;
-
   // Add new controllers and variables for environmental data
   final TextEditingController _temperatureController = TextEditingController(text: '20.0');
   double _temperature = 20.0;
   final TextEditingController _pressureController = TextEditingController(text: '1013.0');
   double _pressure = 1013.0;
   final TextEditingController _humidityController = TextEditingController(text: '50.0');
-  double _humidity = 50.0;
+  double _humidity = 50.0;  final TextEditingController _latitudeController = TextEditingController(text: '0.0');
+  double _latitude = 0.0;
 
   // Profile data
   Gun? _selectedGun;
   Cartridge? _selectedCartridge;
-  Scope? _selectedScope;  
-  
-  // Add new variable for latitude
-  double _latitude = 0.0;
+  Scope? _selectedScope;
 
   @override
   void initState() {
@@ -67,11 +64,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     _angleController.addListener(_updateAngleFromText);
     _windSpeedController.addListener(_updateWindSpeedFromText);
     _windDirectionController.addListener(_updateWindDirectionFromText);
-    
-    // Add listeners for environmental data
+      // Add listeners for environmental data
     _temperatureController.addListener(_updateTemperatureFromText);
     _pressureController.addListener(_updatePressureFromText);
     _humidityController.addListener(_updateHumidityFromText);
+    _latitudeController.addListener(_updateLatitudeFromText);
     
     // Listen for profile reload notifications
     widget.reloadProfilesNotifier?.addListener(_onReloadProfilesNotification);
@@ -184,7 +181,18 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         setState(() => _humidity = newValue);
       } catch (_) {}
     }
-  }  void _updateDistance(double delta) {
+  }
+
+  void _updateLatitudeFromText() {
+    if (_latitudeController.text.isNotEmpty) {
+      try {
+        final newValue = double.parse(_latitudeController.text);
+        setState(() => _latitude = newValue);
+      } catch (_) {}
+    }
+  }
+
+  void _updateDistance(double delta) {
     final newDistance = _distance + delta;
     if (newDistance >= 0) {
       setState(() {
@@ -407,10 +415,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     _distanceController.dispose();
     _angleController.dispose();
     _windSpeedController.dispose();
-    _windDirectionController.dispose(); 
-    _temperatureController.dispose();
+    _windDirectionController.dispose();    _temperatureController.dispose();
     _pressureController.dispose();
     _humidityController.dispose();
+    _latitudeController.dispose();
     super.dispose();
   }
 
@@ -473,11 +481,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                       ),
                       
                   const SizedBox(height: 20),
-                  
-                  EnvironmentalInput(
+                    EnvironmentalInput(
                     temperatureController: _temperatureController,
                     pressureController: _pressureController,
                     humidityController: _humidityController,
+                    latitudeController: _latitudeController,
                     scrollStep: 0.5,
                     onUpdateTemperature: _updateTemperature,
                     onUpdatePressure: _updatePressure,
@@ -485,18 +493,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     onUpdateLatitude: _updateLatitude, // Pass the latitude callback
                   ),
                     const SizedBox(height: 20),                  // Display the current latitude value (optional)
-                  if (_latitude != 0.0)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: Text(
-                        'Coriolis: Using latitude ${_latitude.toStringAsFixed(4)}°',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic,
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                        ),
-                      ),
-                    ),                  const SizedBox(height: 20),
                 ],
               ),
             ),
