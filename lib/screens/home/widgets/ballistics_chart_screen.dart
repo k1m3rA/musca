@@ -418,7 +418,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Vertical Drop',
+                              'Drop',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 14,
@@ -463,7 +463,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Horizontal Drift',
+                              'Drift',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 14,
