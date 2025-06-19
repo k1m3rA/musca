@@ -288,11 +288,13 @@ class BallisticsCalculator {
     if (elevationAngle < -90.0 || elevationAngle > 90.0) {
       throw ArgumentError('Elevation angle must be between -90 and 90 degrees');
     }
-    
-    // Validate slope angle range
+      // Validate slope angle range
     if (slopeAngle < -90.0 || slopeAngle > 90.0) {
       throw ArgumentError('Slope angle must be between -90 and 90 degrees');
     }
+    
+    // Debug: Print latitude being used in calculations
+    print('Ballistics calculation using latitude: ${latitude.toStringAsFixed(6)}°');
     
     // Use strictly the provided environmental data from calculator screen
     final double envTemperature = temperature;

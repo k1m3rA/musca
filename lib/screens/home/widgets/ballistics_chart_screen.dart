@@ -103,8 +103,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
     } else {
       // Normal case: calculate bullet trajectory at zero range to find intersection point
       double bulletHeightAtZero = 0.0;
-      try {
-        final zeroResult = BallisticsCalculator.calculateWithProfiles(
+      try {        final zeroResult = BallisticsCalculator.calculateWithProfiles(
           zeroRange,
           widget.calculation.windSpeed,
           widget.calculation.windDirection,
@@ -116,6 +115,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
           humidity: widget.calculation.humidity,
           elevationAngle: widget.calculation.angle,
           azimuthAngle: widget.calculation.windDirection,
+          latitude: widget.calculation.latitude, // Use latitude from calculation
         );
         bulletHeightAtZero = zeroResult.dropVertical;
       } catch (e) {
@@ -170,8 +170,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
         
       } else {
         // Normal calculation for non-zero zero range
-        try {
-          final result = BallisticsCalculator.calculateWithProfiles(
+        try {          final result = BallisticsCalculator.calculateWithProfiles(
             distance,
             widget.calculation.windSpeed,
             widget.calculation.windDirection,
@@ -183,6 +182,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
             humidity: widget.calculation.humidity,
             elevationAngle: widget.calculation.angle,
             azimuthAngle: widget.calculation.windDirection,
+            latitude: widget.calculation.latitude, // Use latitude from calculation
           );
 
           // Validate and use ballistics result

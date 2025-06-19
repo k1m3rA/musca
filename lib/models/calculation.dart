@@ -3,10 +3,10 @@ class Calculation {
   final double angle;
   final double windSpeed;
   final double windDirection;
-  final DateTime timestamp;
-  final double temperature;
+  final DateTime timestamp;  final double temperature;
   final double pressure;
   final double humidity;
+  final double latitude; // Add latitude field
 
   // Add ballistics results
   final double? driftHorizontal;
@@ -15,7 +15,6 @@ class Calculation {
   final double? dropMrad;
   final double? driftMoa;
   final double? dropMoa;
-
   Calculation({
     required this.distance,
     required this.angle,
@@ -25,6 +24,7 @@ class Calculation {
     this.temperature = 20.0,  // Default values for environmental data
     this.pressure = 1013.0,
     this.humidity = 50.0,
+    this.latitude = 0.0, // Default latitude
     this.driftHorizontal,
     this.dropVertical,
     this.driftMrad,
@@ -40,10 +40,10 @@ class Calculation {
       'angle': angle,
       'windSpeed': windSpeed,
       'windDirection': windDirection,
-      'timestamp': timestamp.toIso8601String(),
-      'temperature': temperature,
+      'timestamp': timestamp.toIso8601String(),      'temperature': temperature,
       'pressure': pressure,
       'humidity': humidity,
+      'latitude': latitude, // Add latitude to JSON
       'driftHorizontal': driftHorizontal,
       'dropVertical': dropVertical,
       'driftMrad': driftMrad,
@@ -60,10 +60,10 @@ class Calculation {
       angle: json['angle'],
       windSpeed: json['windSpeed'],
       windDirection: json['windDirection'],
-      timestamp: DateTime.parse(json['timestamp']),
-      temperature: json['temperature'] ?? 20.0,
+      timestamp: DateTime.parse(json['timestamp']),      temperature: json['temperature'] ?? 20.0,
       pressure: json['pressure'] ?? 1013.0,
       humidity: json['humidity'] ?? 50.0,
+      latitude: json['latitude'] ?? 0.0, // Add latitude from JSON with default
       driftHorizontal: json['driftHorizontal']?.toDouble(),
       dropVertical: json['dropVertical']?.toDouble(),
       driftMrad: json['driftMrad']?.toDouble(),
@@ -72,7 +72,6 @@ class Calculation {
       dropMoa: json['dropMoa']?.toDouble(),
     );
   }
-
   Calculation copyWith({
     double? distance,
     double? angle,
@@ -82,6 +81,7 @@ class Calculation {
     double? temperature,
     double? pressure,
     double? humidity,
+    double? latitude, // Add latitude parameter
     double? driftHorizontal,
     double? dropVertical,
     double? driftMrad,
@@ -98,6 +98,7 @@ class Calculation {
       temperature: temperature ?? this.temperature,
       pressure: pressure ?? this.pressure,
       humidity: humidity ?? this.humidity,
+      latitude: latitude ?? this.latitude, // Add latitude field
       driftHorizontal: driftHorizontal ?? this.driftHorizontal,
       dropVertical: dropVertical ?? this.dropVertical,
       driftMrad: driftMrad ?? this.driftMrad,

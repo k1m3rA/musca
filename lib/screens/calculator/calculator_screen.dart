@@ -282,15 +282,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _windDirection,
         _selectedGun!,
         _selectedCartridge!,
-        _selectedScope!,
-        temperature: _temperature,
+        _selectedScope!,        temperature: _temperature,
         pressure: _pressure,
         humidity: _humidity,
         elevationAngle: _angle,     // Include elevation angle in save as well
         azimuthAngle: _windDirection,
+        latitude: _latitude, // Add missing latitude parameter
       );
-      
-      final calculation = Calculation(
+        final calculation = Calculation(
         distance: _distance,
         angle: _angle,
         windSpeed: _windSpeed,
@@ -298,6 +297,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         temperature: _temperature,
         pressure: _pressure,
         humidity: _humidity,
+        latitude: _latitude, // Add latitude to saved calculation
         driftHorizontal: ballisticsResult.driftHorizontal,
         dropVertical: ballisticsResult.dropVertical,
         driftMrad: ballisticsResult.driftMrad,
