@@ -502,11 +502,10 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
         ),
       ),
     );
-  }  Widget _buildChart() {
-    // Determine which data to display based on selected chart type
+  }  Widget _buildChart() {    // Determine which data to display based on selected chart type
     final bool showVerticalDrop = _selectedChartType == 0;
-    final double minY = showVerticalDrop ? _minDrop : _minDrift;
-    final double maxY = showVerticalDrop ? _maxDrop : _maxDrift;
+    final double minY = showVerticalDrop ? _minDrop : -_maxDrift;  // Invertir solo para drift
+    final double maxY = showVerticalDrop ? _maxDrop : -_minDrift;  // Invertir solo para drift
     final double yInterval = (maxY - minY) > 0 ? (maxY - minY) / 10 : 0.01;
     final double yAxisInterval = (maxY - minY) > 0 ? (maxY - minY) / 5 : 0.02;
 
@@ -547,9 +546,8 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
               leftTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
-                  interval: yAxisInterval,
-                  getTitlesWidget: (value, meta) {
-                    final cmValue = value * 100;
+                  interval: yAxisInterval,                  getTitlesWidget: (value, meta) {
+                    final cmValue = showVerticalDrop ? value * 100 : -value * 100;  // Invertir solo para drift
                     return Text(
                       '${cmValue.toStringAsFixed(0)}cm',
                       style: const TextStyle(fontSize: 12),
@@ -576,16 +574,12 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
             ),
             borderData: FlBorderData(
               show: true,
-              border: Border.all(color: Colors.grey.withOpacity(0.5)),
-            ),
-            minX: 0,
-            maxX: _maxDistance,
+              border: Border.all(color: Colors.grey.withOpacity(0.5)),            ),            minX: 0,            maxX: _maxDistance,
             minY: minY,
-            maxY: maxY,
-            lineBarsData: showVerticalDrop ? [
+            maxY: maxY,            lineBarsData: showVerticalDrop ? [
               // Line of sight (only for vertical drop chart)
               LineChartBarData(
-                spots: lineOfSightSpots,
+                spots: lineOfSightSpots,  // No invertir para drop vertical
                 isCurved: false,
                 color: Colors.blue,
                 barWidth: 2,
@@ -595,7 +589,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
               ),
               // Bullet trajectory (vertical drop)
               LineChartBarData(
-                spots: trajectorySpots,
+                spots: trajectorySpots,  // No invertir para drop vertical
                 isCurved: true,
                 color: Colors.red,
                 barWidth: 3,
@@ -613,13 +607,13 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                       strokeWidth: 2,
                       strokeColor: Colors.red,
                     );
-                  },
-                ),
+                  },                ),
                 belowBarData: BarAreaData(show: false),
-              ),            ] : [
+              ),
+            ] : [
               // Horizontal drift line (no line of sight needed)
               LineChartBarData(
-                spots: horizontalDriftSpots,
+                spots: horizontalDriftSpots.map((spot) => FlSpot(spot.x, -spot.y)).toList(),
                 isCurved: true,
                 color: Colors.green,
                 barWidth: 3,
@@ -809,9 +803,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
         : (_selectedScope?.sightHeight ?? 0) * 0.01;
     final double zeroRange = _selectedGun?.zeroRange ?? 0;
 
-    String description;
-    
-    if (showVerticalDrop) {
+    String description;    if (showVerticalDrop) {
       description = 'X-axis: Distance (m) • Y-axis: Height relative to bore (cm)\nPositive values = upward drop, negative values = downward drop';
       
       if (visorHeight == 0.0 && zeroRange == 0.0) {
@@ -820,8 +812,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
         description += '\nLine of sight is horizontal at scope height';
       } else {
         description += '\nLine of sight intersects trajectory at zero range';
-      }
-    } else {
+      }    } else {
       description = 'X-axis: Distance (m) • Y-axis: Horizontal drift (cm)\nPositive values = drift to the right, negative values = drift to the left';
       description += '\nShows bullet horizontal displacement due to wind, spin drift, and Coriolis effect';
     }
