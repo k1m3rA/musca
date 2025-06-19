@@ -115,19 +115,51 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
     // No conversion needed - just return the value
     return value;
   }
-
   Future<void> _exportToPdf() async {
     final pdf = pw.Document();
+    
+    // Load the logo image
+    final logoData = await rootBundle.load('assets/icon/musca.png');
+    final logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
 
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
         build: (pw.Context context) {
-          return [            pw.Header(
+          return [            // App header with logo and name
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.start,
+              children: [
+                pw.Image(logoImage, width: 40, height: 40),
+                pw.SizedBox(width: 12),
+                pw.Text(
+                  'Musca',
+                  style: pw.TextStyle(
+                    fontSize: 28,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 8),
+            // Developer subtitle
+            pw.Align(
+              alignment: pw.Alignment.centerLeft,
+              child: pw.Text(
+                'developed by Miguel Benet. aka. k1m3rA',
+                style: pw.TextStyle(
+                  fontSize: 12,
+                  fontStyle: pw.FontStyle.italic,
+                  color: PdfColors.grey600,
+                ),
+              ),
+            ),
+            pw.SizedBox(height: 15),
+            pw.Header(
               level: 0,
               child: pw.Text(
-                'Line of Sight Corrections Table',
+                'Correction Table',
                 style: pw.TextStyle(
                   fontSize: 24,
                   fontWeight: pw.FontWeight.bold,
@@ -144,16 +176,16 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                 borderRadius: pw.BorderRadius.circular(8),
               ),
               child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
+                crossAxisAlignment: pw.CrossAxisAlignment.start,                children: [
                   pw.Text(
-                    'Shot at ${widget.calculation.distance.toStringAsFixed(0)}m',
+                    'Profiles: ${widget.selectedGun?.name ?? 'Unknown Gun'} | ${widget.selectedCartridge?.name ?? 'Unknown Cartridge'} | ${widget.selectedScope?.name ?? 'Unknown Scope'}',
                     style: pw.TextStyle(
                       fontSize: 16,
                       fontWeight: pw.FontWeight.bold,
                     ),
                   ),
                   pw.SizedBox(height: 8),
+                  pw.SizedBox(height: 4),
                   pw.Text(
                     'Wind: ${widget.calculation.windSpeed.toStringAsFixed(1)}m/s at ${widget.calculation.windDirection.toStringAsFixed(0)} degrees',
                     style: const pw.TextStyle(fontSize: 12),
@@ -244,7 +276,7 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [                Text(
-                  'Line of Sight Corrections',
+                  'Correction Table',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
