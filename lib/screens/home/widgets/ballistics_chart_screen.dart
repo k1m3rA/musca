@@ -26,6 +26,7 @@ class BallisticsChartScreen extends StatefulWidget {
 class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
   List<FlSpot> trajectorySpots = [];
   List<FlSpot> lineOfSightSpots = [];
+  List<FlSpot> horizontalDriftSpots = [];
   Gun? _selectedGun;
   Cartridge? _selectedCartridge;
   Scope? _selectedScope;
@@ -33,6 +34,9 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
   double _maxDistance = 0;
   double _maxDrop = 0;
   double _minDrop = 0;
+  double _maxDrift = 0;
+  double _minDrift = 0;
+  int _selectedChartType = 0; // 0 = Vertical Drop, 1 = Horizontal Drift
 
   @override
   void initState() {
@@ -63,7 +67,6 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
       });
     }
   }
-
   Future<void> _calculateTrajectoryData() async {
     if (_selectedGun == null || _selectedCartridge == null || _selectedScope == null) {
       return;
@@ -71,6 +74,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
 
     List<FlSpot> trajectory = [];
     List<FlSpot> lineOfSight = [];
+    List<FlSpot> horizontalDrift = [];
 
     // Calculate trajectory points from 0 to target distance + 20%
     final targetDistance = widget.calculation.distance;
@@ -132,6 +136,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
         // At muzzle: bullet is at bore height (0), line of sight starts at scope height
         trajectory.add(FlSpot(0, 0));
         lineOfSight.add(FlSpot(0, visorHeight));
+        horizontalDrift.add(FlSpot(0, 0)); // No drift at muzzle
         continue;
       }
 
@@ -144,10 +149,24 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
           
           // Bullet drops downward (positive Y value)
           trajectory.add(FlSpot(distance, simpleDrop));
-        }
-        
-        // Line of sight is horizontal at scope height
+        }        // Line of sight is horizontal at scope height
         lineOfSight.add(FlSpot(distance, visorHeight));
+        
+        // Enhanced drift calculation including spin drift and basic effects
+        final timeOfFlight = distance / muzzleVelocity;
+        
+        // Wind drift (basic approximation)
+        final windDrift = distance * widget.calculation.windSpeed * 0.001;
+        
+        // Spin drift (approximate, for right-hand twist)
+        final twistDirection = _selectedGun?.twistDirection ?? 1;
+        final spinDrift = twistDirection * distance * distance * 0.000001; // Very rough approximation
+        
+        // Basic Coriolis effect (simplified)
+        final coriolisDrift = distance * timeOfFlight * 0.00001; // Simplified
+        
+        final totalDrift = windDrift + spinDrift + coriolisDrift;
+        horizontalDrift.add(FlSpot(distance, totalDrift));
         
       } else {
         // Normal calculation for non-zero zero range
@@ -169,34 +188,49 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
           // Validate and use ballistics result
           if (result.dropVertical.isFinite && result.driftHorizontal.isFinite) {
             final bulletDrop = result.dropVertical;
+            final bulletDrift = result.driftHorizontal;
             trajectory.add(FlSpot(distance, bulletDrop));
-          } else {
+            horizontalDrift.add(FlSpot(distance, bulletDrift));          } else {
             // Fallback to simple calculation
             final muzzleVelocity = _selectedGun!.muzzleVelocity;
             final timeOfFlight = distance / muzzleVelocity;
             final simpleDrop = 0.5 * 9.81 * timeOfFlight * timeOfFlight;
+            
+            // Enhanced drift calculation for fallback
+            final windDrift = distance * widget.calculation.windSpeed * 0.001;
+            final twistDirection = _selectedGun?.twistDirection ?? 1;
+            final spinDrift = twistDirection * distance * distance * 0.000001;
+            final coriolisDrift = distance * timeOfFlight * 0.00001;
+            final simpleDrift = windDrift + spinDrift + coriolisDrift;
+            
             trajectory.add(FlSpot(distance, simpleDrop));
+            horizontalDrift.add(FlSpot(distance, simpleDrift));
           }
 
           // Line of sight: straight line from scope height with calculated slope
           final sightLineHeight = visorHeight + (distance * losSlope);
-          lineOfSight.add(FlSpot(distance, sightLineHeight));
-
-        } catch (e) {
+          lineOfSight.add(FlSpot(distance, sightLineHeight));        } catch (e) {
           print('Error calculating ballistics at distance $distance: $e');
           // Use simple fallback
           final muzzleVelocity = _selectedGun!.muzzleVelocity;
           final timeOfFlight = distance / muzzleVelocity;
           final simpleDrop = 0.5 * 9.81 * timeOfFlight * timeOfFlight;
+          
+          // Enhanced drift calculation for error fallback
+          final windDrift = distance * widget.calculation.windSpeed * 0.001;
+          final twistDirection = _selectedGun?.twistDirection ?? 1;
+          final spinDrift = twistDirection * distance * distance * 0.000001;
+          final coriolisDrift = distance * timeOfFlight * 0.00001;
+          final simpleDrift = windDrift + spinDrift + coriolisDrift;
+          
           trajectory.add(FlSpot(distance, simpleDrop));
+          horizontalDrift.add(FlSpot(distance, simpleDrift));
           
           final sightLineHeight = visorHeight + (distance * losSlope);
           lineOfSight.add(FlSpot(distance, sightLineHeight));
         }
       }
-    }
-
-    // Ensure we have reasonable data
+    }    // Ensure we have reasonable data
     if (trajectory.isEmpty) {
       // Emergency fallback
       final muzzleVelocity = _selectedGun?.muzzleVelocity ?? 800.0;
@@ -204,8 +238,17 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
         final distance = i * step;
         final timeOfFlight = distance / muzzleVelocity;
         final simpleDrop = 0.5 * 9.81 * timeOfFlight * timeOfFlight;
+        
+        // Enhanced drift calculation for emergency fallback
+        final windDrift = distance * widget.calculation.windSpeed * 0.001;
+        final twistDirection = _selectedGun?.twistDirection ?? 1;
+        final spinDrift = twistDirection * distance * distance * 0.000001;
+        final coriolisDrift = distance * timeOfFlight * 0.00001;
+        final simpleDrift = windDrift + spinDrift + coriolisDrift;
+        
         trajectory.add(FlSpot(distance, simpleDrop));
         lineOfSight.add(FlSpot(distance, visorHeight + (distance * losSlope)));
+        horizontalDrift.add(FlSpot(distance, simpleDrift));
       }
     }
 
@@ -221,36 +264,65 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
     minDrop = lineOfSight.fold<double>(minDrop, (min, spot) => 
         spot.y.isFinite && spot.y < min ? spot.y : min);
 
-    // Ensure we have reasonable bounds to prevent division by zero
+    // Calculate horizontal drift bounds
+    double maxDrift = horizontalDrift.fold<double>(-double.infinity, (max, spot) => 
+        spot.y.isFinite && spot.y > max ? spot.y : max);
+    double minDrift = horizontalDrift.fold<double>(double.infinity, (min, spot) => 
+        spot.y.isFinite && spot.y < min ? spot.y : min);    // Ensure we have reasonable bounds to prevent division by zero
     if (!maxDrop.isFinite || !minDrop.isFinite || maxDrop == minDrop) {
       maxDrop = 0.1;  // 10cm
       minDrop = -0.05; // -5cm (scope height)
     }
 
+    if (!maxDrift.isFinite || !minDrift.isFinite || maxDrift == minDrift) {
+      // Set a reasonable default range for drift visualization
+      maxDrift = 0.02;  // 2cm
+      minDrift = -0.02; // -2cm
+    }
+
     // Ensure minimum range for grid intervals
-    final range = maxDrop - minDrop;
-    if (range < 0.01) { // Less than 1cm range
+    final dropRange = maxDrop - minDrop;
+    if (dropRange < 0.01) { // Less than 1cm range
       final center = (maxDrop + minDrop) / 2;
       maxDrop = center + 0.01;
       minDrop = center - 0.01;
     }
 
+    final driftRange = maxDrift - minDrift;
+    if (driftRange < 0.01) { // Less than 1cm range - ensure we can see small drift values
+      final center = (maxDrift + minDrift) / 2;
+      maxDrift = center + 0.005; // 0.5cm above center
+      minDrift = center - 0.005; // 0.5cm below center
+    }
+
     // Add padding to the chart
-    final padding = (maxDrop - minDrop) * 0.1;
-    maxDrop += padding;
-    minDrop -= padding;
+    final dropPadding = (maxDrop - minDrop) * 0.1;
+    maxDrop += dropPadding;
+    minDrop -= dropPadding;
+
+    final driftPadding = (maxDrift - minDrift) * 0.1;
+    maxDrift += driftPadding;
+    minDrift -= driftPadding;
 
     setState(() {
       trajectorySpots = trajectory;
       lineOfSightSpots = lineOfSight;
+      horizontalDriftSpots = horizontalDrift;
       _maxDistance = maxCalcDistance;
       _maxDrop = maxDrop;
       _minDrop = minDrop;
-    });
-
-    // Debug information
+      _maxDrift = maxDrift;
+      _minDrift = minDrift;
+    });    // Debug information
     print('Chart bounds: minDrop=${minDrop.toStringAsFixed(4)}m, maxDrop=${maxDrop.toStringAsFixed(4)}m');
-    print('Range: ${(maxDrop - minDrop).toStringAsFixed(4)}m');
+    print('Drift bounds: minDrift=${minDrift.toStringAsFixed(4)}m, maxDrift=${maxDrift.toStringAsFixed(4)}m');
+    print('Drop Range: ${(maxDrop - minDrop).toStringAsFixed(4)}m');
+    print('Drift Range: ${(maxDrift - minDrift).toStringAsFixed(4)}m');
+    print('Horizontal drift spots count: ${horizontalDrift.length}');
+    print('First few drift spots: ${horizontalDrift.take(5).map((spot) => 'x:${spot.x.toStringAsFixed(1)}, y:${spot.y.toStringAsFixed(4)}').toList()}');
+    if (horizontalDrift.length > 5) {
+      print('Last few drift spots: ${horizontalDrift.reversed.take(5).map((spot) => 'x:${spot.x.toStringAsFixed(1)}, y:${spot.y.toStringAsFixed(4)}').toList()}');
+    }
   }
 
   @override
@@ -300,7 +372,6 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                 ),
     );
   }
-
   Widget _buildChartHeader() {
     return Card(
       child: Padding(
@@ -308,12 +379,107 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Shot at ${widget.calculation.distance.toStringAsFixed(0)}m',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Shot at ${widget.calculation.distance.toStringAsFixed(0)}m',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),                // Vertical Drop Button
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedChartType = 0;
+                      });
+                    },
+                    child: Card(
+                      elevation: 4,
+                      color: _selectedChartType == 0 
+                        ? Theme.of(context).colorScheme.primary 
+                        : Theme.of(context).colorScheme.surface,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.arrow_downward,
+                              size: 24,
+                              color: _selectedChartType == 0
+                                ? Theme.of(context).colorScheme.onPrimary
+                                : Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Vertical Drop',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: _selectedChartType == 0
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Horizontal Drift Button
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedChartType = 1;
+                      });
+                    },
+                    child: Card(
+                      elevation: 4,
+                      color: _selectedChartType == 1 
+                        ? Theme.of(context).colorScheme.primary 
+                        : Theme.of(context).colorScheme.surface,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.arrow_forward,
+                              size: 24,
+                              color: _selectedChartType == 1
+                                ? Theme.of(context).colorScheme.onPrimary
+                                : Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Horizontal Drift',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: _selectedChartType == 1
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Text(
@@ -336,9 +502,23 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
         ),
       ),
     );
-  }
+  }  Widget _buildChart() {
+    // Determine which data to display based on selected chart type
+    final bool showVerticalDrop = _selectedChartType == 0;
+    final double minY = showVerticalDrop ? _minDrop : _minDrift;
+    final double maxY = showVerticalDrop ? _maxDrop : _maxDrift;
+    final double yInterval = (maxY - minY) > 0 ? (maxY - minY) / 10 : 0.01;
+    final double yAxisInterval = (maxY - minY) > 0 ? (maxY - minY) / 5 : 0.02;
 
-  Widget _buildChart() {
+    // Debug information for chart building
+    print('Building chart - Type: ${showVerticalDrop ? "Vertical Drop" : "Horizontal Drift"}');
+    print('Chart bounds: minY=${minY.toStringAsFixed(4)}, maxY=${maxY.toStringAsFixed(4)}');
+    print('Data points available: ${showVerticalDrop ? trajectorySpots.length : horizontalDriftSpots.length}');
+    
+    if (!showVerticalDrop) {
+      print('Horizontal drift spots preview: ${horizontalDriftSpots.take(3).map((s) => 'x:${s.x.toStringAsFixed(1)}, y:${s.y.toStringAsFixed(4)}').join(', ')}');
+    }
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -348,7 +528,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
               show: true,
               drawVerticalLine: true,
               // Ensure intervals are never zero
-              horizontalInterval: (_maxDrop - _minDrop) > 0 ? (_maxDrop - _minDrop) / 10 : 0.01,
+              horizontalInterval: yInterval,
               verticalInterval: _maxDistance > 0 ? _maxDistance / 10 : 10,
               getDrawingHorizontalLine: (value) {
                 return FlLine(
@@ -367,7 +547,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
               leftTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
-                  interval: (_maxDrop - _minDrop) > 0 ? (_maxDrop - _minDrop) / 5 : 0.02,
+                  interval: yAxisInterval,
                   getTitlesWidget: (value, meta) {
                     final cmValue = value * 100;
                     return Text(
@@ -400,10 +580,10 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
             ),
             minX: 0,
             maxX: _maxDistance,
-            minY: _minDrop,
-            maxY: _maxDrop,
-            lineBarsData: [
-              // Line of sight
+            minY: minY,
+            maxY: maxY,
+            lineBarsData: showVerticalDrop ? [
+              // Line of sight (only for vertical drop chart)
               LineChartBarData(
                 spots: lineOfSightSpots,
                 isCurved: false,
@@ -413,7 +593,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                 dotData: const FlDotData(show: false),
                 belowBarData: BarAreaData(show: false),
               ),
-              // Bullet trajectory
+              // Bullet trajectory (vertical drop)
               LineChartBarData(
                 spots: trajectorySpots,
                 isCurved: true,
@@ -432,6 +612,30 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                       color: Colors.orange,
                       strokeWidth: 2,
                       strokeColor: Colors.red,
+                    );
+                  },
+                ),
+                belowBarData: BarAreaData(show: false),
+              ),            ] : [
+              // Horizontal drift line (no line of sight needed)
+              LineChartBarData(
+                spots: horizontalDriftSpots,
+                isCurved: true,
+                color: Colors.green,
+                barWidth: 3,
+                isStrokeCapRound: true,
+                dotData: FlDotData(
+                  show: true,
+                  checkToShowDot: (spot, barData) {
+                    // Show dot at target distance
+                    return (spot.x - widget.calculation.distance).abs() < _maxDistance * 0.01;
+                  },
+                  getDotPainter: (spot, percent, barData, index) {
+                    return FlDotCirclePainter(
+                      radius: 6,
+                      color: Colors.orange,
+                      strokeWidth: 2,
+                      strokeColor: Colors.green,
                     );
                   },
                 ),
@@ -457,8 +661,8 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                     labelResolver: (line) => 'Target\n${widget.calculation.distance.toStringAsFixed(0)}m',
                   ),
                 ),
-                // Only show zero range line if it's greater than 0
-                if ((_selectedGun?.zeroRange ?? 0) > 0)
+                // Only show zero range line if it's greater than 0 and showing vertical drop
+                if (showVerticalDrop && (_selectedGun?.zeroRange ?? 0) > 0)
                   VerticalLine(
                     x: _selectedGun!.zeroRange,
                     color: Colors.green.withOpacity(0.6),
@@ -477,7 +681,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                   ),
               ],
               horizontalLines: [
-                // Zero line (bore axis)
+                // Zero line (centerline for both charts)
                 HorizontalLine(
                   y: 0,
                   color: Colors.grey.withOpacity(0.8),
@@ -486,14 +690,14 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                 ),
               ],
             ),
-            // ...existing other properties...
           ),
         ),
       ),
     );
   }
-
   Widget _buildLegend() {
+    final bool showVerticalDrop = _selectedChartType == 0;
+    
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -507,29 +711,42 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Container(
-                  width: 20,
-                  height: 3,
-                  color: Colors.blue,
-                ),
-                const SizedBox(width: 8),
-                Text(_buildLegendText()),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Container(
-                  width: 20,
-                  height: 3,
-                  color: Colors.red,
-                ),
-                const SizedBox(width: 8),
-                const Text('Bullet trajectory'),
-              ],
-            ),
+            if (showVerticalDrop) ...[
+              Row(
+                children: [
+                  Container(
+                    width: 20,
+                    height: 3,
+                    color: Colors.blue,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(_buildLegendText()),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Container(
+                    width: 20,
+                    height: 3,
+                    color: Colors.red,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text('Bullet trajectory (vertical drop)'),
+                ],
+              ),            ] else ...[
+              Row(
+                children: [
+                  Container(
+                    width: 20,
+                    height: 3,
+                    color: Colors.green,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text('Bullet drift (horizontal)'),
+                ],
+              ),
+            ],
             const SizedBox(height: 4),
             Row(
               children: [
@@ -542,7 +759,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                 const Text('Target distance'),
               ],
             ),
-            if ((_selectedGun?.zeroRange ?? 0) > 0) ...[
+            if (showVerticalDrop && (_selectedGun?.zeroRange ?? 0) > 0) ...[
               const SizedBox(height: 4),
               Row(
                 children: [
@@ -585,21 +802,28 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
       return 'Line of sight (zeroed)';
     }
   }
-
   String _buildDescriptionText() {
+    final bool showVerticalDrop = _selectedChartType == 0;
     final double visorHeight = (_selectedScope?.units == 0) 
         ? (_selectedScope?.sightHeight ?? 0) * 0.0254
         : (_selectedScope?.sightHeight ?? 0) * 0.01;
     final double zeroRange = _selectedGun?.zeroRange ?? 0;
 
-    String description = 'X-axis: Distance (m) • Y-axis: Height relative to bore (cm)\nPositive values = upward drop, negative values = downward drop';
+    String description;
     
-    if (visorHeight == 0.0 && zeroRange == 0.0) {
-      description += '\nLine of sight coincides with bore axis';
-    } else if (zeroRange == 0.0) {
-      description += '\nLine of sight is horizontal at scope height';
+    if (showVerticalDrop) {
+      description = 'X-axis: Distance (m) • Y-axis: Height relative to bore (cm)\nPositive values = upward drop, negative values = downward drop';
+      
+      if (visorHeight == 0.0 && zeroRange == 0.0) {
+        description += '\nLine of sight coincides with bore axis';
+      } else if (zeroRange == 0.0) {
+        description += '\nLine of sight is horizontal at scope height';
+      } else {
+        description += '\nLine of sight intersects trajectory at zero range';
+      }
     } else {
-      description += '\nLine of sight intersects trajectory at zero range';
+      description = 'X-axis: Distance (m) • Y-axis: Horizontal drift (cm)\nPositive values = drift to the right, negative values = drift to the left';
+      description += '\nShows bullet horizontal displacement due to wind, spin drift, and Coriolis effect';
     }
 
     return description;
