@@ -346,26 +346,26 @@ class BallisticsCalculator {
     // y' = lateral (wind drift direction)  
     // z' = perpendicular to shooting plane
     final double vxPrime = muzzleVelocity * cos(elevationAngleRad);
-    final double vzPrime = muzzleVelocity * sin(elevationAngleRad);
+    final double vzPrime = muzzleVelocity * sin(elevationAngleRad);    // Wind-jump: Apply initial lateral velocity with realistic magnitude
+    // For RH-twist the bullet jumps TOWARDS the wind
+    // Real magnitude ≈ 0.1-0.3 m/s per 5 m/s of cross-wind
+    final double deltaVy0 = 0.02 * crossWind;   // ~0.1 m/s with 5 m/s
     
-    // Calculate windage-jump parameters
-    final double fL = 1.25; // NATO standard lift factor
-    final double qm = 1.15; // NATO standard Magnus factor
-    
-    // Wind-jump: Apply initial lateral velocity once
-    // Simplified: d/(d/2)=2, 2*0.625 = 1.25
-    final double deltaVy0 = -1.25 * fL * qm * crossWind;
-    
-    // Initial state [x', y', z', vx', vy', vz', p] in shooting plane coordinates
+    // Wind-jump decay constant
+    const double dYaw = 35.0; // Decay rate for wind-jump effect
+      // Initial state [x', y', z', vx', vy', vz', p] in shooting plane coordinates
     List<double> state = [
       0.0, 0.0, 0.0,
       vxPrime, 
-      deltaVy0,  // Initial lateral velocity from wind-jump
+      0.0,  // No initial lateral velocity - wind-jump will be applied during simulation
       vzPrime,
       spinRate
     ];
     
-    print('Applied initial windage-jump: ${deltaVy0.toStringAsFixed(3)} m/s from crosswind ${crossWind.toStringAsFixed(3)} m/s');
+    // Initialize wind-jump effect that will decay over time
+    double vyJump = deltaVy0;
+    
+    print('Initial windage-jump velocity: ${deltaVy0.toStringAsFixed(3)} m/s from crosswind ${crossWind.toStringAsFixed(3)} m/s');
       double? driftH;
     double? dropZ;
     double timeOfFlight = 0.0; // Track time of flight
@@ -394,15 +394,17 @@ class BallisticsCalculator {
       
       final List<double> state4 = List.generate(7, (i) => state[i] + k3[i] * dt);
       final List<double> k4 = _calculateDerivatives(state4, windVectorLocal, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad, latitude);
-      
-      // Update state using RK4 formula
+        // Update state using RK4 formula
       for (int i = 0; i < 7; i++) {
         state[i] += dt / 6.0 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
       }
       
-      // Add advection effects - bullet moves with the air mass
-      state[0] += windHead * dt;   // advection in x′
-      state[1] += windSide * dt;   // advection in y′
+      // Apply decaying wind-jump effect
+      state[4] += vyJump * dt; // Add the jump effect to lateral velocity
+      vyJump *= exp(-dYaw * dt); // Exponential decay
+      
+      // Remove advection effects - wind only affects through aerodynamic forces
+      // The bullet does NOT move with the air mass
       
       // Update time of flight
       timeOfFlight += dt;
