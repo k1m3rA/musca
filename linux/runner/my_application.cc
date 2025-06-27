@@ -48,6 +48,18 @@ static void my_application_activate(GApplication* application) {
   }
 
   gtk_window_set_default_size(window, 1280, 720);
+  
+  // Set window icon
+  GError* icon_error = nullptr;
+  GdkPixbuf* icon = gdk_pixbuf_new_from_file("resources/window_icon.png", &icon_error);
+  if (icon) {
+    gtk_window_set_icon(window, icon);
+    g_object_unref(icon);
+  } else if (icon_error) {
+    g_warning("Failed to load window icon: %s", icon_error->message);
+    g_error_free(icon_error);
+  }
+  
   gtk_widget_show(GTK_WIDGET(window));
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
