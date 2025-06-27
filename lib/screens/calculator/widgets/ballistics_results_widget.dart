@@ -94,7 +94,11 @@ class _BallisticsResultsWidgetState extends State<BallisticsResultsWidget> {
       '1/4 MOA',
       '1/8 MOA',
       'Inches',
-      'Centimeters'
+      'Centimeters',
+      'm (absolute)',
+      'm (relative)',
+      'cm (absolute)',
+      'cm (relative)',
     ];
 
     return Row(
@@ -241,6 +245,22 @@ class _BallisticsResultsWidgetState extends State<BallisticsResultsWidget> {
         return {'drift': result.driftInches, 'drop': result.dropInches, 'unit': 'in'};
       case 'Centimeters':
         return {'drift': result.driftCm, 'drop': result.dropCm, 'unit': 'cm'};
+      case 'm (absolute)':
+        return {'drift': result.driftHorizontal, 'drop': result.dropVertical, 'unit': 'm (abs)'};
+      case 'm (relative)':
+        // Convert from mrad to meters at target distance
+        final driftMetersRelative = result.driftMrad * widget.distance / 1000.0;
+        final dropMetersRelative = result.dropMrad * widget.distance / 1000.0;
+        return {'drift': driftMetersRelative, 'drop': dropMetersRelative, 'unit': 'm (rel)'};
+      case 'cm (absolute)':
+        final driftCmAbs = result.driftHorizontal * 100.0;
+        final dropCmAbs = result.dropVertical * 100.0;
+        return {'drift': driftCmAbs, 'drop': dropCmAbs, 'unit': 'cm (abs)'};
+      case 'cm (relative)':
+        // Convert from mrad to cm at target distance
+        final driftCmRelative = result.driftMrad * widget.distance / 10.0;
+        final dropCmRelative = result.dropMrad * widget.distance / 10.0;
+        return {'drift': driftCmRelative, 'drop': dropCmRelative, 'unit': 'cm (rel)'};
       default:
         return {'drift': result.driftMrad, 'drop': result.dropMrad, 'unit': 'MRAD'};
     }
@@ -255,9 +275,13 @@ class _BallisticsResultsWidgetState extends State<BallisticsResultsWidget> {
         return 2;
       case '1/2 MOA':
       case 'cm':
+      case 'cm (abs)':
+      case 'cm (rel)':
         return 1;
       case '1/3 MOA':
       case '1/8 MOA':
+      case 'm (abs)':
+      case 'm (rel)':
         return 3;
       default:
         return 2;

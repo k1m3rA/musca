@@ -231,7 +231,6 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   Widget _buildCorrectionCard(String label, double value, String unit, IconData icon, String direction) {
-    final bool isNegative = value < 0;
     final String displayValue = value.abs().toStringAsFixed(_getPrecisionForUnit(unit));
     
     // Determine correct icon and direction based on correction type and value
@@ -312,9 +311,12 @@ class _HomeContentState extends State<HomeContent> {
       '1/3 MOA',
       '1/4 MOA',
       '1/8 MOA',
-      'Inches',
-      'Centimeters',
-      'Meters',
+      'm (absolute)',
+      'm (relative)',
+      'cm (absolute)',
+      'cm (relative)',
+      'in (absolute)',
+      'in (relative)',
     ];
   }  Map<String, dynamic> _getCorrectionsForUnit(String unit, Calculation calculation) {
     switch (unit) {
@@ -371,23 +373,55 @@ class _HomeContentState extends State<HomeContent> {
           'drop': dropClicks.toDouble(),
           'unit': '1/8 MOA'
         };
-      case 'Inches':
-        final driftInches = (calculation.driftHorizontal ?? 0) * 39.3701;
-        final dropInches = (calculation.dropVertical ?? 0) * 39.3701;
+      case 'm (absolute)':
         return {
-          'drift': driftInches,
-          'drop': dropInches,
-          'unit': 'in'
+          'drift': calculation.driftHorizontal ?? 0.0,
+          'drop': calculation.dropVertical ?? 0.0,
+          'unit': 'm (abs)'
         };
-      case 'Centimeters':
-        final driftCm = (calculation.driftHorizontal ?? 0) * 100;
-        final dropCm = (calculation.dropVertical ?? 0) * 100;
+      case 'm (relative)':
+        // Convert from mrad to meters at target distance
+        final driftMetersRelative = (calculation.driftMrad ?? 0.0) * calculation.distance / 1000.0;
+        final dropMetersRelative = (calculation.dropMrad ?? 0.0) * calculation.distance / 1000.0;
         return {
-          'drift': driftCm,
-          'drop': dropCm,
-          'unit': 'cm'
+          'drift': driftMetersRelative,
+          'drop': dropMetersRelative,
+          'unit': 'm (rel)'
         };
-      case 'Meters':
+      case 'cm (absolute)':
+        final driftCmAbs = (calculation.driftHorizontal ?? 0) * 100;
+        final dropCmAbs = (calculation.dropVertical ?? 0) * 100;
+        return {
+          'drift': driftCmAbs,
+          'drop': dropCmAbs,
+          'unit': 'cm (abs)'
+        };
+      case 'cm (relative)':
+        // Convert from mrad to cm at target distance
+        final driftCmRelative = (calculation.driftMrad ?? 0.0) * calculation.distance / 10.0;
+        final dropCmRelative = (calculation.dropMrad ?? 0.0) * calculation.distance / 10.0;
+        return {
+          'drift': driftCmRelative,
+          'drop': dropCmRelative,
+          'unit': 'cm (rel)'
+        };
+      case 'in (absolute)':
+        final driftInchesAbs = (calculation.driftHorizontal ?? 0) * 39.3701;
+        final dropInchesAbs = (calculation.dropVertical ?? 0) * 39.3701;
+        return {
+          'drift': driftInchesAbs,
+          'drop': dropInchesAbs,
+          'unit': 'in (abs)'
+        };
+      case 'in (relative)':
+        // Convert from mrad to inches at target distance
+        final driftInchesRelative = (calculation.driftMrad ?? 0.0) * calculation.distance / 1000.0 * 39.3701;
+        final dropInchesRelative = (calculation.dropMrad ?? 0.0) * calculation.distance / 1000.0 * 39.3701;
+        return {
+          'drift': driftInchesRelative,
+          'drop': dropInchesRelative,
+          'unit': 'in (rel)'
+        };
       default:
         return {
           'drift': calculation.driftHorizontal ?? 0.0,
@@ -408,11 +442,16 @@ class _HomeContentState extends State<HomeContent> {
       case '1/4 MOA':
       case '1/8 MOA':
         return 0; // Show whole clicks
-      case 'in':
+      case 'in (abs)':
+      case 'in (rel)':
         return 2;
       case 'cm':
+      case 'cm (abs)':
+      case 'cm (rel)':
         return 1;
       case 'm':
+      case 'm (abs)':
+      case 'm (rel)':
         return 3;
       default:
         return 2;
@@ -686,9 +725,12 @@ class _CalculationCardState extends State<CalculationCard> {
                         const DropdownMenuItem(value: '1/3 MOA', child: Text('1/3 MOA')),
                         const DropdownMenuItem(value: '1/4 MOA', child: Text('1/4 MOA')),
                         const DropdownMenuItem(value: '1/8 MOA', child: Text('1/8 MOA')),
-                        const DropdownMenuItem(value: 'Inches', child: Text('Inches')),
-                        const DropdownMenuItem(value: 'Centimeters', child: Text('Centimeters')),
-                        const DropdownMenuItem(value: 'Meters', child: Text('Meters')),
+                        const DropdownMenuItem(value: 'm (absolute)', child: Text('m (absolute)')),
+                        const DropdownMenuItem(value: 'm (relative)', child: Text('m (relative)')),
+                        const DropdownMenuItem(value: 'cm (absolute)', child: Text('cm (absolute)')),
+                        const DropdownMenuItem(value: 'cm (relative)', child: Text('cm (relative)')),
+                        const DropdownMenuItem(value: 'in (absolute)', child: Text('in (absolute)')),
+                        const DropdownMenuItem(value: 'in (relative)', child: Text('in (relative)')),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -757,23 +799,49 @@ class _CalculationCardState extends State<CalculationCard> {
         dropValue = dropClicks.toString();
         unit = '1/8 MOA';
         break;
-      case 'Inches':
-        // Convert from meters to inches
-        final driftInches = (widget.calculation.driftHorizontal ?? 0) * 39.3701;
-        final dropInches = (widget.calculation.dropVertical ?? 0) * 39.3701;
-        driftValue = driftInches.toStringAsFixed(2);
-        dropValue = dropInches.toStringAsFixed(2);
-        unit = 'in';
+      case 'in (absolute)':
+        final driftInchesAbs = (widget.calculation.driftHorizontal ?? 0) * 39.3701;
+        final dropInchesAbs = (widget.calculation.dropVertical ?? 0) * 39.3701;
+        driftValue = driftInchesAbs.toStringAsFixed(2);
+        dropValue = dropInchesAbs.toStringAsFixed(2);
+        unit = 'in (abs)';
         break;
-      case 'Centimeters':
-        // Convert from meters to centimeters
-        final driftCm = (widget.calculation.driftHorizontal ?? 0) * 100;
-        final dropCm = (widget.calculation.dropVertical ?? 0) * 100;
-        driftValue = driftCm.toStringAsFixed(1);
-        dropValue = dropCm.toStringAsFixed(1);
-        unit = 'cm';
+      case 'in (relative)':
+        // Convert from mrad to inches at target distance
+        final driftInchesRelative = (widget.calculation.driftMrad ?? 0.0) * widget.calculation.distance / 1000.0 * 39.3701;
+        final dropInchesRelative = (widget.calculation.dropMrad ?? 0.0) * widget.calculation.distance / 1000.0 * 39.3701;
+        driftValue = driftInchesRelative.toStringAsFixed(2);
+        dropValue = dropInchesRelative.toStringAsFixed(2);
+        unit = 'in (rel)';
         break;
-      case 'Meters':
+      case 'm (absolute)':
+        driftValue = widget.calculation.driftHorizontal?.toStringAsFixed(3) ?? '0.000';
+        dropValue = widget.calculation.dropVertical?.toStringAsFixed(3) ?? '0.000';
+        unit = 'm (abs)';
+        break;
+      case 'm (relative)':
+        // Convert from mrad to meters at target distance
+        final driftMetersRelative = (widget.calculation.driftMrad ?? 0.0) * widget.calculation.distance / 1000.0;
+        final dropMetersRelative = (widget.calculation.dropMrad ?? 0.0) * widget.calculation.distance / 1000.0;
+        driftValue = driftMetersRelative.toStringAsFixed(3);
+        dropValue = dropMetersRelative.toStringAsFixed(3);
+        unit = 'm (rel)';
+        break;
+      case 'cm (absolute)':
+        final driftCmAbs = (widget.calculation.driftHorizontal ?? 0) * 100;
+        final dropCmAbs = (widget.calculation.dropVertical ?? 0) * 100;
+        driftValue = driftCmAbs.toStringAsFixed(1);
+        dropValue = dropCmAbs.toStringAsFixed(1);
+        unit = 'cm (abs)';
+        break;
+      case 'cm (relative)':
+        // Convert from mrad to cm at target distance
+        final driftCmRelative = (widget.calculation.driftMrad ?? 0.0) * widget.calculation.distance / 10.0;
+        final dropCmRelative = (widget.calculation.dropMrad ?? 0.0) * widget.calculation.distance / 10.0;
+        driftValue = driftCmRelative.toStringAsFixed(1);
+        dropValue = dropCmRelative.toStringAsFixed(1);
+        unit = 'cm (rel)';
+        break;
       default:
         driftValue = widget.calculation.driftHorizontal?.toStringAsFixed(3) ?? '0.000';
         dropValue = widget.calculation.dropVertical?.toStringAsFixed(3) ?? '0.000';
