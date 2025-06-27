@@ -3,6 +3,17 @@ import '../models/gun_model.dart';
 import '../models/cartridge_model.dart';
 import '../models/scope_model.dart';
 
+/// Internal class to store the fixed Line of Sight reference
+class _LosReference {
+  final double slope;
+  final double zAtZero;
+
+  _LosReference({
+    required this.slope,
+    required this.zAtZero,
+  });
+}
+
 class BallisticsResult {
   // Raw displacement values
   final double driftHorizontal; // meters
@@ -254,6 +265,7 @@ class BallisticsCalculator {
   /// - azimuthAngle: azimuth angle in degrees (0-360)
   /// - slopeAngle: terrain slope angle in degrees (-90 to +90, positive = uphill)
   /// - latitude: latitude in degrees (positive = North, negative = South)
+  /// - fixedLosSlope: optional fixed LOS slope from zeroing (overrides internal LOS calculation)
   static BallisticsResult calculateWithProfiles(
     double distance, 
     double windSpeed,
@@ -268,6 +280,7 @@ class BallisticsCalculator {
     double azimuthAngle = 0.0,
     double slopeAngle = 0.0,
     double latitude = 0.0,
+    double? fixedLosSlope,
   }) {
     // Strict validation - no fallbacks allowed
     if (gun == null) {
@@ -449,13 +462,20 @@ class BallisticsCalculator {
     final double trajY = driftH ?? 0.0;
     final double D = distance;
     
-    // Enhanced line of sight calculation with multiple fallback mechanisms
+    // Enhanced line of sight calculation with fixed LOS support and elevation correction
     double losHeightAtTarget;
     
-    if (calibrationDistance == 0.0) {
-      // No zero range - horizontal line of sight from scope height
-      losHeightAtTarget = visorHeight;
-      print('Zero range = 0: Using horizontal line of sight at scope height ${visorHeight.toStringAsFixed(4)}m');
+    if (fixedLosSlope != null) {
+      // Use the fixed LOS slope from zeroing and apply current elevation angle
+      // The LOS rotates with the weapon when elevated, maintaining the same relationship to the bore
+      final double losAngle = atan(fixedLosSlope) + elevationAngleRad;
+      losHeightAtTarget = visorHeight + tan(losAngle) * D;
+      print('Using FIXED LOS slope = ${fixedLosSlope.toStringAsFixed(6)} with elevation angle = ${elevationAngle.toStringAsFixed(2)}°');
+      print('Combined LOS angle = ${(losAngle * 180 / pi).toStringAsFixed(4)}°, height at ${D}m = ${losHeightAtTarget.toStringAsFixed(4)}m');
+    } else if (calibrationDistance == 0.0) {
+      // No zero range - horizontal line of sight from scope height, but apply elevation
+      losHeightAtTarget = visorHeight + tan(elevationAngleRad) * D;
+      print('Zero range = 0: Using horizontal LOS with elevation angle = ${elevationAngle.toStringAsFixed(2)}°');
     } else if (!gotZero) {
       // Failed to capture zero height - use ballistic approximation as fallback
       print('Warning: Failed to capture bullet height at zero range ${calibrationDistance}m, using ballistic approximation');
@@ -467,17 +487,21 @@ class BallisticsCalculator {
       // Estimate bullet height at zero (positive = above bore)
       zAtZero = estimatedDropAtZero; // Simple drop calculation
       
-      // Calculate line of sight slope and height at target
+      // Calculate line of sight slope and apply elevation
       final double losSlope = (zAtZero - visorHeight) / calibrationDistance;
-      losHeightAtTarget = visorHeight + losSlope * D;
+      final double losAngle = atan(losSlope) + elevationAngleRad;
+      losHeightAtTarget = visorHeight + tan(losAngle) * D;
       
       print('Fallback: Estimated bullet height at zero = ${zAtZero.toStringAsFixed(4)}m, LOS slope = ${losSlope.toStringAsFixed(6)}');
+      print('With elevation angle = ${elevationAngle.toStringAsFixed(2)}°, combined LOS angle = ${(losAngle * 180 / pi).toStringAsFixed(4)}°');
     } else {
-      // Successfully captured zero height - calculate proper line of sight
+      // Successfully captured zero height - calculate dynamic line of sight (backward compatibility)
       final double losSlope = (zAtZero - visorHeight) / calibrationDistance;
-      losHeightAtTarget = visorHeight + losSlope * D;
+      final double losAngle = atan(losSlope) + elevationAngleRad;
+      losHeightAtTarget = visorHeight + tan(losAngle) * D;
       
-      print('Normal calculation: Zero height = ${zAtZero.toStringAsFixed(4)}m, scope height = ${visorHeight.toStringAsFixed(4)}m, LOS slope = ${losSlope.toStringAsFixed(6)}');
+      print('Dynamic LOS calculation: Zero height = ${zAtZero.toStringAsFixed(4)}m, scope height = ${visorHeight.toStringAsFixed(4)}m, LOS slope = ${losSlope.toStringAsFixed(6)}');
+      print('With elevation angle = ${elevationAngle.toStringAsFixed(2)}°, combined LOS angle = ${(losAngle * 180 / pi).toStringAsFixed(4)}°');
     }
     
     // Calculate differences between trajectory and line of sight
@@ -736,6 +760,8 @@ class BallisticsCalculator {
   /// - elevationAngle: elevation angle in degrees
   /// - azimuthAngle: azimuth angle in degrees
   /// - slopeAngle: terrain slope angle in degrees
+  /// - latitude: latitude in degrees
+  /// - fixedLosSlope: optional fixed LOS slope from zeroing
   static List<BallisticsResult> generateBallisticTable(
     double startDistance,
     double endDistance,
@@ -751,7 +777,8 @@ class BallisticsCalculator {
     double elevationAngle = 0.0,
     double azimuthAngle = 0.0,
     double slopeAngle = 0.0,
-    double latitude = 0.0, // Add latitude parameter
+    double latitude = 0.0,
+    double? fixedLosSlope,
   }) {
     final List<BallisticsResult> results = [];
     
@@ -776,7 +803,8 @@ class BallisticsCalculator {
           elevationAngle: elevationAngle,
           azimuthAngle: azimuthAngle,
           slopeAngle: slopeAngle,
-          latitude: latitude, // Pass the latitude
+          latitude: latitude,
+          fixedLosSlope: fixedLosSlope,
         );
         results.add(result);
       } catch (e) {
@@ -811,5 +839,170 @@ class BallisticsCalculator {
     }
     
     return results;
+  }
+  
+  /// Calculates the reference LOS slope and intercept from a zeroing trajectory.
+  /// This is only called ONCE to establish the fixed LOS baseline.
+  /// Uses neutral conditions (no wind, no slope, no elevation) to determine the baseline LOS.
+  /// 
+  /// IMPORTANT: The returned slope is relative to horizontal (0° elevation).
+  /// When the weapon is elevated, this base slope gets combined with the elevation angle
+  /// because the scope is rigidly mounted to the weapon and rotates with it.
+  /// 
+  /// Physics: LOS_angle_actual = atan(base_slope) + elevation_angle
+  static _LosReference calculateLosReference(
+    Gun gun,
+    Cartridge cartridge,
+    Scope scope, {
+    required double temperature,
+    required double pressure,
+    required double humidity,
+    double latitude = 0.0,
+  }) {
+    // Validate that zero range is set
+    if (gun.zeroRange <= 0) {
+      throw ArgumentError('Gun zero range must be greater than 0 to calculate LOS reference');
+    }
+    
+    print('Calculating fixed LOS reference at ${gun.zeroRange}m under neutral conditions (0° elevation)');
+    
+    // Calculate scope height in meters
+    final double sightHeightValue = scope.sightHeight;
+    final int sightHeightUnits = scope.units;
+    final double visorHeight = sightHeightUnits == 0 
+        ? sightHeightValue * 0.0254  // inches to meters
+        : sightHeightValue * 0.01;   // cm to meters
+    
+    // Simulate a "neutral" trajectory (no wind, no slope, no elevation angle)
+    // This represents the horizontal conditions under which the scope was zeroed
+    final BallisticsResult zeroResult = calculateWithProfiles(
+      gun.zeroRange,
+      0.0, // windSpeed = 0 (no wind)
+      0.0, // windDirection = 0
+      gun,
+      cartridge,
+      scope,
+      temperature: temperature,
+      pressure: pressure,
+      humidity: humidity,
+      elevationAngle: 0.0, // CRITICAL: no elevation angle for baseline
+      slopeAngle: 0.0,     // no slope
+      latitude: latitude,
+      fixedLosSlope: null, // Don't use fixed LOS for this reference calculation
+    );
+
+    // Get the bullet height at zero distance from the neutral trajectory
+    final double zAtZero = zeroResult.dropVertical;
+
+    // Compute LOS slope: rise over run from scope height to bullet height at zero
+    // This is the baseline slope relative to horizontal (0° elevation)
+    final double losSlope = (zAtZero - visorHeight) / gun.zeroRange;
+
+    print('LOS reference calculated: scope height = ${visorHeight.toStringAsFixed(4)}m, '
+          'bullet height at ${gun.zeroRange}m = ${zAtZero.toStringAsFixed(4)}m, '
+          'baseline LOS slope = ${losSlope.toStringAsFixed(6)} (relative to horizontal)');
+    print('Baseline LOS angle = ${(atan(losSlope) * 180 / pi).toStringAsFixed(4)}°');
+
+    return _LosReference(
+      slope: losSlope,
+      zAtZero: zAtZero,
+    );
+  }
+
+  /// Convenience method that automatically calculates and uses fixed LOS slope
+  /// This is the recommended way to use the ballistics calculator for realistic results
+  static BallisticsResult calculateWithFixedLos(
+    double distance, 
+    double windSpeed,
+    double windDirection,
+    Gun gun,
+    Cartridge cartridge,
+    Scope scope, {
+    required double temperature,
+    required double pressure,     
+    required double humidity,
+    double elevationAngle = 0.0,
+    double azimuthAngle = 0.0,
+    double slopeAngle = 0.0,
+    double latitude = 0.0,
+  }) {
+    // First calculate the fixed LOS reference under neutral conditions
+    final _LosReference losRef = calculateLosReference(
+      gun,
+      cartridge,
+      scope,
+      temperature: temperature,
+      pressure: pressure,
+      humidity: humidity,
+      latitude: latitude,
+    );
+    
+    // Then calculate ballistics using the fixed LOS slope
+    return calculateWithProfiles(
+      distance,
+      windSpeed,
+      windDirection,
+      gun,
+      cartridge,
+      scope,
+      temperature: temperature,
+      pressure: pressure,
+      humidity: humidity,
+      elevationAngle: elevationAngle,
+      azimuthAngle: azimuthAngle,
+      slopeAngle: slopeAngle,
+      latitude: latitude,
+      fixedLosSlope: losRef.slope,
+    );
+  }
+
+  /// Generate a ballistic table with fixed LOS (recommended method)
+  static List<BallisticsResult> generateBallisticTableWithFixedLos(
+    double startDistance,
+    double endDistance,
+    double interval,
+    double windSpeed,
+    double windDirection,
+    Gun gun,
+    Cartridge cartridge,
+    Scope scope, {
+    required double temperature,
+    required double pressure,
+    required double humidity,
+    double elevationAngle = 0.0,
+    double azimuthAngle = 0.0,
+    double slopeAngle = 0.0,
+    double latitude = 0.0,
+  }) {
+    // Calculate the fixed LOS reference once
+    final _LosReference losRef = calculateLosReference(
+      gun,
+      cartridge,
+      scope,
+      temperature: temperature,
+      pressure: pressure,
+      humidity: humidity,
+      latitude: latitude,
+    );
+    
+    // Generate table using the fixed LOS slope
+    return generateBallisticTable(
+      startDistance,
+      endDistance,
+      interval,
+      windSpeed,
+      windDirection,
+      gun,
+      cartridge,
+      scope,
+      temperature: temperature,
+      pressure: pressure,
+      humidity: humidity,
+      elevationAngle: elevationAngle,
+      azimuthAngle: azimuthAngle,
+      slopeAngle: slopeAngle,
+      latitude: latitude,
+      fixedLosSlope: losRef.slope,
+    );
   }
 }
