@@ -163,7 +163,7 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
           _buildInputRow(
             controller: widget.pressureController,
             label: 'Pressure',
-            suffix: 'mbar/Pa',
+            suffix: 'mbar',
             onIncrease: () => widget.onUpdatePressure(widget.scrollStep * 2),
             onDecrease: () => widget.onUpdatePressure(-widget.scrollStep * 2),
             onDrag: (delta) => widget.onUpdatePressure(-delta * 0.5),
