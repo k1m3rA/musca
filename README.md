@@ -1,5 +1,5 @@
 # 🪰 Musca
-![App Icon](assets\icon\iconos\android\res\mipmap-xxxhdpi\ic_launcher.png)
+![App Icon](assets/icon/iconos/android/res/mipmap-xxxhdpi/ic_launcher.png)
 
 **Advanced mobile ballistics application for precision shooters**
 
