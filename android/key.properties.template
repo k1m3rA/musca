@@ -1,0 +1,7 @@
+# Copy this file to android/key.properties and fill in your signing values.
+# Do NOT commit the real key.properties to version control.
+
+storePassword=changeit
+keyPassword=changeit
+keyAlias=my-key-alias
+storeFile=../keystore/my-release-key.jks
