@@ -6,6 +6,7 @@ import '../../services/cartridge_storage.dart'; // Add import for CartridgeStora
 import '../../services/scope_storage.dart'; // Add import for ScopeStorage
 import '../../services/api_key_service.dart';
 import '../../services/weather_service.dart';
+import '../privacy/privacy_policy_screen.dart';
 
 class SettingsPage extends StatefulWidget {
   final ValueChanged<ThemeMode> onThemeChanged;
@@ -547,6 +548,46 @@ class _SettingsPageState extends State<SettingsPage> {
                           const SizedBox(height: 6),
                           Text(
                             'Configure Weather API',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Privacy Policy Button
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PrivacyPolicyScreen(),
+                      ),
+                    );
+                  },
+                  child: Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.privacy_tip,
+                            size: 32,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Privacy Policy',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
