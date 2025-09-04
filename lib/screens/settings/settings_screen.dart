@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../services/calculation_storage.dart';
 import '../../services/cartridge_storage.dart'; // Add import for CartridgeStorage
 import '../../services/scope_storage.dart'; // Add import for ScopeStorage
+import '../../services/api_key_service.dart';
+import '../../services/weather_service.dart';
 
 class SettingsPage extends StatefulWidget {
   final ValueChanged<ThemeMode> onThemeChanged;
@@ -14,6 +18,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   ThemeMode _selectedTheme = ThemeMode.light;
   bool _isInitialized = false;
+  bool _isApiConfigured = false;
 
   @override
   void didChangeDependencies() {
@@ -22,7 +27,15 @@ class _SettingsPageState extends State<SettingsPage> {
       final brightness = Theme.of(context).brightness;
       _selectedTheme = brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light;
       _isInitialized = true;
+      _checkApiStatus();
     }
+  }
+
+  Future<void> _checkApiStatus() async {
+    final isConfigured = await WeatherService.isApiConfigured();
+    setState(() {
+      _isApiConfigured = isConfigured;
+    });
   }
 
   void _updateTheme(ThemeMode theme) {
@@ -232,6 +245,184 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  // Method to open URL with fallback for web
+  Future<void> _launchUrl(String url) async {
+    try {
+      final Uri uri = Uri.parse(url);
+      
+      if (kIsWeb) {
+        // For web, try external mode first
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          // Fallback: show URL in a dialog for manual copying
+          _showUrlDialog(url);
+        }
+      } else {
+        // For mobile platforms
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+        } else {
+          throw 'Could not launch $url';
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        // Show URL in dialog as fallback
+        _showUrlDialog(url);
+      }
+    }
+  }
+
+  // Fallback method to show URL in dialog
+  void _showUrlDialog(String url) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Open Link'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Copy this URL to your browser:'),
+              const SizedBox(height: 8),
+              SelectableText(
+                url,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Method to show Weather API key configuration dialog
+  Future<void> _showWeatherApiKeyDialog() async {
+    final TextEditingController apiKeyController = TextEditingController();
+    
+    // Load current API key if exists
+    final currentApiKey = await ApiKeyService.getWeatherApiKey();
+    if (currentApiKey != null) {
+      apiKeyController.text = currentApiKey;
+    }
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Configure Weather API Key'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Enter your Free Weather API key from weatherapi.com:',
+                style: TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: apiKeyController,
+                decoration: const InputDecoration(
+                  labelText: 'API Key',
+                  hintText: 'Enter your weather API key',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 1,
+              ),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () => _launchUrl('https://www.weatherapi.com/'),
+                child: RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'Get your free API key at: ',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      TextSpan(
+                        text: 'https://www.weatherapi.com/',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.primary,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Clear'),
+              onPressed: () async {
+                await ApiKeyService.removeWeatherApiKey();
+                await _checkApiStatus(); // Update status
+                Navigator.of(dialogContext).pop();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Weather API key removed'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+            ),
+            TextButton(
+              child: const Text('Save'),
+              onPressed: () async {
+                final apiKey = apiKeyController.text.trim();
+                if (apiKey.isNotEmpty) {
+                  await ApiKeyService.saveWeatherApiKey(apiKey);
+                  await _checkApiStatus(); // Update status
+                  Navigator.of(dialogContext).pop();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Weather API key saved successfully'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                } else {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter a valid API key'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -303,6 +494,70 @@ class _SettingsPageState extends State<SettingsPage> {
                   ],
                 ),
                 
+                const SizedBox(height: 32),
+                
+                // API Configuration Section
+                const Divider(),
+                const SizedBox(height: 16),
+                
+                // Weather API Key Configuration Button
+                GestureDetector(
+                  onTap: _showWeatherApiKeyDialog,
+                  child: Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.api,
+                                size: 32,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: _isApiConfigured 
+                                    ? Colors.green.withOpacity(0.1)
+                                    : Colors.orange.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: _isApiConfigured ? Colors.green : Colors.orange,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  _isApiConfigured ? 'Configured' : 'Not Set',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: _isApiConfigured ? Colors.green : Colors.orange,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Configure Weather API',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 32),
                 
                 // Data Management Section

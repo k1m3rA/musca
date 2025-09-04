@@ -46,6 +46,8 @@ dependencies:
   fl_chart: ^0.68.0
   pdf: ^3.10.7
   printing: ^5.11.1
+  url_launcher: ^6.3.1  # Added for opening URLs
+  url_launcher_web: ^2.3.3  # Added for web support
 
 dev_dependencies:
   flutter_test:
@@ -78,7 +80,7 @@ flutter:
 
   assets:
     - assets/icon/
-    - assets/icon.png
+    - assets/icon/iconos/android/res/mipmap-xxxhdpi/ic_launcher.png
 
 flutter_icons:
   android: true

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:musca/config/api_keys.dart';
+import '../../../services/weather_service.dart';
+import '../../../services/weather_api_exceptions.dart';
 
 class EnvironmentalInput extends StatefulWidget {
   final TextEditingController temperatureController;
@@ -34,6 +33,7 @@ class EnvironmentalInput extends StatefulWidget {
 class _EnvironmentalInputState extends State<EnvironmentalInput> {
   bool _isLoading = false;
   String _errorMessage = '';
+  WeatherApiError? _apiErrorType;
   double _latitude = 0.0; // Add state variable for latitude
   
   @override
@@ -69,7 +69,8 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-        // Update latitude and notify parent
+      
+      // Update latitude and notify parent
       setState(() {
         _latitude = position.latitude;
       });
@@ -82,25 +83,26 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
         widget.onUpdateLatitude!(_latitude);
       }
       
-      // Fetch weather data using WeatherAPI.com
-      final apiKey = ApiKeys.weatherApi;
-      final response = await http.get(
-        Uri.parse('http://api.weatherapi.com/v1/current.json?key=$apiKey&q=${position.latitude},${position.longitude}&aqi=no'),
+      // Fetch weather data using the new weather service
+      final weatherData = await WeatherService.getWeatherData(
+        position.latitude, 
+        position.longitude
       );
       
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        
-        // Update controller values with fetched data
-        widget.temperatureController.text = data['current']['temp_c'].toStringAsFixed(1);
-        widget.pressureController.text = data['current']['pressure_mb'].toString();
-        widget.humidityController.text = data['current']['humidity'].toString();
-      } else {
-        throw Exception('Failed to load weather data: ${response.statusCode}');
-      }
+      // Update controller values with fetched data
+      widget.temperatureController.text = weatherData.temperature.toStringAsFixed(1);
+      widget.pressureController.text = weatherData.pressure.toString();
+      widget.humidityController.text = weatherData.humidity.toString();
+      
+    } on WeatherApiException catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _apiErrorType = e.type;
+      });
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();
+        _apiErrorType = null;
       });
     } finally {
       setState(() {
@@ -108,6 +110,7 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
       });
     }
   }
+
     @override
   Widget build(BuildContext context) {    
     return Container(
@@ -135,7 +138,10 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
               child: Center(child: CircularProgressIndicator()),
             ),
             
-          if (_errorMessage.isNotEmpty)
+          // Show general error message only if it's not an API-related error (to avoid duplication)
+          if (_errorMessage.isNotEmpty && 
+              _apiErrorType != WeatherApiError.noApiKey && 
+              _apiErrorType != WeatherApiError.invalidApiKey)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: Text(
@@ -145,6 +151,53 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
             ),
           
           const SizedBox(height: 10),
+          
+          // API Warning (if there's an API-related error)
+          if (_apiErrorType == WeatherApiError.noApiKey || _apiErrorType == WeatherApiError.invalidApiKey)
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.1),
+                border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.orange,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _apiErrorType == WeatherApiError.noApiKey 
+                            ? 'Weather API not configured'
+                            : 'Invalid Weather API key',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange[800],
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Configure in Settings > Configure Weather API',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.orange[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           
           // Temperature input
           _buildInputRow(
