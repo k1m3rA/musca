@@ -7,12 +7,12 @@ Musca is a Flutter application that provides professional ballistic calculations
 
 ## ✨ Key Features
 
-- 🔫 **Weapon Profiles**: Full rifle configuration with muzzle velocity, twist rate and zero distance
-- 📦 **Ammunition Management**: Cartridge database with G1/G7 ballistic coefficients
-- 🔭 **Optics Configuration**: Support for different sight heights and units
-- 🌍 **Environmental Conditions**: Automatically calculates the effects of temperature, pressure, humidity, and latitude using [Free Weather API](https://www.weatherapi.com/). 
-- 📊 **Ballistic Tables**: Automatic generation of firing tables
-- 🧭 **Advanced Effects**: Coriolis, Magnus, windage jump and slope correction
+-  **Weapon Profiles**: Full rifle configuration with muzzle velocity, twist rate and zero distance
+-  **Ammunition Management**: Cartridge database with G1/G7 ballistic coefficients
+-  **Optics Configuration**: Support for different sight heights and units
+-  **Environmental Conditions**: Automatically calculates the effects of temperature, pressure, humidity, and latitude using [Free Weather API](https://www.weatherapi.com/). 
+-  **Ballistic Tables**: Automatic generation of firing tables
+-  **Advanced Effects**: Coriolis, Magnus, windage jump and slope correction
 
 ## 🚀 Installation
 
