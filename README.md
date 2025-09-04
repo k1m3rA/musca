@@ -1,44 +1,55 @@
-# 🎯 Musca
+# 🪰 Musca
+![App Icon](assets\icon\iconos\android\res\mipmap-xxxhdpi\ic_launcher.png)
 
-**Aplicación móvil avanzada de balística para tiradores de precisión**
+**Advanced mobile ballistics application for precision shooters**
 
-Musca es una aplicación Flutter que proporciona cálculos balísticos profesionales con soporte para múltiples perfiles de armas, munición y condiciones ambientales.
+Musca is a Flutter application that provides professional ballistic calculations with support for multiple weapon profiles, ammunition, and environmental conditions.
 
-## ✨ Características Principales
+## ✨ Key Features
 
-- 🔫 **Perfiles de Armas**: Configuración completa de rifles con velocidad inicial, twist rate y distancia de cero
-- 📦 **Gestión de Munición**: Base de datos de cartuchos con coeficientes balísticos G1/G7
-- 🔭 **Configuración de Ópticas**: Soporte para diferentes alturas de mira y unidades
-- 🌍 **Condiciones Ambientales**: Temperatura, presión, humedad y efectos de latitud
-- 📊 **Tablas Balísticas**: Generación automática de tablas de tiro
-- 🧭 **Efectos Avanzados**: Coriolis, Magnus, windage jump y corrección por pendiente
+- 🔫 **Weapon Profiles**: Full rifle configuration with muzzle velocity, twist rate and zero distance
+- 📦 **Ammunition Management**: Cartridge database with G1/G7 ballistic coefficients
+- 🔭 **Optics Configuration**: Support for different sight heights and units
+- 🌍 **Environmental Conditions**: Automatically calculates the effects of temperature, pressure, humidity, and latitude using [Free Weather API](https://www.weatherapi.com/). 
+- 📊 **Ballistic Tables**: Automatic generation of firing tables
+- 🧭 **Advanced Effects**: Coriolis, Magnus, windage jump and slope correction
 
-## 🚀 Instalación
+## 🚀 Installation
 
 ```bash
-# Clonar el repositorio
-git clone https://github.com/tu-usuario/musca.git
+# Clone the repository
+git clone https://github.com/your-username/musca.git
 
-# Instalar dependencias
+# Install dependencies
 flutter pub get
 
-# Ejecutar la aplicación
+# Run the app
 flutter run
 ```
+## 🌤️ Free Weather API (Configuration)
 
-## 🛠️ Tecnologías
+Musca can use the [Free Weather API](https://www.weatherapi.com/) to fetch environmental conditions. Set your API key in:
+- `lib/config/api_keys.dart`
 
-- **Flutter** - Framework multiplataforma
-- **Dart** - Lenguaje de programación
-- **Física Balística** - Algoritmos de simulación avanzados
+Use `lib/config/api_keys_template.dart` as a template if you don't have the file yet.
 
-## 📱 Plataformas Soportadas
+## 🛠️ Technologies
+
+- **Flutter** - Cross-platform framework
+- **Dart** - Programming language
+- **Ballistics Physics** - Advanced simulation algorithms
+
+## 📱 Supported Platforms
 
 - ✅ Android
 - ✅ iOS  
 - ✅ Windows
+- ✅ Linux
 - ✅ Web
 
-## 📄 Licencia
+---
 
-Este proyecto está bajo la Licencia MIT
+## 📄 License
+
+This project is licensed under the terms of the [GNU General Public License v3.0](LICENSE).
+
