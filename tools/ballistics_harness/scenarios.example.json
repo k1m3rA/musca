@@ -109,6 +109,48 @@
         "ballisticCoefficient": 0.218,
         "name": "Default Test .308 G7"
       }
+    },
+    {
+      "id": "uphill-15deg-300m",
+      "distance": 300.0,
+      "windSpeed": 0.0,
+      "windDirection": 0.0,
+      "elevationAngle": 15.0
+    },
+    {
+      "id": "uphill-30deg-300m",
+      "distance": 300.0,
+      "windSpeed": 2.0,
+      "windDirection": 90.0,
+      "elevationAngle": 30.0
+    },
+    {
+      "id": "uphill-45deg-200m",
+      "distance": 200.0,
+      "windSpeed": 0.0,
+      "windDirection": 0.0,
+      "elevationAngle": 45.0
+    },
+    {
+      "id": "downhill-10deg-400m",
+      "distance": 400.0,
+      "windSpeed": 3.0,
+      "windDirection": 270.0,
+      "elevationAngle": -10.0
+    },
+    {
+      "id": "downhill-20deg-250m",
+      "distance": 250.0,
+      "windSpeed": 0.0,
+      "windDirection": 0.0,
+      "elevationAngle": -20.0
+    },
+    {
+      "id": "steep-mountain-60deg-150m",
+      "distance": 150.0,
+      "windSpeed": 0.0,
+      "windDirection": 0.0,
+      "elevationAngle": 60.0
     }
   ]
 }

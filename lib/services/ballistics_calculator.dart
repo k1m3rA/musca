@@ -301,10 +301,8 @@ class BallisticsCalculator {
     if (elevationAngle < -90.0 || elevationAngle > 90.0) {
       throw ArgumentError('Elevation angle must be between -90 and 90 degrees');
     }
-      // Validate slope angle range
-    if (slopeAngle < -90.0 || slopeAngle > 90.0) {
-      throw ArgumentError('Slope angle must be between -90 and 90 degrees');
-    }
+      // Note: slopeAngle parameter is deprecated; elevationAngle (look angle)
+    // is used for all gravity decomposition and coordinate system tilting.
     
     // Debug: Print latitude being used in calculations
     print('Ballistics calculation using latitude: ${latitude.toStringAsFixed(6)}°');
@@ -343,7 +341,7 @@ class BallisticsCalculator {
         ? sightHeightValue * 0.0254
         : sightHeightValue * 0.01;    // Convert angles from degrees to radians
     final double elevationAngleRad = elevationAngle * pi / 180;
-    final double slopeAngleRad = slopeAngle * pi / 180;
+    // slopeAngle is deprecated; elevationAngleRad is used for gravity decomposition
     
     // --- Wind in the shooting system coordinates ---
     // Wind direction is absolute (independent of shooting azimuth)
@@ -357,11 +355,13 @@ class BallisticsCalculator {
     final double crossWind = windSide;    // Convert wind to vector (modified to respect shooting azimuth)
     // windX and windY variables removed as they are not used in current implementation
       // Calculate initial velocity components in shooting plane coordinates
-    // x' = along shooting plane (inclined line of sight)
-    // y' = lateral (wind drift direction)  
+    // x' = along shooting plane (tilted by look angle)
+    // y' = lateral (wind drift direction)
     // z' = perpendicular to shooting plane
-    final double vxPrime = muzzleVelocity * cos(elevationAngleRad);
-    final double vzPrime = muzzleVelocity * sin(elevationAngleRad);    // Wind-jump: Apply initial lateral velocity with realistic magnitude
+    // In the tilted coordinate frame, the bore is aligned with x'.
+    // The look angle is accounted for via gravity decomposition, not velocity tilt.
+    final double vxPrime = muzzleVelocity;
+    final double vzPrime = 0.0;    // Wind-jump: Apply initial lateral velocity with realistic magnitude
     // For RH-twist the bullet jumps TOWARDS the wind
     // Real magnitude ≈ 0.1-0.3 m/s per 5 m/s of cross-wind
     final double deltaVy0 = 0.02 * crossWind;   // ~0.1 m/s with 5 m/s
@@ -399,23 +399,23 @@ class BallisticsCalculator {
       
       // RK4 step
       final int bcModelType = cartridge.bcModelType ?? 0;
-      final List<double> k1 = _calculateDerivatives(state, windVectorLocal, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad, latitude);
+      final List<double> k1 = _calculateDerivatives(state, windVectorLocal, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, elevationAngleRad, latitude);
       
       final List<double> state2 = List.generate(7, (i) => state[i] + k1[i] * dt * 0.5);
-      final List<double> k2 = _calculateDerivatives(state2, windVectorLocal, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad, latitude);
+      final List<double> k2 = _calculateDerivatives(state2, windVectorLocal, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, elevationAngleRad, latitude);
       
       final List<double> state3 = List.generate(7, (i) => state[i] + k2[i] * dt * 0.5);
-      final List<double> k3 = _calculateDerivatives(state3, windVectorLocal, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad, latitude);
+      final List<double> k3 = _calculateDerivatives(state3, windVectorLocal, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, elevationAngleRad, latitude);
       
       final List<double> state4 = List.generate(7, (i) => state[i] + k3[i] * dt);
-      final List<double> k4 = _calculateDerivatives(state4, windVectorLocal, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, slopeAngleRad, latitude);
+      final List<double> k4 = _calculateDerivatives(state4, windVectorLocal, envTemperature, rhoAir, A, mass, ballisticCoefficient, bcModelType, diameter, elevationAngleRad, latitude);
         // Update state using RK4 formula
       for (int i = 0; i < 7; i++) {
         state[i] += dt / 6.0 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
       }
       
-      // Apply decaying wind-jump effect
-      state[4] += vyJump * dt; // Add the jump effect to lateral velocity
+      // Apply decaying wind-jump effect to lateral position
+      state[1] += vyJump * dt; // vyJump (m/s) × dt (s) = displacement (m) added to y-position
       vyJump *= exp(-dYaw * dt); // Exponential decay
       
       // Remove advection effects - wind only affects through aerodynamic forces
@@ -462,46 +462,40 @@ class BallisticsCalculator {
     final double trajY = driftH ?? 0.0;
     final double D = distance;
     
-    // Enhanced line of sight calculation with fixed LOS support and elevation correction
+    // Line of Sight (LOS) calculation
+    // In the tilted coordinate frame, the look angle is already accounted for via
+    // gravity decomposition. The LOS is simply the line from scope to zero-range
+    // bullet position, with NO additional elevation angle rotation.
     double losHeightAtTarget;
     
     if (fixedLosSlope != null) {
-      // Use the fixed LOS slope from zeroing and apply current elevation angle
-      // The LOS rotates with the weapon when elevated, maintaining the same relationship to the bore
-      final double losAngle = atan(fixedLosSlope) + elevationAngleRad;
-      losHeightAtTarget = visorHeight + tan(losAngle) * D;
-      print('Using FIXED LOS slope = ${fixedLosSlope.toStringAsFixed(6)} with elevation angle = ${elevationAngle.toStringAsFixed(2)}°');
-      print('Combined LOS angle = ${(losAngle * 180 / pi).toStringAsFixed(4)}°, height at ${D}m = ${losHeightAtTarget.toStringAsFixed(4)}m');
+      // Use the fixed LOS slope from zeroing (calculated under flat-fire conditions)
+      losHeightAtTarget = visorHeight + fixedLosSlope * D;
+      print('Using FIXED LOS slope = ${fixedLosSlope.toStringAsFixed(6)}, height at ${D}m = ${losHeightAtTarget.toStringAsFixed(4)}m');
     } else if (calibrationDistance == 0.0) {
-      // No zero range - horizontal line of sight from scope height, but apply elevation
-      losHeightAtTarget = visorHeight + tan(elevationAngleRad) * D;
-      print('Zero range = 0: Using horizontal LOS with elevation angle = ${elevationAngle.toStringAsFixed(2)}°');
+      // No zero range - horizontal line of sight from scope height
+      losHeightAtTarget = visorHeight;
+      print('Zero range = 0: Using horizontal LOS at scope height = ${visorHeight.toStringAsFixed(4)}m');
     } else if (!gotZero) {
       // Failed to capture zero height - use ballistic approximation as fallback
       print('Warning: Failed to capture bullet height at zero range ${calibrationDistance}m, using ballistic approximation');
       
-      // Fallback calculation using simple ballistics
+      // Fallback calculation using simple ballistics (bullet drops below bore)
       final double timeOfFlightToZero = calibrationDistance / muzzleVelocity;
-      final double estimatedDropAtZero = 0.5 * 9.81 * timeOfFlightToZero * timeOfFlightToZero;
+      final double estimatedDropAtZero = -0.5 * 9.81 * timeOfFlightToZero * timeOfFlightToZero;
+      zAtZero = estimatedDropAtZero;
       
-      // Estimate bullet height at zero (positive = above bore)
-      zAtZero = estimatedDropAtZero; // Simple drop calculation
-      
-      // Calculate line of sight slope and apply elevation
+      // Calculate line of sight slope (no elevation angle — tilted frame handles it)
       final double losSlope = (zAtZero - visorHeight) / calibrationDistance;
-      final double losAngle = atan(losSlope) + elevationAngleRad;
-      losHeightAtTarget = visorHeight + tan(losAngle) * D;
+      losHeightAtTarget = visorHeight + losSlope * D;
       
-      print('Fallback: Estimated bullet height at zero = ${zAtZero.toStringAsFixed(4)}m, LOS slope = ${losSlope.toStringAsFixed(6)}');
-      print('With elevation angle = ${elevationAngle.toStringAsFixed(2)}°, combined LOS angle = ${(losAngle * 180 / pi).toStringAsFixed(4)}°');
+      print('Fallback: Estimated drop at zero = ${zAtZero.toStringAsFixed(4)}m, LOS slope = ${losSlope.toStringAsFixed(6)}');
     } else {
-      // Successfully captured zero height - calculate dynamic line of sight (backward compatibility)
+      // Successfully captured zero height - calculate dynamic line of sight
       final double losSlope = (zAtZero - visorHeight) / calibrationDistance;
-      final double losAngle = atan(losSlope) + elevationAngleRad;
-      losHeightAtTarget = visorHeight + tan(losAngle) * D;
+      losHeightAtTarget = visorHeight + losSlope * D;
       
-      print('Dynamic LOS calculation: Zero height = ${zAtZero.toStringAsFixed(4)}m, scope height = ${visorHeight.toStringAsFixed(4)}m, LOS slope = ${losSlope.toStringAsFixed(6)}');
-      print('With elevation angle = ${elevationAngle.toStringAsFixed(2)}°, combined LOS angle = ${(losAngle * 180 / pi).toStringAsFixed(4)}°');
+      print('Dynamic LOS: Zero height = ${zAtZero.toStringAsFixed(4)}m, scope height = ${visorHeight.toStringAsFixed(4)}m, LOS slope = ${losSlope.toStringAsFixed(6)}');
     }
     
     // Calculate differences between trajectory and line of sight
@@ -590,7 +584,7 @@ class BallisticsCalculator {
       dropCm: dropCm,
     );
   }
-  /// Calculate derivatives for RK4 integration with slope support
+  /// Calculate derivatives for RK4 integration in tilted coordinate frame
   /// Returns [dx'/dt, dy'/dt, dz'/dt, dvx'/dt, dvy'/dt, dvz'/dt, dp/dt]
   static List<double> _calculateDerivatives(
     List<double> state,
@@ -602,7 +596,7 @@ class BallisticsCalculator {
     double ballisticCoefficient,
     int bcModelType,
     double diameter,
-    double slopeAngleRad,
+    double lookAngleRad,
     double latitude,
   ) {
     final double z = state[2];
@@ -616,9 +610,9 @@ class BallisticsCalculator {
     final double a = speedOfSound(tLoc);
     final double gLoc = gravity(latitude, z); // Use the passed latitude
     
-    // Decompose gravity into shooting plane components
-    final double gxPrime = gLoc * sin(slopeAngleRad); // Component along shooting plane
-    final double gzPrime = gLoc * cos(slopeAngleRad); // Component perpendicular to shooting plane
+    // Decompose gravity into shooting plane components using look angle
+    final double gxPrime = gLoc * sin(lookAngleRad); // Along bore: decelerates uphill, accelerates downhill
+    final double gzPrime = gLoc * cos(lookAngleRad); // Cross-bore: reduced for inclined shots (Rifleman's Rule)
     
     // Relative velocity to air
     final double vRelX = vx - windVector[0];
@@ -636,7 +630,7 @@ class BallisticsCalculator {
     // Calculate sectional density (SD) in lb/in²
     // mass is in kg, diameter is in meters
     final double massGrains = mass * 15432.3583529; // kg to grains
-    final double diameterInches = diameter * 39.37; // cm to inches
+    final double diameterInches = diameter * 39.37; // m to inches
     final double sectionalDensity = massGrains / 7000 / (diameterInches * diameterInches); // lb/in²
     
     // Form factor: i = SD/BC

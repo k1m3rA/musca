@@ -141,16 +141,22 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
       }
 
       if (useSimpleCalculation) {
+        // Calculate visual tilt based on elevation angle
+        final double angleRad = widget.calculation.angle * pi / 180;
+        final double visualTiltY = distance * tan(angleRad);
+        
         // Use simple ballistic calculation when zero range is 0
         final muzzleVelocity = _selectedGun!.muzzleVelocity;
         if (muzzleVelocity > 0) {
           final timeOfFlight = distance / muzzleVelocity;
-          final simpleDrop = 0.5 * 9.81 * timeOfFlight * timeOfFlight;
+          final simpleDrop = -0.5 * 9.81 * timeOfFlight * timeOfFlight + visualTiltY;
           
-          // Bullet drops downward (positive Y value)
+          // Bullet drops downward (negative Y value)
           trajectory.add(FlSpot(distance, simpleDrop));
-        }        // Line of sight is horizontal at scope height
-        lineOfSight.add(FlSpot(distance, visorHeight));
+        }
+        
+        // Line of sight is horizontal at scope height, but tilted visually
+        lineOfSight.add(FlSpot(distance, visorHeight + visualTiltY));
         
         // Enhanced drift calculation including spin drift and basic effects
         final timeOfFlight = distance / muzzleVelocity;
@@ -170,7 +176,8 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
         
       } else {
         // Normal calculation for non-zero zero range
-        try {          final result = BallisticsCalculator.calculateWithProfiles(
+        try {
+          final result = BallisticsCalculator.calculateWithProfiles(
             distance,
             widget.calculation.windSpeed,
             widget.calculation.windDirection,
@@ -185,16 +192,21 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
             latitude: widget.calculation.latitude, // Use latitude from calculation
           );
 
+          // Calculate visual tilt based on elevation angle
+          final double angleRad = widget.calculation.angle * pi / 180;
+          final double visualTiltY = distance * tan(angleRad);
+
           // Validate and use ballistics result
           if (result.dropVertical.isFinite && result.driftHorizontal.isFinite) {
-            final bulletDrop = result.dropVertical;
+            final bulletDrop = result.dropVertical + visualTiltY;
             final bulletDrift = result.driftHorizontal;
             trajectory.add(FlSpot(distance, bulletDrop));
-            horizontalDrift.add(FlSpot(distance, bulletDrift));          } else {
+            horizontalDrift.add(FlSpot(distance, bulletDrift));
+          } else {
             // Fallback to simple calculation
             final muzzleVelocity = _selectedGun!.muzzleVelocity;
             final timeOfFlight = distance / muzzleVelocity;
-            final simpleDrop = 0.5 * 9.81 * timeOfFlight * timeOfFlight;
+            final simpleDrop = -0.5 * 9.81 * timeOfFlight * timeOfFlight + visualTiltY;
             
             // Enhanced drift calculation for fallback
             final windDrift = distance * widget.calculation.windSpeed * 0.001;
@@ -207,14 +219,19 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
             horizontalDrift.add(FlSpot(distance, simpleDrift));
           }
 
-          // Line of sight: straight line from scope height with calculated slope
-          final sightLineHeight = visorHeight + (distance * losSlope);
-          lineOfSight.add(FlSpot(distance, sightLineHeight));        } catch (e) {
+          // Line of sight: straight line from scope height with calculated slope, tilted by angle
+          final sightLineHeight = visorHeight + (distance * losSlope) + visualTiltY;
+          lineOfSight.add(FlSpot(distance, sightLineHeight));
+        } catch (e) {
           print('Error calculating ballistics at distance $distance: $e');
+          
+          final double angleRad = widget.calculation.angle * pi / 180;
+          final double visualTiltY = distance * tan(angleRad);
+          
           // Use simple fallback
           final muzzleVelocity = _selectedGun!.muzzleVelocity;
           final timeOfFlight = distance / muzzleVelocity;
-          final simpleDrop = 0.5 * 9.81 * timeOfFlight * timeOfFlight;
+          final simpleDrop = -0.5 * 9.81 * timeOfFlight * timeOfFlight + visualTiltY;
           
           // Enhanced drift calculation for error fallback
           final windDrift = distance * widget.calculation.windSpeed * 0.001;
@@ -226,7 +243,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
           trajectory.add(FlSpot(distance, simpleDrop));
           horizontalDrift.add(FlSpot(distance, simpleDrift));
           
-          final sightLineHeight = visorHeight + (distance * losSlope);
+          final sightLineHeight = visorHeight + (distance * losSlope) + visualTiltY;
           lineOfSight.add(FlSpot(distance, sightLineHeight));
         }
       }
@@ -234,10 +251,12 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
     if (trajectory.isEmpty) {
       // Emergency fallback
       final muzzleVelocity = _selectedGun?.muzzleVelocity ?? 800.0;
+      final double angleRad = widget.calculation.angle * pi / 180;
       for (int i = 0; i <= 100; i++) {
         final distance = i * step;
+        final double visualTiltY = distance * tan(angleRad);
         final timeOfFlight = distance / muzzleVelocity;
-        final simpleDrop = 0.5 * 9.81 * timeOfFlight * timeOfFlight;
+        final simpleDrop = -0.5 * 9.81 * timeOfFlight * timeOfFlight + visualTiltY;
         
         // Enhanced drift calculation for emergency fallback
         final windDrift = distance * widget.calculation.windSpeed * 0.001;
@@ -247,7 +266,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
         final simpleDrift = windDrift + spinDrift + coriolisDrift;
         
         trajectory.add(FlSpot(distance, simpleDrop));
-        lineOfSight.add(FlSpot(distance, visorHeight + (distance * losSlope)));
+        lineOfSight.add(FlSpot(distance, visorHeight + (distance * losSlope) + visualTiltY));
         horizontalDrift.add(FlSpot(distance, simpleDrift));
       }
     }

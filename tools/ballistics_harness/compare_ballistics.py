@@ -240,9 +240,14 @@ def _compare_case(case_output: dict[str, Any], case_input: dict[str, Any], toler
     app_drop_angle = _as_float(app_result.get("dropMrad"), fallback=0.0)
     app_drift_angle = _as_float(app_result.get("driftMrad"), fallback=0.0)
 
+    # Convert py-ballisticcalc angular corrections to linear for consistent comparison
+    # Using angle * distance / 1000 avoids apples-to-oranges with absolute height for inclined shots
+    py_linear_drop = py_result["drop_angle_mil"] * distance / 1000.0
+    py_linear_drift = py_result["windage_angle_mil"] * distance / 1000.0
+
     rows = [
-        ComparisonRow("drop_linear_m", app_linear_drop, py_result["height_m"]),
-        ComparisonRow("drift_linear_m", app_linear_drift, py_result["windage_m"]),
+        ComparisonRow("drop_linear_m", app_linear_drop, py_linear_drop),
+        ComparisonRow("drift_linear_m", app_linear_drift, py_linear_drift),
         ComparisonRow("drop_angle_mil", app_drop_angle, py_result["drop_angle_mil"]),
         ComparisonRow("drift_angle_mil", app_drift_angle, py_result["windage_angle_mil"]),
     ]
