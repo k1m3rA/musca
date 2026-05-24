@@ -14,6 +14,23 @@ Musca is a Flutter application that provides professional ballistic calculations
 -  **Ballistic Tables**: Automatic generation of firing tables
 -  **Advanced Effects**: Coriolis, Magnus, windage jump and slope correction
 
+## 🧪 Ballistics Harness
+
+The repository includes an external harness that compares the app calculator against `py-ballisticcalc` without opening the UI.
+
+```bash
+python -m pip install -r tools/ballistics_harness/requirements.txt
+python tools/ballistics_harness/compare_ballistics.py --config tools/ballistics_harness/scenarios.example.json
+```
+
+Edit `tools/ballistics_harness/scenarios.example.json` to change the gun, cartridge, scope, weather, wind, and distances. The Dart runner reads the same file, so you can reuse one scenario set for both sides of the comparison.
+
+For direct app-side generation only, run:
+
+```bash
+dart run tools/ballistics_harness/run_app_ballistics.dart --input tools/ballistics_harness/scenarios.example.json
+```
+
 ## 🚀 Installation
 
 ```bash
