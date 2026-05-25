@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:math';
@@ -9,6 +10,7 @@ import '../../../services/scope_storage.dart';
 import '../../../models/gun_model.dart';
 import '../../../models/cartridge_model.dart';
 import '../../../models/scope_model.dart';
+import '../../../services/py_ballistics_service.dart';
 import 'trajectory_table_dialog.dart';
 
 class BallisticsChartScreen extends StatefulWidget {
@@ -37,6 +39,11 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
   double _maxDrift = 0;
   double _minDrift = 0;
   int _selectedChartType = 0; // 0 = Vertical Drop, 1 = Horizontal Drift
+  
+  bool _showPyComparison = false;
+  bool _isPyLoading = false;
+  List<PyTrajectoryPoint> _pyTrajectoryPoints = [];
+  double _losSlope = 0.0;
 
   @override
   void initState() {
@@ -92,12 +99,12 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
     final double zeroRange = _selectedGun!.zeroRange;
     
     // Handle special cases for line of sight calculation
-    double losSlope = 0.0;
+    _losSlope = 0.0;
     bool useSimpleCalculation = false;
     
     if (zeroRange == 0.0) {
       // When zero range is 0, line of sight is horizontal (no zeroing)
-      losSlope = 0.0;
+      _losSlope = 0.0;
       useSimpleCalculation = true;
       print('Special case: Zero range = 0, LOS is horizontal at scope height');
     } else {
@@ -126,37 +133,37 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
       }
 
       // Calculate line of sight slope: from scope height at x=0 to bullet height at zero range
-      losSlope = (bulletHeightAtZero - visorHeight) / zeroRange;
+      _losSlope = (bulletHeightAtZero - visorHeight) / zeroRange;
     }
 
     for (int i = 0; i <= 100; i++) {
       final distance = i * step;
       
+      final double angleRad = widget.calculation.angle * pi / 180;
+      final double visualTiltY = distance * tan(angleRad);
+      final double sightLineHeight = visorHeight + (distance * _losSlope);
+      
       if (distance == 0) {
-        // At muzzle: bullet is at bore height (0), line of sight starts at scope height
-        trajectory.add(FlSpot(0, 0));
-        lineOfSight.add(FlSpot(0, visorHeight));
+        // At muzzle: bullet is at -scope height relative to LOS, line of sight is at 0
+        trajectory.add(FlSpot(0, -visorHeight + visualTiltY));
+        lineOfSight.add(FlSpot(0, visualTiltY));
         horizontalDrift.add(FlSpot(0, 0)); // No drift at muzzle
         continue;
       }
 
       if (useSimpleCalculation) {
-        // Calculate visual tilt based on elevation angle
-        final double angleRad = widget.calculation.angle * pi / 180;
-        final double visualTiltY = distance * tan(angleRad);
-        
         // Use simple ballistic calculation when zero range is 0
         final muzzleVelocity = _selectedGun!.muzzleVelocity;
         if (muzzleVelocity > 0) {
           final timeOfFlight = distance / muzzleVelocity;
-          final simpleDrop = -0.5 * 9.81 * timeOfFlight * timeOfFlight + visualTiltY;
+          final simpleDrop = -0.5 * 9.81 * timeOfFlight * timeOfFlight - sightLineHeight + visualTiltY;
           
           // Bullet drops downward (negative Y value)
           trajectory.add(FlSpot(distance, simpleDrop));
         }
         
-        // Line of sight is horizontal at scope height, but tilted visually
-        lineOfSight.add(FlSpot(distance, visorHeight + visualTiltY));
+        // Line of sight is horizontal at 0, but tilted visually
+        lineOfSight.add(FlSpot(distance, visualTiltY));
         
         // Enhanced drift calculation including spin drift and basic effects
         final timeOfFlight = distance / muzzleVelocity;
@@ -192,13 +199,9 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
             latitude: widget.calculation.latitude, // Use latitude from calculation
           );
 
-          // Calculate visual tilt based on elevation angle
-          final double angleRad = widget.calculation.angle * pi / 180;
-          final double visualTiltY = distance * tan(angleRad);
-
           // Validate and use ballistics result
           if (result.dropVertical.isFinite && result.driftHorizontal.isFinite) {
-            final bulletDrop = result.dropVertical + visualTiltY;
+            final bulletDrop = result.dropVertical - sightLineHeight + visualTiltY;
             final bulletDrift = result.driftHorizontal;
             trajectory.add(FlSpot(distance, bulletDrop));
             horizontalDrift.add(FlSpot(distance, bulletDrift));
@@ -206,7 +209,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
             // Fallback to simple calculation
             final muzzleVelocity = _selectedGun!.muzzleVelocity;
             final timeOfFlight = distance / muzzleVelocity;
-            final simpleDrop = -0.5 * 9.81 * timeOfFlight * timeOfFlight + visualTiltY;
+            final simpleDrop = -0.5 * 9.81 * timeOfFlight * timeOfFlight - sightLineHeight + visualTiltY;
             
             // Enhanced drift calculation for fallback
             final windDrift = distance * widget.calculation.windSpeed * 0.001;
@@ -219,19 +222,15 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
             horizontalDrift.add(FlSpot(distance, simpleDrift));
           }
 
-          // Line of sight: straight line from scope height with calculated slope, tilted by angle
-          final sightLineHeight = visorHeight + (distance * losSlope) + visualTiltY;
-          lineOfSight.add(FlSpot(distance, sightLineHeight));
+          // Line of sight is now horizontal at 0, or tilted by the angle
+          lineOfSight.add(FlSpot(distance, visualTiltY));
         } catch (e) {
           print('Error calculating ballistics at distance $distance: $e');
-          
-          final double angleRad = widget.calculation.angle * pi / 180;
-          final double visualTiltY = distance * tan(angleRad);
           
           // Use simple fallback
           final muzzleVelocity = _selectedGun!.muzzleVelocity;
           final timeOfFlight = distance / muzzleVelocity;
-          final simpleDrop = -0.5 * 9.81 * timeOfFlight * timeOfFlight + visualTiltY;
+          final simpleDrop = -0.5 * 9.81 * timeOfFlight * timeOfFlight - sightLineHeight + visualTiltY;
           
           // Enhanced drift calculation for error fallback
           final windDrift = distance * widget.calculation.windSpeed * 0.001;
@@ -243,8 +242,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
           trajectory.add(FlSpot(distance, simpleDrop));
           horizontalDrift.add(FlSpot(distance, simpleDrift));
           
-          final sightLineHeight = visorHeight + (distance * losSlope) + visualTiltY;
-          lineOfSight.add(FlSpot(distance, sightLineHeight));
+          lineOfSight.add(FlSpot(distance, visualTiltY));
         }
       }
     }    // Ensure we have reasonable data
@@ -254,9 +252,20 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
       final double angleRad = widget.calculation.angle * pi / 180;
       for (int i = 0; i <= 100; i++) {
         final distance = i * step;
+        final double angleRad = widget.calculation.angle * pi / 180;
         final double visualTiltY = distance * tan(angleRad);
+        final double sightLineHeight = visorHeight + (distance * _losSlope);
+        
+        if (distance == 0) {
+          trajectory.add(FlSpot(0, -visorHeight + visualTiltY));
+          lineOfSight.add(FlSpot(0, visualTiltY));
+          horizontalDrift.add(FlSpot(0, 0));
+          continue;
+        }
+        
+        final muzzleVelocity = _selectedGun!.muzzleVelocity;
         final timeOfFlight = distance / muzzleVelocity;
-        final simpleDrop = -0.5 * 9.81 * timeOfFlight * timeOfFlight + visualTiltY;
+        final simpleDrop = -0.5 * 9.81 * timeOfFlight * timeOfFlight - sightLineHeight + visualTiltY;
         
         // Enhanced drift calculation for emergency fallback
         final windDrift = distance * widget.calculation.windSpeed * 0.001;
@@ -266,7 +275,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
         final simpleDrift = windDrift + spinDrift + coriolisDrift;
         
         trajectory.add(FlSpot(distance, simpleDrop));
-        lineOfSight.add(FlSpot(distance, visorHeight + (distance * losSlope) + visualTiltY));
+        lineOfSight.add(FlSpot(distance, visualTiltY));
         horizontalDrift.add(FlSpot(distance, simpleDrift));
       }
     }
@@ -342,6 +351,47 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
     if (horizontalDrift.length > 5) {
       print('Last few drift spots: ${horizontalDrift.reversed.take(5).map((spot) => 'x:${spot.x.toStringAsFixed(1)}, y:${spot.y.toStringAsFixed(4)}').toList()}');
     }
+
+    if (_showPyComparison && _pyTrajectoryPoints.isEmpty) {
+      await _fetchPyTrajectory();
+    }
+  }
+
+  Future<void> _fetchPyTrajectory() async {
+    if (_selectedGun == null || _selectedCartridge == null || _selectedScope == null) return;
+    
+    setState(() {
+      _isPyLoading = true;
+    });
+
+    try {
+      final points = await PyBallisticsService.calculateTrajectory(
+        calculation: widget.calculation,
+        gun: _selectedGun!,
+        cartridge: _selectedCartridge!,
+        scope: _selectedScope!,
+        maxDistance: _maxDistance,
+        step: _maxDistance / 100,
+      );
+      
+      setState(() {
+        _pyTrajectoryPoints = points;
+        _isPyLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isPyLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load py-ballisticcalc data: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -409,7 +459,29 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),                // Vertical Drop Button
+                if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) ...[
+                  Switch(
+                    value: _showPyComparison,
+                    activeColor: Colors.purple,
+                    onChanged: (val) {
+                      setState(() {
+                        _showPyComparison = val;
+                        if (val && _pyTrajectoryPoints.isEmpty) {
+                          _fetchPyTrajectory();
+                        }
+                      });
+                    },
+                  ),
+                  Text(
+                    'Py-Calc',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: _showPyComparison ? Colors.purple : Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                ],                // Vertical Drop Button
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
@@ -523,8 +595,8 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
     );
   }  Widget _buildChart() {    // Determine which data to display based on selected chart type
     final bool showVerticalDrop = _selectedChartType == 0;
-    final double minY = showVerticalDrop ? _minDrop : -_maxDrift;  // Invertir solo para drift
-    final double maxY = showVerticalDrop ? _maxDrop : -_minDrift;  // Invertir solo para drift
+    final double minY = showVerticalDrop ? _minDrop : _minDrift;
+    final double maxY = showVerticalDrop ? _maxDrop : _maxDrift;
     final double yInterval = (maxY - minY) > 0 ? (maxY - minY) / 10 : 0.01;
     final double yAxisInterval = (maxY - minY) > 0 ? (maxY - minY) / 5 : 0.02;
 
@@ -532,17 +604,15 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
     print('Building chart - Type: ${showVerticalDrop ? "Vertical Drop" : "Horizontal Drift"}');
     print('Chart bounds: minY=${minY.toStringAsFixed(4)}, maxY=${maxY.toStringAsFixed(4)}');
     print('Data points available: ${showVerticalDrop ? trajectorySpots.length : horizontalDriftSpots.length}');
-    
-    if (!showVerticalDrop) {
-      print('Horizontal drift spots preview: ${horizontalDriftSpots.take(3).map((s) => 'x:${s.x.toStringAsFixed(1)}, y:${s.y.toStringAsFixed(4)}').join(', ')}');
-    }
 
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: LineChart(
-          LineChartData(
-            gridData: FlGridData(
+        child: Stack(
+          children: [
+            LineChart(
+              LineChartData(
+                gridData: FlGridData(
               show: true,
               drawVerticalLine: true,
               // Ensure intervals are never zero
@@ -566,7 +636,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                 sideTitles: SideTitles(
                   showTitles: true,
                   interval: yAxisInterval,                  getTitlesWidget: (value, meta) {
-                    final cmValue = showVerticalDrop ? value * 100 : -value * 100;  // Invertir solo para drift
+                    final cmValue = value * 100;
                     return Text(
                       '${cmValue.toStringAsFixed(0)}cm',
                       style: const TextStyle(fontSize: 12),
@@ -598,7 +668,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
             maxY: maxY,            lineBarsData: showVerticalDrop ? [
               // Line of sight (only for vertical drop chart)
               LineChartBarData(
-                spots: lineOfSightSpots,  // No invertir para drop vertical
+                spots: lineOfSightSpots,
                 isCurved: false,
                 color: Colors.blue,
                 barWidth: 2,
@@ -608,7 +678,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
               ),
               // Bullet trajectory (vertical drop)
               LineChartBarData(
-                spots: trajectorySpots,  // No invertir para drop vertical
+                spots: trajectorySpots,
                 isCurved: true,
                 color: Colors.red,
                 barWidth: 3,
@@ -629,6 +699,23 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                   },                ),
                 belowBarData: BarAreaData(show: false),
               ),
+              if (_showPyComparison && _pyTrajectoryPoints.isNotEmpty)
+                LineChartBarData(
+                  spots: _pyTrajectoryPoints.map((p) {
+                    final double angleRad = widget.calculation.angle * pi / 180;
+                    final double visualTiltY = p.distance * tan(angleRad);
+                    
+                    // Python is already relative to the Line of Sight
+                    return FlSpot(p.distance, p.dropVertical + visualTiltY);
+                  }).toList(),
+                  isCurved: true,
+                  color: Colors.purple,
+                  barWidth: 2,
+                  dashArray: [4, 4],
+                  isStrokeCapRound: true,
+                  dotData: const FlDotData(show: false),
+                  belowBarData: BarAreaData(show: false),
+                ),
             ] : [
               // Horizontal drift line (no line of sight needed)
               LineChartBarData(
@@ -654,6 +741,17 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                 ),
                 belowBarData: BarAreaData(show: false),
               ),
+              if (_showPyComparison && _pyTrajectoryPoints.isNotEmpty)
+                LineChartBarData(
+                  spots: _pyTrajectoryPoints.map((p) => FlSpot(p.distance, -p.driftHorizontal)).toList(),
+                  isCurved: true,
+                  color: Colors.purple,
+                  barWidth: 2,
+                  dashArray: [5, 5],
+                  isStrokeCapRound: true,
+                  dotData: const FlDotData(show: false),
+                  belowBarData: BarAreaData(show: false),
+                ),
             ],
             extraLinesData: ExtraLinesData(
               verticalLines: [
@@ -694,20 +792,29 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                   ),
               ],
               horizontalLines: [
-                // Zero line (centerline for both charts)
-                HorizontalLine(
-                  y: 0,
-                  color: Colors.grey.withOpacity(0.8),
-                  strokeWidth: 1,
-                  dashArray: [3, 3],
-                ),
+                if (!showVerticalDrop)
+                  // Zero line (only for drift chart, as LOS line acts as zero for drop chart)
+                  HorizontalLine(
+                    y: 0,
+                    color: Colors.grey.withOpacity(0.8),
+                    strokeWidth: 1,
+                    dashArray: [3, 3],
+                  ),
               ],
             ),
           ),
         ),
+        if (_isPyLoading)
+          const Positioned.fill(
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
   Widget _buildLegend() {
     final bool showVerticalDrop = _selectedChartType == 0;
     
@@ -747,7 +854,22 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                   const SizedBox(width: 8),
                   const Text('Bullet trajectory (vertical drop)'),
                 ],
-              ),            ] else ...[
+              ),
+              if (_showPyComparison) ...[
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Container(
+                      width: 20,
+                      height: 3,
+                      color: Colors.purple,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('Py-Ballisticcalc trajectory'),
+                  ],
+                ),
+              ],
+            ] else ...[
               Row(
                 children: [
                   Container(
@@ -759,6 +881,20 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                   const Text('Bullet drift (horizontal)'),
                 ],
               ),
+              if (_showPyComparison) ...[
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Container(
+                      width: 20,
+                      height: 3,
+                      color: Colors.purple,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('Py-Ballisticcalc drift'),
+                  ],
+                ),
+              ],
             ],
             const SizedBox(height: 4),
             Row(

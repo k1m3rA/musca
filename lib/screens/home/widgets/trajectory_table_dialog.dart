@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
@@ -8,6 +9,7 @@ import '../../../models/gun_model.dart';
 import '../../../models/cartridge_model.dart';
 import '../../../models/scope_model.dart';
 import '../../../services/ballistics_calculator.dart';
+import '../../../services/py_ballistics_service.dart';
 
 class TrajectoryTableDialog extends StatefulWidget {
   final Calculation calculation;
@@ -32,6 +34,7 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
   int _selectedUnits = 0; // 0 = cm, 1 = inches, 2 = MOA, 3 = MIL
   List<TrajectoryDataPoint> _tableData = [];
   bool _isCalculating = false;
+  bool _showPyComparison = false;
 
   final List<String> _unitLabels = ['cm', 'inches', 'MOA', 'MIL'];
   final List<int> _stepOptions = [25, 50, 100, 200];
@@ -55,6 +58,27 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
     });
 
     final maxDistance = widget.calculation.distance * 1.5;
+    
+    List<PyTrajectoryPoint>? pyPoints;
+    if (_showPyComparison) {
+      try {
+        pyPoints = await PyBallisticsService.calculateTrajectory(
+          calculation: widget.calculation,
+          gun: widget.selectedGun!,
+          cartridge: widget.selectedCartridge!,
+          scope: widget.selectedScope!,
+          maxDistance: maxDistance,
+          step: _stepSize.toDouble(),
+        );
+      } catch (e) {
+        print('Error fetching py-ballisticcalc data: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Py-Calc Error: $e')),
+          );
+        }
+      }
+    }
     
     for (double distance = 0; distance <= maxDistance; distance += _stepSize) {
       try {
@@ -97,10 +121,52 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
             driftValue = result.driftMrad * distance / 10.0;
         }
 
+        double? pyDropValue, pyDriftValue;
+        if (pyPoints != null) {
+          // Find the closest point from python output
+          PyTrajectoryPoint? closest;
+          double minDiff = double.infinity;
+          for (final p in pyPoints) {
+            final diff = (p.distance - distance).abs();
+            if (diff < minDiff) {
+              minDiff = diff;
+              closest = p;
+            }
+          }
+          
+          if (closest != null && minDiff < _stepSize / 2) {
+            final double pyDropM = closest.dropVertical;
+            final double pyDriftM = closest.driftHorizontal;
+            
+            // Convert python meters to selected units
+            // Python drop is negative below LOS. We want positive drop below LOS.
+            switch (_selectedUnits) {
+              case 0: // cm
+                pyDropValue = -pyDropM * 100.0;
+                pyDriftValue = pyDriftM * 100.0;
+                break;
+              case 1: // inches
+                pyDropValue = -pyDropM * 39.3701;
+                pyDriftValue = pyDriftM * 39.3701;
+                break;
+              case 2: // MOA
+                pyDropValue = distance > 0 ? (-pyDropM / distance * 1000.0) / 0.290888 : 0.0;
+                pyDriftValue = distance > 0 ? (pyDriftM / distance * 1000.0) / 0.290888 : 0.0;
+                break;
+              case 3: // MIL
+                pyDropValue = distance > 0 ? -pyDropM / distance * 1000.0 : 0.0;
+                pyDriftValue = distance > 0 ? pyDriftM / distance * 1000.0 : 0.0;
+                break;
+            }
+          }
+        }
+
         _tableData.add(TrajectoryDataPoint(
           distance: distance,
           dropVertical: dropValue,
           driftHorizontal: driftValue,
+          pyDropVertical: pyDropValue,
+          pyDriftHorizontal: pyDriftValue,
         ));
       } catch (e) {
         print('Error calculating trajectory at ${distance}m: $e');
@@ -213,8 +279,10 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
               border: pw.TableBorder.all(color: PdfColors.grey),
               columnWidths: {
                 0: const pw.FlexColumnWidth(1),
-                1: const pw.FlexColumnWidth(1.5),
-                2: const pw.FlexColumnWidth(1.5),
+                1: const pw.FlexColumnWidth(1.2),
+                2: const pw.FlexColumnWidth(1.2),
+                if (_showPyComparison) 3: const pw.FlexColumnWidth(1.2),
+                if (_showPyComparison) 4: const pw.FlexColumnWidth(1.2),
               },
               children: [
                 // Header row
@@ -226,6 +294,8 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                     _buildPdfCell('Distance (m)', isHeader: true),
                     _buildPdfCell('Drop (${_unitLabels[_selectedUnits]})', isHeader: true),
                     _buildPdfCell('Drift (${_unitLabels[_selectedUnits]})', isHeader: true),
+                    if (_showPyComparison) _buildPdfCell('Py-Drop', isHeader: true),
+                    if (_showPyComparison) _buildPdfCell('Py-Drift', isHeader: true),
                   ],
                 ),
                 // Data rows
@@ -234,6 +304,8 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                     _buildPdfCell(data.distance.toStringAsFixed(0)),
                     _buildPdfCell(_convertToSelectedUnit(data.dropVertical).toStringAsFixed(1)),
                     _buildPdfCell(_convertToSelectedUnit(data.driftHorizontal).toStringAsFixed(1)),
+                    if (_showPyComparison) _buildPdfCell(data.pyDropVertical != null ? _convertToSelectedUnit(data.pyDropVertical!).toStringAsFixed(1) : '-'),
+                    if (_showPyComparison) _buildPdfCell(data.pyDriftHorizontal != null ? _convertToSelectedUnit(data.pyDriftHorizontal!).toStringAsFixed(1) : '-'),
                   ],
                 )).toList(),
               ],
@@ -305,6 +377,30 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                 ),
               ),
             ),
+            if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Switch(
+                    value: _showPyComparison,
+                    activeColor: Colors.purple,
+                    onChanged: (val) {
+                      setState(() {
+                        _showPyComparison = val;
+                      });
+                      _calculateTableData();
+                    },
+                  ),
+                  Text(
+                    'Compare with py-ballisticcalc',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: _showPyComparison ? Colors.purple : null,
+                    ),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 16),
             Row(
               children: [
@@ -368,10 +464,12 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                 child: SingleChildScrollView(
                   child: Table(
                     border: TableBorder.all(color: Colors.grey),
-                    columnWidths: const {
-                      0: FlexColumnWidth(1),
-                      1: FlexColumnWidth(1.5),
-                      2: FlexColumnWidth(1.5),
+                    columnWidths: {
+                      0: const FlexColumnWidth(1),
+                      1: const FlexColumnWidth(1.2),
+                      2: const FlexColumnWidth(1.2),
+                      if (_showPyComparison) 3: const FlexColumnWidth(1.2),
+                      if (_showPyComparison) 4: const FlexColumnWidth(1.2),
                     },
                     children: [
                       TableRow(
@@ -382,6 +480,8 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                           _buildHeaderCell('Distance\n(m)'),
                           _buildHeaderCell('Drop\n(${_unitLabels[_selectedUnits]})'),
                           _buildHeaderCell('Drift\n(${_unitLabels[_selectedUnits]})'),
+                          if (_showPyComparison) _buildHeaderCell('Py-Drop', color: Colors.purple),
+                          if (_showPyComparison) _buildHeaderCell('Py-Drift', color: Colors.purple),
                         ],
                       ),
                       ..._tableData.map((data) => TableRow(
@@ -389,6 +489,8 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                           _buildDataCell(data.distance.toStringAsFixed(0)),
                           _buildDataCell(_convertToSelectedUnit(data.dropVertical).toStringAsFixed(1)),
                           _buildDataCell(_convertToSelectedUnit(data.driftHorizontal).toStringAsFixed(1)),
+                          if (_showPyComparison) _buildDataCell(data.pyDropVertical != null ? _convertToSelectedUnit(data.pyDropVertical!).toStringAsFixed(1) : '-', color: Colors.purple),
+                          if (_showPyComparison) _buildDataCell(data.pyDriftHorizontal != null ? _convertToSelectedUnit(data.pyDriftHorizontal!).toStringAsFixed(1) : '-', color: Colors.purple),
                         ],
                       )).toList(),
                     ],
@@ -424,23 +526,23 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
     );
   }
 
-  Widget _buildHeaderCell(String text) {
+  Widget _buildHeaderCell(String text, {Color? color}) {
     return Padding(
       padding: const EdgeInsets.all(12.0),
       child: Text(
         text,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: color),
         textAlign: TextAlign.center,
       ),
     );
   }
 
-  Widget _buildDataCell(String text) {
+  Widget _buildDataCell(String text, {Color? color}) {
     return Padding(
       padding: const EdgeInsets.all(12.0),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 13),
+        style: TextStyle(fontSize: 13, color: color),
         textAlign: TextAlign.center,
       ),
     );
@@ -451,10 +553,14 @@ class TrajectoryDataPoint {
   final double distance;
   final double dropVertical;
   final double driftHorizontal;
+  final double? pyDropVertical;
+  final double? pyDriftHorizontal;
 
   TrajectoryDataPoint({
     required this.distance,
     required this.dropVertical,
     required this.driftHorizontal,
+    this.pyDropVertical,
+    this.pyDriftHorizontal,
   });
 }

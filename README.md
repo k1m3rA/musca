@@ -18,6 +18,9 @@ Musca is a Flutter application that provides professional ballistic calculations
 
 The repository includes an external harness that compares the app calculator against `py-ballisticcalc` without opening the UI.
 
+> **⚠️ WARNING: UI Comparison Limitation**
+> The UI features that allow you to compare trajectories in parallel with `py-ballisticcalc` (in the Chart Screen and Trajectory Table) are **only supported on Desktop platforms (Windows, macOS, Linux)**. They rely on local Python execution via `Process.run`, which is not available on mobile devices (Android/iOS). If you are running the app on a mobile device or emulator, the comparison toggle will be hidden.
+
 ```bash
 python -m pip install -r tools/ballistics_harness/requirements.txt
 python tools/ballistics_harness/compare_ballistics.py --config tools/ballistics_harness/scenarios.example.json

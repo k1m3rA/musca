@@ -136,10 +136,10 @@ def _build_py_shot(case_data: dict[str, Any]) -> Shot:
 
     sight_height = _as_float(scope.get("sightHeight"), fallback=2.17)
     sight_height_units = int(scope.get("units", 0) or 0)
-    if sight_height_units == 1:
-        sight_height_unit = Unit.Centimeter(sight_height)
-    else:
+    if sight_height_units == 0:
         sight_height_unit = Unit.Inch(sight_height)
+    else:
+        sight_height_unit = Unit.Centimeter(sight_height)
 
     twist_inches = _app_twist_to_inches(
         _as_float(gun.get("twistRate"), fallback=12.0),
