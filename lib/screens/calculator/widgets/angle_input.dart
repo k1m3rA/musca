@@ -57,7 +57,7 @@ class AngleInput extends StatelessWidget {
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.verticalAngle,
                   labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
-                  helperText: 'Range: -90° to 90°',
+                  helperText: AppLocalizations.of(context)!.angleRangeHelper,
                   border: const OutlineInputBorder(
                     borderSide: BorderSide(width: 2.0),
                   ),

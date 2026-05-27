@@ -605,4 +605,134 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get grains => 'grains';
+
+  @override
+  String get angleRangeHelper => 'Rango: -90° a 90°';
+
+  @override
+  String get minSightHeightHelper => 'Mín: 0 cm';
+
+  @override
+  String get fieldData => 'Datos de Campo';
+
+  @override
+  String shotAtDistance(Object distance) {
+    return 'Disparo a ${distance}m';
+  }
+
+  @override
+  String windInfo(Object windDirection, Object windSpeed) {
+    return 'Viento: ${windSpeed}m/s a $windDirectionº';
+  }
+
+  @override
+  String angleTempInfo(Object angle, Object temp) {
+    return 'Ángulo: $angleº • Temp.: $tempºC';
+  }
+
+  @override
+  String impactInfo(Object drift, Object drop) {
+    return 'Impacto: caída ${drop}cm, deriva ${drift}cm';
+  }
+
+  @override
+  String targetLabel(Object distance) {
+    return 'Objetivo\n${distance}m';
+  }
+
+  @override
+  String zeroLabel(Object zero) {
+    return 'Cero\n${zero}m';
+  }
+
+  @override
+  String get losBoreAxis => 'Línea de visión (eje del cañón)';
+
+  @override
+  String get losHorizontal => 'Línea de visión (horizontal)';
+
+  @override
+  String get losZeroed => 'Línea de visión (a cero)';
+
+  @override
+  String get dropChartDesc =>
+      'Eje X: Distancia (m) • Eje Y: Altura rel. al cañón (cm)\nPositivo = subida, negativo = caída';
+
+  @override
+  String get losCoincides =>
+      '\nLa línea de visión coincide con el eje del cañón';
+
+  @override
+  String get losIsHorizontal =>
+      '\nLa línea de visión es horizontal a la altura del visor';
+
+  @override
+  String get losIntersects =>
+      '\nLa línea de visión cruza la trayectoria en la distancia de cero';
+
+  @override
+  String get driftChartDesc =>
+      'Eje X: Distancia (m) • Eje Y: Deriva horizontal (cm)\nPositivo = deriva derecha, negativo = deriva izquierda';
+
+  @override
+  String get driftChartDesc2 =>
+      '\nMuestra el desplazamiento horizontal por viento, deriva de giro y efecto Coriolis';
+
+  @override
+  String get generateTrajectoryTable => 'Generar Tabla de Trayectoria';
+
+  @override
+  String profilesLabel(Object cartridge, Object gun, Object scope) {
+    return 'Perfiles: $gun | $cartridge | $scope';
+  }
+
+  @override
+  String get unknownGun => 'Arma Desconocida';
+
+  @override
+  String get unknownCartridge => 'Cartucho Desconocido';
+
+  @override
+  String get unknownScope => 'Visor Desconocido';
+
+  @override
+  String windInfoPdf(Object windDirection, Object windSpeed) {
+    return 'Viento: ${windSpeed}m/s a $windDirection grados';
+  }
+
+  @override
+  String angleTempInfoPdf(Object angle, Object temp) {
+    return 'Ángulo: $angle grados - Temp.: $temp grados C';
+  }
+
+  @override
+  String stepSizeUnitsPdf(Object stepSize, Object units) {
+    return 'Tamaño de paso: ${stepSize}m - Unidades: $units';
+  }
+
+  @override
+  String get distanceM => 'Distancia (m)';
+
+  @override
+  String dropUnits(Object units) {
+    return 'Caída ($units)';
+  }
+
+  @override
+  String driftUnits(Object units) {
+    return 'Deriva ($units)';
+  }
+
+  @override
+  String get distanceMTable => 'Distancia\n(m)';
+
+  @override
+  String dropUnitsTable(Object units) {
+    return 'Caída\n($units)';
+  }
+
+  @override
+  String driftUnitsTable(Object units) {
+    return 'Deriva\n($units)';
+  }
 }

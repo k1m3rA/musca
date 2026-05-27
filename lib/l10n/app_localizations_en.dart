@@ -601,4 +601,132 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get grains => 'grains';
+
+  @override
+  String get angleRangeHelper => 'Range: -90° to 90°';
+
+  @override
+  String get minSightHeightHelper => 'Min: 0 cm';
+
+  @override
+  String get fieldData => 'Field Data';
+
+  @override
+  String shotAtDistance(Object distance) {
+    return 'Shot at ${distance}m';
+  }
+
+  @override
+  String windInfo(Object windDirection, Object windSpeed) {
+    return 'Wind: ${windSpeed}m/s @ $windDirectionº';
+  }
+
+  @override
+  String angleTempInfo(Object angle, Object temp) {
+    return 'Angle: $angleº • Temperature: $tempºC';
+  }
+
+  @override
+  String impactInfo(Object drift, Object drop) {
+    return 'Impact: ${drop}cm drop, ${drift}cm drift';
+  }
+
+  @override
+  String targetLabel(Object distance) {
+    return 'Target\n${distance}m';
+  }
+
+  @override
+  String zeroLabel(Object zero) {
+    return 'Zero\n${zero}m';
+  }
+
+  @override
+  String get losBoreAxis => 'Line of sight (bore axis)';
+
+  @override
+  String get losHorizontal => 'Line of sight (horizontal)';
+
+  @override
+  String get losZeroed => 'Line of sight (zeroed)';
+
+  @override
+  String get dropChartDesc =>
+      'X-axis: Distance (m) • Y-axis: Height relative to bore (cm)\nPositive values = upward drop, negative values = downward drop';
+
+  @override
+  String get losCoincides => '\nLine of sight coincides with bore axis';
+
+  @override
+  String get losIsHorizontal => '\nLine of sight is horizontal at scope height';
+
+  @override
+  String get losIntersects =>
+      '\nLine of sight intersects trajectory at zero range';
+
+  @override
+  String get driftChartDesc =>
+      'X-axis: Distance (m) • Y-axis: Horizontal drift (cm)\nPositive values = drift to the right, negative values = drift to the left';
+
+  @override
+  String get driftChartDesc2 =>
+      '\nShows bullet horizontal displacement due to wind, spin drift, and Coriolis effect';
+
+  @override
+  String get generateTrajectoryTable => 'Generate Trajectory Table';
+
+  @override
+  String profilesLabel(Object cartridge, Object gun, Object scope) {
+    return 'Profiles: $gun | $cartridge | $scope';
+  }
+
+  @override
+  String get unknownGun => 'Unknown Gun';
+
+  @override
+  String get unknownCartridge => 'Unknown Cartridge';
+
+  @override
+  String get unknownScope => 'Unknown Scope';
+
+  @override
+  String windInfoPdf(Object windDirection, Object windSpeed) {
+    return 'Wind: ${windSpeed}m/s at $windDirection degrees';
+  }
+
+  @override
+  String angleTempInfoPdf(Object angle, Object temp) {
+    return 'Angle: $angle degrees - Temperature: $temp degrees C';
+  }
+
+  @override
+  String stepSizeUnitsPdf(Object stepSize, Object units) {
+    return 'Step Size: ${stepSize}m - Units: $units';
+  }
+
+  @override
+  String get distanceM => 'Distance (m)';
+
+  @override
+  String dropUnits(Object units) {
+    return 'Drop ($units)';
+  }
+
+  @override
+  String driftUnits(Object units) {
+    return 'Drift ($units)';
+  }
+
+  @override
+  String get distanceMTable => 'Distance\n(m)';
+
+  @override
+  String dropUnitsTable(Object units) {
+    return 'Drop\n($units)';
+  }
+
+  @override
+  String driftUnitsTable(Object units) {
+    return 'Drift\n($units)';
+  }
 }

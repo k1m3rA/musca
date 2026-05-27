@@ -435,7 +435,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               title: Text(
-                "Field Data",
+                AppLocalizations.of(context)!.fieldData,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                 ),

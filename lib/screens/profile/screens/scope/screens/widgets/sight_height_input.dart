@@ -55,7 +55,7 @@ class SightHeightInput extends StatelessWidget {
                     ),
                   ),
                   suffixText: 'cm',
-                  helperText: 'Min: 0 cm', // Add helper text to indicate 0 is allowed
+                  helperText: AppLocalizations.of(context)!.minSightHeightHelper, // Add helper text to indicate 0 is allowed
                 ),
                 onChanged: (value) {
                   // Allow empty string and 0 value

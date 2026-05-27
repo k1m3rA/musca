@@ -1172,6 +1172,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'grains'**
   String get grains;
+
+  /// No description provided for @angleRangeHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Range: -90° to 90°'**
+  String get angleRangeHelper;
+
+  /// No description provided for @minSightHeightHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Min: 0 cm'**
+  String get minSightHeightHelper;
+
+  /// No description provided for @fieldData.
+  ///
+  /// In en, this message translates to:
+  /// **'Field Data'**
+  String get fieldData;
+
+  /// No description provided for @shotAtDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Shot at {distance}m'**
+  String shotAtDistance(Object distance);
+
+  /// No description provided for @windInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind: {windSpeed}m/s @ {windDirection}º'**
+  String windInfo(Object windDirection, Object windSpeed);
+
+  /// No description provided for @angleTempInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Angle: {angle}º • Temperature: {temp}ºC'**
+  String angleTempInfo(Object angle, Object temp);
+
+  /// No description provided for @impactInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Impact: {drop}cm drop, {drift}cm drift'**
+  String impactInfo(Object drift, Object drop);
+
+  /// No description provided for @targetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target\n{distance}m'**
+  String targetLabel(Object distance);
+
+  /// No description provided for @zeroLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Zero\n{zero}m'**
+  String zeroLabel(Object zero);
+
+  /// No description provided for @losBoreAxis.
+  ///
+  /// In en, this message translates to:
+  /// **'Line of sight (bore axis)'**
+  String get losBoreAxis;
+
+  /// No description provided for @losHorizontal.
+  ///
+  /// In en, this message translates to:
+  /// **'Line of sight (horizontal)'**
+  String get losHorizontal;
+
+  /// No description provided for @losZeroed.
+  ///
+  /// In en, this message translates to:
+  /// **'Line of sight (zeroed)'**
+  String get losZeroed;
+
+  /// No description provided for @dropChartDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'X-axis: Distance (m) • Y-axis: Height relative to bore (cm)\nPositive values = upward drop, negative values = downward drop'**
+  String get dropChartDesc;
+
+  /// No description provided for @losCoincides.
+  ///
+  /// In en, this message translates to:
+  /// **'\nLine of sight coincides with bore axis'**
+  String get losCoincides;
+
+  /// No description provided for @losIsHorizontal.
+  ///
+  /// In en, this message translates to:
+  /// **'\nLine of sight is horizontal at scope height'**
+  String get losIsHorizontal;
+
+  /// No description provided for @losIntersects.
+  ///
+  /// In en, this message translates to:
+  /// **'\nLine of sight intersects trajectory at zero range'**
+  String get losIntersects;
+
+  /// No description provided for @driftChartDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'X-axis: Distance (m) • Y-axis: Horizontal drift (cm)\nPositive values = drift to the right, negative values = drift to the left'**
+  String get driftChartDesc;
+
+  /// No description provided for @driftChartDesc2.
+  ///
+  /// In en, this message translates to:
+  /// **'\nShows bullet horizontal displacement due to wind, spin drift, and Coriolis effect'**
+  String get driftChartDesc2;
+
+  /// No description provided for @generateTrajectoryTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Trajectory Table'**
+  String get generateTrajectoryTable;
+
+  /// No description provided for @profilesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Profiles: {gun} | {cartridge} | {scope}'**
+  String profilesLabel(Object cartridge, Object gun, Object scope);
+
+  /// No description provided for @unknownGun.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Gun'**
+  String get unknownGun;
+
+  /// No description provided for @unknownCartridge.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Cartridge'**
+  String get unknownCartridge;
+
+  /// No description provided for @unknownScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Scope'**
+  String get unknownScope;
+
+  /// No description provided for @windInfoPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind: {windSpeed}m/s at {windDirection} degrees'**
+  String windInfoPdf(Object windDirection, Object windSpeed);
+
+  /// No description provided for @angleTempInfoPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Angle: {angle} degrees - Temperature: {temp} degrees C'**
+  String angleTempInfoPdf(Object angle, Object temp);
+
+  /// No description provided for @stepSizeUnitsPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Step Size: {stepSize}m - Units: {units}'**
+  String stepSizeUnitsPdf(Object stepSize, Object units);
+
+  /// No description provided for @distanceM.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance (m)'**
+  String get distanceM;
+
+  /// No description provided for @dropUnits.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop ({units})'**
+  String dropUnits(Object units);
+
+  /// No description provided for @driftUnits.
+  ///
+  /// In en, this message translates to:
+  /// **'Drift ({units})'**
+  String driftUnits(Object units);
+
+  /// No description provided for @distanceMTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance\n(m)'**
+  String get distanceMTable;
+
+  /// No description provided for @dropUnitsTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop\n({units})'**
+  String dropUnitsTable(Object units);
+
+  /// No description provided for @driftUnitsTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Drift\n({units})'**
+  String driftUnitsTable(Object units);
 }
 
 class _AppLocalizationsDelegate

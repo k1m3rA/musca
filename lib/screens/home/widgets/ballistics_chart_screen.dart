@@ -341,7 +341,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
           IconButton(
             icon: const Icon(Icons.table_chart),
             onPressed: _showTrajectoryTable,
-            tooltip: 'Generate Trajectory Table',
+            tooltip: AppLocalizations.of(context)!.generateTrajectoryTable,
           ),
         ],
       ),
@@ -384,7 +384,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    'Shot at ${widget.calculation.distance.toStringAsFixed(0)}m',
+                    AppLocalizations.of(context)!.shotAtDistance(widget.calculation.distance.toStringAsFixed(0)),
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.primary,
@@ -484,16 +484,16 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Wind: ${widget.calculation.windSpeed.toStringAsFixed(1)}m/s @ ${widget.calculation.windDirection.toStringAsFixed(0)}°',
+              AppLocalizations.of(context)!.windInfo(widget.calculation.windSpeed.toStringAsFixed(1), widget.calculation.windDirection.toStringAsFixed(0)),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             Text(
-              'Angle: ${widget.calculation.angle.toStringAsFixed(1)}° • Temperature: ${widget.calculation.temperature.toStringAsFixed(1)}°C',
+              AppLocalizations.of(context)!.angleTempInfo(widget.calculation.angle.toStringAsFixed(1), widget.calculation.temperature.toStringAsFixed(1)),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             if (widget.calculation.driftHorizontal != null)
               Text(
-                'Impact: ${(widget.calculation.dropVertical! * 100).toStringAsFixed(1)}cm drop, ${(widget.calculation.driftHorizontal! * 100).toStringAsFixed(1)}cm drift',
+                AppLocalizations.of(context)!.impactInfo((widget.calculation.dropVertical! * 100).toStringAsFixed(1), (widget.calculation.driftHorizontal! * 100).toStringAsFixed(1)),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: Theme.of(context).colorScheme.primary,
@@ -653,7 +653,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
-                    labelResolver: (line) => 'Target\n${widget.calculation.distance.toStringAsFixed(0)}m',
+                    labelResolver: (line) => AppLocalizations.of(context)!.targetLabel(widget.calculation.distance.toStringAsFixed(0)),
                   ),
                 ),
                 // Only show zero range line if it's greater than 0 and showing vertical drop
@@ -671,7 +671,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                         fontWeight: FontWeight.bold,
                         fontSize: 10,
                       ),
-                      labelResolver: (line) => 'Zero\n${_selectedGun!.zeroRange.toStringAsFixed(0)}m',
+                      labelResolver: (line) => AppLocalizations.of(context)!.zeroLabel(_selectedGun!.zeroRange.toStringAsFixed(0)),
                     ),
                   ),
               ],
@@ -790,11 +790,11 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
     final double zeroRange = _selectedGun?.zeroRange ?? 0;
 
     if (visorHeight == 0.0 && zeroRange == 0.0) {
-      return 'Line of sight (bore axis)';
+      return AppLocalizations.of(context)!.losBoreAxis;
     } else if (zeroRange == 0.0) {
-      return 'Line of sight (horizontal)';
+      return AppLocalizations.of(context)!.losHorizontal;
     } else {
-      return 'Line of sight (zeroed)';
+      return AppLocalizations.of(context)!.losZeroed;
     }
   }
   String _buildDescriptionText() {
@@ -805,17 +805,17 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
     final double zeroRange = _selectedGun?.zeroRange ?? 0;
 
     String description;    if (showVerticalDrop) {
-      description = 'X-axis: Distance (m) • Y-axis: Height relative to bore (cm)\nPositive values = upward drop, negative values = downward drop';
+      description = AppLocalizations.of(context)!.dropChartDesc;
       
       if (visorHeight == 0.0 && zeroRange == 0.0) {
-        description += '\nLine of sight coincides with bore axis';
+        description += AppLocalizations.of(context)!.losCoincides;
       } else if (zeroRange == 0.0) {
-        description += '\nLine of sight is horizontal at scope height';
+        description += AppLocalizations.of(context)!.losIsHorizontal;
       } else {
-        description += '\nLine of sight intersects trajectory at zero range';
+        description += AppLocalizations.of(context)!.losIntersects;
       }    } else {
-      description = 'X-axis: Distance (m) • Y-axis: Horizontal drift (cm)\nPositive values = drift to the right, negative values = drift to the left';
-      description += '\nShows bullet horizontal displacement due to wind, spin drift, and Coriolis effect';
+      description = AppLocalizations.of(context)!.driftChartDesc;
+      description += AppLocalizations.of(context)!.driftChartDesc2;
     }
 
     return description;
