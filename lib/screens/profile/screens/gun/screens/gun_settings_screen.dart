@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musca/l10n/app_localizations.dart';
 import 'widgets/twist_rate_input.dart';
 import 'widgets/muzzle_velocity_input.dart';
 import 'widgets/zero_range_input.dart';
@@ -141,7 +142,7 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
     } catch (e) {
       // Show error feedback to user
       final snackBar = SnackBar(
-        content: Text('Error saving gun: $e'),
+        content: Text(AppLocalizations.of(context)!.errorSavingGun(e.toString())),
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.only(

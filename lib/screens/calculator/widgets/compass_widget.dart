@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'dart:async';
 import 'package:flutter_svg/flutter_svg.dart';  // Add this import
+import 'package:musca/l10n/app_localizations.dart';
 
 class CompassWidget extends StatefulWidget {
   final Function(double)? onWindDirectionChanged; // Add callback function
@@ -98,7 +99,7 @@ class _CompassWidgetState extends State<CompassWidget> {
     return Column(
       children: [
         Text(
-          'Wind Direction',
+          AppLocalizations.of(context)!.windDirection,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -111,7 +112,7 @@ class _CompassWidgetState extends State<CompassWidget> {
           height: 200,
           width: 200, // ancho reducido
           child: FlutterCompass.events == null
-              ? const Center(child: Text('No compass available'))
+              ? Center(child: Text(AppLocalizations.of(context)!.noCompassAvailable))
               : OverflowBox(
                   alignment: Alignment.center,
                   minWidth: 200,
@@ -123,13 +124,13 @@ class _CompassWidgetState extends State<CompassWidget> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Text('Compass: ${_direction.toStringAsFixed(1)}°'),
+            Text(AppLocalizations.of(context)!.compassLabel(_direction.toStringAsFixed(1))),
           ],
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Text('Wind: ${_getRelativeWindDirection().toStringAsFixed(1)}°'),
+            Text(AppLocalizations.of(context)!.windLabel(_getRelativeWindDirection().toStringAsFixed(1))),
           ],
         ),
       ],

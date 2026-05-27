@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musca/l10n/app_localizations.dart';
 
 class NameInput extends StatelessWidget {
   final TextEditingController controller;
@@ -20,7 +21,7 @@ class NameInput extends StatelessWidget {
             child: TextField(
               controller: controller,
               decoration: InputDecoration(
-                labelText: 'Cartridge Name',
+                labelText: AppLocalizations.of(context)!.cartridgeName,
                 labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
                 border: const OutlineInputBorder(
                   borderSide: BorderSide(width: 2.0),

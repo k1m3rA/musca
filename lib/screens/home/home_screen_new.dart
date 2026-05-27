@@ -4,6 +4,7 @@ import '../../services/calculation_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:musca/l10n/app_localizations.dart';
 
 // New widget for just the content
 class HomeContent extends StatefulWidget {
@@ -89,7 +90,7 @@ class _HomeContentState extends State<HomeContent> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Latest Shot',
+                      AppLocalizations.of(context)!.latestShot,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.primary,
@@ -179,21 +180,21 @@ class _HomeContentState extends State<HomeContent> {
       children: [
         Expanded(
           child: _buildCorrectionCard(
-            'Horizontal Drift',
+            AppLocalizations.of(context)!.horizontalDrift,
             corrections['drift'] as double,
             corrections['unit'] as String,
             Icons.arrow_forward,
-            corrections['drift'] > 0 ? 'Right' : 'Left',
+            corrections['drift'] > 0 ? AppLocalizations.of(context)!.right : AppLocalizations.of(context)!.left,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: _buildCorrectionCard(
-            'Vertical Drop',
+            AppLocalizations.of(context)!.verticalDrop,
             corrections['drop'] as double,
             corrections['unit'] as String,
             Icons.arrow_downward,
-            'Up',
+            AppLocalizations.of(context)!.up,
           ),
         ),
       ],
@@ -208,15 +209,15 @@ class _HomeContentState extends State<HomeContent> {
     String correctionDirection;
     Color correctionColor;
     
-    if (label.contains('Horizontal')) {
+    if (label == AppLocalizations.of(context)!.horizontalDrift) {
       // For horizontal drift: positive = adjust right, negative = adjust left
       correctionIcon = value > 0 ? Icons.arrow_forward : Icons.arrow_back;
-      correctionDirection = value > 0 ? 'Right' : 'Left';
+      correctionDirection = value > 0 ? AppLocalizations.of(context)!.right : AppLocalizations.of(context)!.left;
       correctionColor = value > 0 ? Colors.green : Colors.red;
     } else {
       // For vertical drop: positive = adjust up, negative = adjust down
       correctionIcon = value > 0 ? Icons.arrow_upward : Icons.arrow_downward;
-      correctionDirection = value > 0 ? 'Up' : 'Down';
+      correctionDirection = value > 0 ? AppLocalizations.of(context)!.up : AppLocalizations.of(context)!.down;
       correctionColor = value > 0 ? Colors.green : Colors.red;
     }
     
@@ -262,7 +263,7 @@ class _HomeContentState extends State<HomeContent> {
             ),
           ),
           Text(
-            value == 0 ? 'No correction' : 'Adjust $correctionDirection',
+            value == 0 ? AppLocalizations.of(context)!.noCorrection : AppLocalizations.of(context)!.adjustDirection(correctionDirection),
             style: TextStyle(
               fontSize: 11,
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
@@ -437,7 +438,7 @@ class _HomeContentState extends State<HomeContent> {
                             ),
                             const SizedBox(width: 16),
                             Text(
-                              'Add New Shot',
+                              AppLocalizations.of(context)!.addNewShot,
                               style: TextStyle(
                                 fontSize: 18, // Increased font size
                                 fontWeight: FontWeight.bold,
@@ -488,7 +489,7 @@ class _HomeContentState extends State<HomeContent> {
                                     ),
                                     const SizedBox(height: 16),
                                     Text(
-                                      'Add first shot',
+                                      AppLocalizations.of(context)!.addFirstShot,
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -502,7 +503,7 @@ class _HomeContentState extends State<HomeContent> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'No saved shots yet',
+                            AppLocalizations.of(context)!.noSavedShotsYet,
                             style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                           ),
                         ],
@@ -574,7 +575,7 @@ class _CalculationCardState extends State<CalculationCard> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Shot Calculation',
+                    AppLocalizations.of(context)!.shotCalculation,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -603,10 +604,10 @@ class _CalculationCardState extends State<CalculationCard> {
                 ],
               ),
               const Divider(),
-              _buildDataRow(context, 'Distance', '${widget.calculation.distance.toStringAsFixed(1)} m'),
-              _buildDataRow(context, 'Angle', '${widget.calculation.angle.toStringAsFixed(1)}°'),
-              _buildDataRow(context, 'Wind Speed', '${widget.calculation.windSpeed.toStringAsFixed(1)} m/s'),
-              _buildDataRow(context, 'Wind Direction', '${widget.calculation.windDirection.toStringAsFixed(1)}°'),
+              _buildDataRow(context, AppLocalizations.of(context)!.distanceLabel, '${widget.calculation.distance.toStringAsFixed(1)} m'),
+              _buildDataRow(context, AppLocalizations.of(context)!.angle, '${widget.calculation.angle.toStringAsFixed(1)}°'),
+              _buildDataRow(context, AppLocalizations.of(context)!.windSpeedLabel, '${widget.calculation.windSpeed.toStringAsFixed(1)} m/s'),
+              _buildDataRow(context, AppLocalizations.of(context)!.windDirection, '${widget.calculation.windDirection.toStringAsFixed(1)}°'),
               
               // Add ballistics results section
               if (widget.calculation.driftHorizontal != null) ...[
@@ -615,7 +616,7 @@ class _CalculationCardState extends State<CalculationCard> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Ballistics Results',
+                      AppLocalizations.of(context)!.ballisticsResults,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.primary,
@@ -625,19 +626,19 @@ class _CalculationCardState extends State<CalculationCard> {
                       value: _selectedUnit,
                       underline: Container(),
                       items: [
-                        const DropdownMenuItem(value: 'MRAD', child: Text('MRAD')),
-                        const DropdownMenuItem(value: '1/20 MRAD', child: Text('1/20 MRAD')),
-                        const DropdownMenuItem(value: 'MOA', child: Text('MOA')),
-                        const DropdownMenuItem(value: '1/2 MOA', child: Text('1/2 MOA')),
-                        const DropdownMenuItem(value: '1/3 MOA', child: Text('1/3 MOA')),
-                        const DropdownMenuItem(value: '1/4 MOA', child: Text('1/4 MOA')),
-                        const DropdownMenuItem(value: '1/8 MOA', child: Text('1/8 MOA')),
-                        const DropdownMenuItem(value: 'Inches', child: Text('Inches')),
-                        const DropdownMenuItem(value: 'Centimeters', child: Text('Centimeters')),
-                        const DropdownMenuItem(value: 'm (absolute)', child: Text('m (absolute)')),
-                        const DropdownMenuItem(value: 'm (relative)', child: Text('m (relative)')),
-                        const DropdownMenuItem(value: 'cm (absolute)', child: Text('cm (absolute)')),
-                        const DropdownMenuItem(value: 'cm (relative)', child: Text('cm (relative)')),
+                        DropdownMenuItem(value: 'MRAD', child: Text(AppLocalizations.of(context)!.mrad)),
+                        DropdownMenuItem(value: '1/20 MRAD', child: Text(AppLocalizations.of(context)!.oneTwentiethMrad)),
+                        DropdownMenuItem(value: 'MOA', child: Text(AppLocalizations.of(context)!.moa)),
+                        DropdownMenuItem(value: '1/2 MOA', child: Text(AppLocalizations.of(context)!.halfMoa)),
+                        DropdownMenuItem(value: '1/3 MOA', child: Text(AppLocalizations.of(context)!.oneThirdMoa)),
+                        DropdownMenuItem(value: '1/4 MOA', child: Text(AppLocalizations.of(context)!.quarterMoa)),
+                        DropdownMenuItem(value: '1/8 MOA', child: Text(AppLocalizations.of(context)!.oneEighthMoa)),
+                        DropdownMenuItem(value: 'Inches', child: Text(AppLocalizations.of(context)!.inches)),
+                        DropdownMenuItem(value: 'Centimeters', child: Text(AppLocalizations.of(context)!.centimeters)),
+                        DropdownMenuItem(value: 'm (absolute)', child: Text(AppLocalizations.of(context)!.mAbsolute)),
+                        DropdownMenuItem(value: 'm (relative)', child: Text(AppLocalizations.of(context)!.mRelative)),
+                        DropdownMenuItem(value: 'cm (absolute)', child: Text(AppLocalizations.of(context)!.cmAbsolute)),
+                        DropdownMenuItem(value: 'cm (relative)', child: Text(AppLocalizations.of(context)!.cmRelative)),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -738,8 +739,8 @@ class _CalculationCardState extends State<CalculationCard> {
     
     return Column(
       children: [
-        _buildDataRow(context, 'Horizontal Drift', '$driftValue $unit'),
-        _buildDataRow(context, 'Vertical Drop', '$dropValue $unit'),
+        _buildDataRow(context, AppLocalizations.of(context)!.horizontalDrift, '$driftValue $unit'),
+        _buildDataRow(context, AppLocalizations.of(context)!.verticalDrop, '$dropValue $unit'),
       ],
     );
   }

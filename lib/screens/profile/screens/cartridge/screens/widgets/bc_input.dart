@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 
@@ -115,7 +116,7 @@ class _BCTypeInputState extends State<BCTypeInput> {
                       }
                     },
                     decoration: InputDecoration(
-                      labelText: 'Ballistic Coefficient',
+                      labelText: AppLocalizations.of(context)!.ballisticCoefficient,
                       labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
                       border: const OutlineInputBorder(
                         borderSide: BorderSide(width: 2.0),
@@ -222,7 +223,7 @@ class _BCTypeInputState extends State<BCTypeInput> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'G1',
+                            AppLocalizations.of(context)!.g1,
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
@@ -259,7 +260,7 @@ class _BCTypeInputState extends State<BCTypeInput> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'G7',
+                            AppLocalizations.of(context)!.g7,
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,

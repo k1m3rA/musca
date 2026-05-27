@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'screens/scope/list_scope_screen.dart';
 import 'screens/cartridge/list_cartridge_screen.dart';
@@ -100,7 +101,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               title: Text(
-                "Armory",
+                AppLocalizations.of(context)!.armory,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                 ),
@@ -145,7 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            selectedGun?.name ?? 'Gun',
+                            selectedGun?.name ?? AppLocalizations.of(context)!.gunProfile.replaceAll('Profile', '').trim(),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -154,7 +155,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           if (selectedGun != null)
                             Text(
-                              selectedGun!.getDescription(),
+                              AppLocalizations.of(context)!.gunDescriptionFormat(
+                                selectedGun!.twistDirection == 1 ? AppLocalizations.of(context)!.rightTwist : AppLocalizations.of(context)!.leftTwist,
+                                selectedGun!.twistRate.toStringAsFixed(1),
+                                selectedGun!.muzzleVelocity.toStringAsFixed(0),
+                                selectedGun!.zeroRange.toStringAsFixed(0),
+                              ),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey[600],
@@ -201,7 +207,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            selectedScope?.name ?? 'Scope',
+                            selectedScope?.name ?? AppLocalizations.of(context)!.scopeProfile.replaceAll('Profile', '').trim(),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -212,7 +218,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Column(
                               children: [
                                 Text(
-                                  'Sight Height: ${selectedScope!.sightHeight.toStringAsFixed(2)} ${selectedScope!.units <= 1 ? (selectedScope!.units == 0 ? "cm" : "cm") : "cm"}',
+                                  AppLocalizations.of(context)!.sightHeightFormat(selectedScope!.sightHeight.toStringAsFixed(2), selectedScope!.units <= 1 ? 'cm' : 'cm'),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey[600],
@@ -220,7 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   textAlign: TextAlign.center,
                                 ),
                                 Text(
-                                  'Click Units: ${selectedScope!.getUnitsDisplayName()}',
+                                  AppLocalizations.of(context)!.clickUnitsFormat(selectedScope!.getUnitsDisplayName()),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey[600],
@@ -269,7 +275,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            selectedCartridge?.name ?? 'Cartridge',
+                            selectedCartridge?.name ?? AppLocalizations.of(context)!.cartridgeProfile.replaceAll('Profile', '').trim(),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -280,7 +286,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Column(
                               children: [
                                 Text(
-                                  'Diameter: ${selectedCartridge!.diameter} cm · Weight: ${selectedCartridge!.bulletWeight} gr',
+                                  AppLocalizations.of(context)!.diameterWeightFormat(selectedCartridge!.diameter.toString(), selectedCartridge!.bulletWeight.toString()),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey[600],
@@ -288,7 +294,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   textAlign: TextAlign.center,
                                 ),
                                 Text(
-                                  'BC: ${selectedCartridge!.ballisticCoefficient.toStringAsFixed(3)} ${selectedCartridge!.bcModelType == 0 ? "G1" : "G7"}',
+                                  AppLocalizations.of(context)!.bcFormat(selectedCartridge!.ballisticCoefficient.toStringAsFixed(3), selectedCartridge!.bcModelType == 0 ? "G1" : "G7"),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey[600],

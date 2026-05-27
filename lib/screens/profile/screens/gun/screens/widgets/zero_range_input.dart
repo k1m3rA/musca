@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
 
@@ -55,7 +56,7 @@ class ZeroRangeInput extends StatelessWidget {
                   }),
                 ],
                 decoration: InputDecoration(
-                  labelText: 'Zero Range',
+                  labelText: AppLocalizations.of(context)!.zeroRangeLabel,
                   labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
                   border: const OutlineInputBorder(
                     borderSide: BorderSide(width: 2.0),

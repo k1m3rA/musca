@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter/gestures.dart';
 
 class LengthInput extends StatelessWidget {
@@ -34,7 +35,7 @@ class LengthInput extends StatelessWidget {
                 controller: controller,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: 'Length',
+                  labelText: AppLocalizations.of(context)!.length,
                   labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
                   border: const OutlineInputBorder(
                     borderSide: BorderSide(width: 2.0),

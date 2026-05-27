@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musca/l10n/app_localizations.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../services/weather_service.dart';
 import '../../../services/weather_api_exceptions.dart';
@@ -122,7 +123,7 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Environmental Data',
+                AppLocalizations.of(context)!.environmentalData,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -176,8 +177,8 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
                       children: [
                         Text(
                           _apiErrorType == WeatherApiError.noApiKey 
-                            ? 'Weather API not configured'
-                            : 'Invalid Weather API key',
+                            ? AppLocalizations.of(context)!.weatherApiNotConfigured
+                            : AppLocalizations.of(context)!.invalidWeatherApiKey,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -186,7 +187,7 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Configure in Settings > Configure Weather API',
+                          AppLocalizations.of(context)!.configureInSettingsConfigureWeatherApi,
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.orange[700],
@@ -202,7 +203,7 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
           // Temperature input
           _buildInputRow(
             controller: widget.temperatureController,
-            label: 'Temperature',
+            label: AppLocalizations.of(context)!.temperature,
             suffix: '°C',
             onIncrease: () => widget.onUpdateTemperature(widget.scrollStep),
             onDecrease: () => widget.onUpdateTemperature(-widget.scrollStep),
@@ -215,7 +216,7 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
           // Pressure input
           _buildInputRow(
             controller: widget.pressureController,
-            label: 'Pressure',
+            label: AppLocalizations.of(context)!.pressure,
             suffix: 'mbar',
             onIncrease: () => widget.onUpdatePressure(widget.scrollStep * 2),
             onDecrease: () => widget.onUpdatePressure(-widget.scrollStep * 2),
@@ -227,7 +228,7 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
             // Humidity input
           _buildInputRow(
             controller: widget.humidityController,
-            label: 'Humidity',
+            label: AppLocalizations.of(context)!.humidity,
             suffix: '%',
             onIncrease: () => widget.onUpdateHumidity(widget.scrollStep),
             onDecrease: () => widget.onUpdateHumidity(-widget.scrollStep),
@@ -240,7 +241,7 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
           // Latitude input
           _buildInputRow(
             controller: widget.latitudeController,
-            label: 'Latitude',
+            label: AppLocalizations.of(context)!.latitude,
             suffix: '°',
             onIncrease: () {
               final currentValue = double.tryParse(widget.latitudeController.text) ?? 0.0;

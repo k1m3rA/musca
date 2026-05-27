@@ -10,6 +10,7 @@ import '../../../models/gun_model.dart';
 import '../../../models/cartridge_model.dart';
 import '../../../models/scope_model.dart';
 import 'trajectory_table_dialog.dart';
+import 'package:musca/l10n/app_localizations.dart';
 
 class BallisticsChartScreen extends StatefulWidget {
   final Calculation calculation;
@@ -330,7 +331,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Ballistics Trajectory',
+          AppLocalizations.of(context)!.ballisticsTrajectory,
           style: TextStyle(color: Theme.of(context).colorScheme.primary),
         ),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -347,9 +348,9 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : trajectorySpots.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
-                    'Unable to calculate trajectory.\nPlease ensure all profiles are selected.',
+                    AppLocalizations.of(context)!.unableToCalculateTrajectorynpleaseEnsureAllProfilesAreSelected,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16),
                   ),
@@ -418,7 +419,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Drop',
+                              AppLocalizations.of(context)!.drop,
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 14,
@@ -463,7 +464,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Drift',
+                              AppLocalizations.of(context)!.drift,
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 14,
@@ -699,7 +700,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Legend',
+              AppLocalizations.of(context)!.legend,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -726,7 +727,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                     color: Colors.red,
                   ),
                   const SizedBox(width: 8),
-                  const Text('Bullet trajectory (vertical drop)'),
+                  Text(AppLocalizations.of(context)!.bulletTrajectoryVerticalDrop),
                 ],
               ),            ] else ...[
               Row(
@@ -737,7 +738,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                     color: Colors.green,
                   ),
                   const SizedBox(width: 8),
-                  const Text('Bullet drift (horizontal)'),
+                  Text(AppLocalizations.of(context)!.bulletDriftHorizontal),
                 ],
               ),
             ],
@@ -750,7 +751,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                   color: Colors.orange,
                 ),
                 const SizedBox(width: 8),
-                const Text('Target distance'),
+                Text(AppLocalizations.of(context)!.targetDistance),
               ],
             ),
             if (showVerticalDrop && (_selectedGun?.zeroRange ?? 0) > 0) ...[
@@ -763,7 +764,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
                     color: Colors.green,
                   ),
                   const SizedBox(width: 8),
-                  const Text('Zero range'),
+                  Text(AppLocalizations.of(context)!.zeroRange),
                 ],
               ),
             ],

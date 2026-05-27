@@ -1,0 +1,333 @@
+{
+  "@@locale": "en",
+  "@angleAndWind": {
+    "placeholders": {
+      "angle": {
+        "type": "String"
+      },
+      "windDirection": {
+        "type": "String"
+      },
+      "windSpeed": {
+        "type": "String"
+      }
+    }
+  },
+  "@areYouSureDeleteCartridge": {
+    "placeholders": {
+      "cartridgeName": {
+        "type": "String"
+      }
+    }
+  },
+  "@areYouSureDeleteGun": {
+    "placeholders": {
+      "gunName": {
+        "type": "String"
+      }
+    }
+  },
+  "@areYouSureDeleteScope": {
+    "placeholders": {
+      "scopeName": {
+        "type": "String"
+      }
+    }
+  },
+  "@bcFormat": {
+    "placeholders": {
+      "bc": {
+        "type": "String"
+      },
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "@clickUnitsFormat": {
+    "placeholders": {
+      "units": {
+        "type": "String"
+      }
+    }
+  },
+  "@compassLabel": {
+    "placeholders": {
+      "direction": {
+        "type": "String"
+      }
+    }
+  },
+  "@diameterWeightFormat": {
+    "placeholders": {
+      "diameter": {
+        "type": "String"
+      },
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "@errorSavingCalculation": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@errorSavingGun": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@shotSaved": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      },
+      "windSpeed": {
+        "type": "String"
+      }
+    }
+  },
+  "@sightHeightFormat": {
+    "placeholders": {
+      "height": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@stepMLabel": {
+    "placeholders": {
+      "step": {
+        "type": "String"
+      }
+    }
+  },
+  "@lengthBcFormat": {
+    "placeholders": {
+      "length": {
+        "type": "String"
+      },
+      "bc": {
+        "type": "String"
+      },
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "@gunDescriptionFormat": {
+    "placeholders": {
+      "twistDir": {
+        "type": "String"
+      },
+      "twistRate": {
+        "type": "String"
+      },
+      "mv": {
+        "type": "String"
+      },
+      "zero": {
+        "type": "String"
+      }
+    }
+  },
+  "@adjustDirection": {
+    "placeholders": {
+      "direction": {
+        "type": "String"
+      }
+    }
+  },
+  "@windLabel": {
+    "placeholders": {
+      "direction": {
+        "type": "String"
+      }
+    }
+  },
+  "addFirstCartridge": "Add first Cartridge",
+  "addFirstGun": "Add first Gun",
+  "addFirstScope": "Add first Scope",
+  "addFirstShot": "Add first shot",
+  "addNewCartridge": "Add New Cartridge",
+  "addNewGun": "Add New Gun",
+  "addNewScope": "Add New Scope",
+  "addNewShot": "Add New Shot",
+  "allCalculationsHaveBeenDeleted": "All calculations have been deleted",
+  "allCartridgesHaveBeenDeleted": "All cartridges have been deleted",
+  "allGunsHaveBeenDeleted": "All guns have been deleted",
+  "allScopesHaveBeenDeleted": "All scopes have been deleted",
+  "angleAndWind": "Angle: {angle}\u00b0 \u2022 Wind: {windSpeed}m/s @ {windDirection}\u00b0",
+  "apiKeyLabel": "API Key",
+  "appPermissions": "App Permissions",
+  "areYouSureDeleteCartridge": "Are you sure you want to delete {cartridgeName}?",
+  "areYouSureDeleteGun": "Are you sure you want to delete {gunName}?",
+  "areYouSureDeleteScope": "Are you sure you want to delete {scopeName}?",
+  "armory": "Armory",
+  "ballisticCoefficient": "Ballistic Coefficient",
+  "ballisticsResults": "Ballistics Results",
+  "ballisticsTrajectory": "Ballistics Trajectory",
+  "bcFormat": "BC: {bc} {model}",
+  "bulletDriftHorizontal": "Bullet drift (horizontal)",
+  "bulletTrajectoryVerticalDrop": "Bullet trajectory (vertical drop)",
+  "cancel": "Cancel",
+  "cartridgeName": "Cartridge Name",
+  "cartridgeProfile": "Cartridge Profile",
+  "cartridgeProfileMissing": "\u2022 Cartridge profile missing",
+  "centimeters": "Centimeters",
+  "clear": "Clear",
+  "clearSavedCartridges": "Clear Saved Cartridges",
+  "clearSavedGuns": "Clear Saved Guns",
+  "clearSavedScopes": "Clear Saved Scopes",
+  "clearSavedShots": "Clear Saved Shots",
+  "clickUnits": "Click Units",
+  "clickUnitsFormat": "Click Units: {units}",
+  "close": "Close",
+  "cmAbsolute": "cm (absolute)",
+  "cmRelative": "cm (relative)",
+  "compassLabel": "Compass: {direction}\u00b0",
+  "configureInSettingsConfigureWeatherApi": "Configure in Settings > Configure Weather API",
+  "configureWeatherApi": "Configure Weather API",
+  "configureWeatherApiKey": "Configure Weather API Key",
+  "copyThisUrlToYourBrowser": "Copy this URL to your browser:",
+  "correctionTable": "Correction Table",
+  "correctionsRelativeToLineOfSightPositiveDropBulletHitsBelowLineOfSightPositiveDriftBulletHitsToTheRight": "Corrections relative to line of sight. Positive drop = bullet hits below line of sight. Positive drift = bullet hits to the right.",
+  "delete": "Delete",
+  "deleteAll": "Delete All",
+  "deleteAllCartridges": "Delete all cartridges?",
+  "deleteAllGuns": "Delete all guns?",
+  "deleteAllScopes": "Delete all scopes?",
+  "deleteAllShots": "Delete all shots?",
+  "deleteCartridge": "Delete Cartridge",
+  "deleteGun": "Delete Gun",
+  "deleteScope": "Delete Scope",
+  "developedByMiguelBenetAkaK1m3ra": "developed by Miguel Benet. aka. k1m3rA",
+  "diameter": "Diameter",
+  "diameterWeightFormat": "Diameter: {diameter} cm \u00b7 Weight: {weight} gr",
+  "distanceLabel": "Distance",
+  "distanceMustBeGreaterThan0m": "Distance must be greater than 0m",
+  "drift": "Drift",
+  "drop": "Drop",
+  "enterApiKeyHint": "Enter your weather API key",
+  "enterDataAndSelectProfilesToSeeBallisticsCalculations": "Enter data and select profiles to see ballistics calculations",
+  "enterYourFreeWeatherApiKeyFromWeatherapicom": "Enter your Free Weather API key from weatherapi.com:",
+  "environmentalData": "Environmental Data",
+  "errorSavingCalculation": "Error saving calculation: {error}",
+  "errorSavingGun": "Error saving gun: {error}",
+  "exportToPdf": "Export to PDF",
+  "g1": "G1",
+  "g7": "G7",
+  "goToProfiles": "Go to Profiles",
+  "goToTheArmoryToSelectYourProfiles": "Go to the Armory to select your profiles",
+  "goToTheProfilesTabToCreateAndSelectProfiles": "Go to the Profiles tab to create and select profiles.",
+  "gunName": "Gun Name",
+  "gunProfile": "Gun Profile",
+  "gunProfileMissing": "\u2022 Gun profile missing",
+  "halfMoa": "1/2 MOA",
+  "inAbsolute": "in (absolute)",
+  "inRelative": "in (relative)",
+  "inches": "Inches",
+  "inclination": "Inclination",
+  "invalidDistance": "Invalid Distance",
+  "keyPrivacyPoints": "Key Privacy Points",
+  "language": "Language",
+  "lastShots": "Last Shots",
+  "latestShot": "Latest Shot",
+  "leftTwist": "Left Twist",
+  "legend": "Legend",
+  "length": "Length",
+  "mAbsolute": "m (absolute)",
+  "mRelative": "m (relative)",
+  "moa": "MOA",
+  "mrad": "MRAD",
+  "musca": "Musca",
+  "muzzleVelocity": "Muzzle Velocity",
+  "noCartridgesAddedYet": "No cartridges added yet",
+  "noCompassAvailable": "No compass available",
+  "noGunsAddedYet": "No guns added yet",
+  "noProfilesSelected": "No profiles selected",
+  "noSavedShotsYet": "No saved shots yet",
+  "noScopesAddedYet": "No scopes added yet",
+  "notePositiveDropBulletHitsBelowLineOfSightPositiveDriftBulletHitsToTheRight": "Note: Positive drop = bullet hits below line of sight, Positive drift = bullet hits to the right",
+  "ok": "OK",
+  "oneEighthMoa": "1/8 MOA",
+  "oneThirdMoa": "1/3 MOA",
+  "oneTwentiethMrad": "1/20 MRAD",
+  "openLink": "Open Link",
+  "pleaseEnterADistanceGreaterThan0MetersBeforeSaving": "Please enter a distance greater than 0 meters before saving.",
+  "pleaseEnterAValidApiKey": "Please enter a valid API key",
+  "pleaseSelectAllRequiredProfilesBeforeSaving": "Please select all required profiles before saving:",
+  "privacyPolicy": "Privacy Policy",
+  "profilesRequired": "Profiles Required",
+  "quarterMoa": "1/4 MOA",
+  "readOurCompletePrivacyPolicyOnline": "Read our complete privacy policy online",
+  "rightTwist": "Right Twist",
+  "save": "Save",
+  "saveAngle": "Save Angle",
+  "scopeName": "Scope Name",
+  "scopeProfile": "Scope Profile",
+  "scopeProfileMissing": "\u2022 Scope profile missing",
+  "settingsTitle": "Settings",
+  "shotCalculation": "Shot Calculation",
+  "shotSaved": "Shot saved! Distance: {distance}m, Wind: {windSpeed}m/s",
+  "sightHeight": "Sight Height",
+  "sightHeightFormat": "Sight Height: {height} {unit}",
+  "stepMLabel": "{step}m",
+  "stepSizeM": "Step Size (m):",
+  "stepSizeMLabel": "Step Size (m):",
+  "targetDistance": "Target distance",
+  "thisWillPermanentlyDeleteAllYourSavedCartridges": "This will permanently delete all your saved cartridges. ",
+  "thisWillPermanentlyDeleteAllYourSavedGuns": "This will permanently delete all your saved guns. ",
+  "thisWillPermanentlyDeleteAllYourSavedScopes": "This will permanently delete all your saved scopes. ",
+  "thsWillPermanentlyDeleteAllYourSavedShots": "Ths will permanently delete all your saved shots. ",
+  "twistRate": "Twist Rate",
+  "unableToCalculateTrajectorynpleaseEnsureAllProfilesAreSelected": "Unable to calculate trajectory.\\nPlease ensure all profiles are selected.",
+  "unidad": "Unidad: ",
+  "units": "Units:",
+  "unitsLabel": "Units:",
+  "verticalAngle": "Vertical angle",
+  "viewFullPrivacyPolicy": "View Full Privacy Policy",
+  "weatherApiKeyRemoved": "Weather API key removed",
+  "weatherApiKeySavedSuccessfully": "Weather API key saved successfully",
+  "weight": "Weight",
+  "windDirection": "Wind Direction",
+  "windLabel": "Wind: {direction}\u00b0",
+  "windSpeedLabel": "Wind Speed",
+  "yourPrivacyMatters": "Your Privacy Matters",
+  "zeroNorth": "0\u00b0 = North",
+  "zeroRange": "Zero range",
+  "zeroRangeLabel": "Zero Range",
+  "yourCartridges": "Your Cartridges",
+  "yourGuns": "Your Guns",
+  "yourScopes": "Your Scopes",
+  "lengthBcFormat": "Length: {length} cm \u00b7 BC: {bc} {model}",
+  "gunDescriptionFormat": "{twistDir}: 1:{twistRate}, MV: {mv} m/s, Zero: {zero} m",
+  "temperature": "Temperature",
+  "pressure": "Pressure",
+  "humidity": "Humidity",
+  "latitude": "Latitude",
+  "weatherApiNotConfigured": "Weather API not configured",
+  "invalidWeatherApiKey": "Invalid Weather API key",
+  "horizontalDrift": "Horizontal Drift",
+  "verticalDrop": "Vertical Drop",
+  "right": "Right",
+  "left": "Left",
+  "up": "Up",
+  "down": "Down",
+  "noCorrection": "No correction",
+  "adjustDirection": "Adjust {direction}",
+  "angle": "Angle",
+  "profileDetails": "Profile Details",
+  "bulletWeight": "Bullet Weight",
+  "bulletLength": "Bullet Length",
+  "bcModel": "BC Model",
+  "unitsTitle": "Units",
+  "grains": "grains"
+}

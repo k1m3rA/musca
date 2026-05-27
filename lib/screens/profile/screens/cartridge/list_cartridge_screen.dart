@@ -3,6 +3,7 @@ import 'screens/cartridge_settings_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../services/cartridge_storage.dart';
 import '../../../../models/cartridge_model.dart'; // Import the Cartridge model
+import 'package:musca/l10n/app_localizations.dart';
 
 class ListCartridgeScreen extends StatefulWidget {
   final Cartridge? selectedCartridge;
@@ -105,16 +106,16 @@ class _ListCartridgeScreenState extends State<ListCartridgeScreen> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Delete Cartridge'),
-          content: Text('Are you sure you want to delete ${cartridgeToDelete.name}?'),
+          title: Text(AppLocalizations.of(context)!.deleteCartridge),
+          content: Text(AppLocalizations.of(context)!.areYouSureDeleteCartridge(cartridgeToDelete.name)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Delete'),
+              child: Text(AppLocalizations.of(context)!.delete),
             ),
           ],
         ),
@@ -155,7 +156,7 @@ class _ListCartridgeScreenState extends State<ListCartridgeScreen> {
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               title: Text(
-                "Your Cartridges",
+                AppLocalizations.of(context)!.yourCartridges,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                 ),
@@ -185,7 +186,7 @@ class _ListCartridgeScreenState extends State<ListCartridgeScreen> {
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
-                                    'Add first Cartridge',
+                                    AppLocalizations.of(context)!.addFirstCartridge,
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -199,7 +200,7 @@ class _ListCartridgeScreenState extends State<ListCartridgeScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No cartridges added yet',
+                          AppLocalizations.of(context)!.noCartridgesAddedYet,
                           style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                         ),
                       ],
@@ -235,7 +236,7 @@ class _ListCartridgeScreenState extends State<ListCartridgeScreen> {
                                       ),
                                       const SizedBox(width: 16),
                                       Text(
-                                        'Add New Cartridge',
+                                        AppLocalizations.of(context)!.addNewCartridge,
                                         style: TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
@@ -290,7 +291,7 @@ class _ListCartridgeScreenState extends State<ListCartridgeScreen> {
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                'Diameter: ${cartridge.diameter} cm · Weight: ${cartridge.bulletWeight} gr',
+                                                AppLocalizations.of(context)!.diameterWeightFormat(cartridge.diameter.toString(), cartridge.bulletWeight.toString()),
                                                 style: TextStyle(
                                                   color: isSelected
                                                     ? Theme.of(context).colorScheme.background.withOpacity(0.8)
@@ -298,7 +299,7 @@ class _ListCartridgeScreenState extends State<ListCartridgeScreen> {
                                                 ),
                                               ),
                                               Text(
-                                                'Length: ${cartridge.bulletLength.toStringAsFixed(3)} cm · BC: ${cartridge.ballisticCoefficient.toStringAsFixed(3)} ${cartridge.bcModelType == 0 ? "G1" : "G7"}',
+                                                AppLocalizations.of(context)!.lengthBcFormat(cartridge.bulletLength.toStringAsFixed(3), cartridge.ballisticCoefficient.toStringAsFixed(3), cartridge.bcModelType == 0 ? AppLocalizations.of(context)!.g1 : AppLocalizations.of(context)!.g7),
                                                 style: TextStyle(
                                                   color: isSelected
                                                     ? Theme.of(context).colorScheme.background.withOpacity(0.8)

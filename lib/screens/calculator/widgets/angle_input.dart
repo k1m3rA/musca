@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter/gestures.dart';
 
 class AngleInput extends StatelessWidget {
@@ -54,7 +55,7 @@ class AngleInput extends StatelessWidget {
                   }
                 },
                 decoration: InputDecoration(
-                  labelText: 'Vertical angle',
+                  labelText: AppLocalizations.of(context)!.verticalAngle,
                   labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
                   helperText: 'Range: -90° to 90°',
                   border: const OutlineInputBorder(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musca/l10n/app_localizations.dart';
 
 class UnitOption {
   final String id;
@@ -187,7 +188,7 @@ class _UnitsInputState extends State<UnitsInput> {
           Padding(
             padding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
             child: Text(
-              'Click Units',
+              AppLocalizations.of(context)!.clickUnits,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.primary,
                 fontSize: 13,

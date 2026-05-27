@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -126,7 +127,7 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
-        build: (pw.Context context) {
+        build: (pw.Context pdfContext) {
           return [            // App header with logo and name
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.start,
@@ -134,7 +135,7 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                 pw.Image(logoImage, width: 40, height: 40),
                 pw.SizedBox(width: 12),
                 pw.Text(
-                  'Musca',
+                  AppLocalizations.of(context)!.musca,
                   style: pw.TextStyle(
                     fontSize: 28,
                     fontWeight: pw.FontWeight.bold,
@@ -147,7 +148,7 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
             pw.Align(
               alignment: pw.Alignment.centerLeft,
               child: pw.Text(
-                'developed by Miguel Benet. aka. k1m3rA',
+                AppLocalizations.of(context)!.developedByMiguelBenetAkaK1m3ra,
                 style: pw.TextStyle(
                   fontSize: 12,
                   fontStyle: pw.FontStyle.italic,
@@ -159,7 +160,7 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
             pw.Header(
               level: 0,
               child: pw.Text(
-                'Correction Table',
+                AppLocalizations.of(context)!.correctionTable,
                 style: pw.TextStyle(
                   fontSize: 24,
                   fontWeight: pw.FontWeight.bold,
@@ -199,7 +200,7 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                   ),
                   pw.SizedBox(height: 8),
                   pw.Text(
-                    'Note: Positive drop = bullet hits below line of sight, Positive drift = bullet hits to the right',
+                    AppLocalizations.of(context)!.notePositiveDropBulletHitsBelowLineOfSightPositiveDriftBulletHitsToTheRight,
                     style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
                   ),
                 ],
@@ -276,7 +277,7 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [                Text(
-                  'Correction Table',
+                  AppLocalizations.of(context)!.correctionTable,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -297,7 +298,7 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                 ),
               ),
               child: Text(
-                'Corrections relative to line of sight. Positive drop = bullet hits below line of sight. Positive drift = bullet hits to the right.',
+                AppLocalizations.of(context)!.correctionsRelativeToLineOfSightPositiveDropBulletHitsBelowLineOfSightPositiveDriftBulletHitsToTheRight,
                 style: TextStyle(
                   fontSize: 12,
                   color: Theme.of(context).colorScheme.primary,
@@ -312,13 +313,13 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Step Size (m):', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(AppLocalizations.of(context)!.stepSizeMLabel, style: TextStyle(fontWeight: FontWeight.bold)),
                       DropdownButton<int>(
                         value: _stepSize,
                         items: _stepOptions.map((step) {
                           return DropdownMenuItem(
                             value: step,
-                            child: Text('${step}m'),
+                            child: Text(AppLocalizations.of(context)!.stepMLabel(step.toString())),
                           );
                         }).toList(),
                         onChanged: (value) {
@@ -338,7 +339,7 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Units:', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(AppLocalizations.of(context)!.unitsLabel, style: TextStyle(fontWeight: FontWeight.bold)),
                       DropdownButton<int>(
                         value: _selectedUnits,
                         items: _unitLabels.asMap().entries.map((entry) {
@@ -403,7 +404,7 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                 icon: Icon(Icons.picture_as_pdf, 
                   color: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.grey[900]),
                 label: Text(
-                  'Export to PDF',
+                  AppLocalizations.of(context)!.exportToPdf,
                   style: TextStyle(
                     color: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.grey[900],
                     fontWeight: FontWeight.bold,

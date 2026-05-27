@@ -3,6 +3,7 @@ import 'screens/scope_settings_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../services/scope_storage.dart';
 import '../../../../models/scope_model.dart';
+import 'package:musca/l10n/app_localizations.dart';
 
 class ListScopeScreen extends StatefulWidget {
   final Scope? selectedScope;
@@ -105,16 +106,16 @@ class _ListScopeScreenState extends State<ListScopeScreen> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Delete Scope'),
-          content: Text('Are you sure you want to delete ${scopeToDelete.name}?'),
+          title: Text(AppLocalizations.of(context)!.deleteScope),
+          content: Text(AppLocalizations.of(context)!.areYouSureDeleteScope(scopeToDelete.name)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Delete'),
+              child: Text(AppLocalizations.of(context)!.delete),
             ),
           ],
         ),
@@ -155,7 +156,7 @@ class _ListScopeScreenState extends State<ListScopeScreen> {
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               title: Text(
-                "Your Scopes",
+                AppLocalizations.of(context)!.yourScopes,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                 ),
@@ -185,7 +186,7 @@ class _ListScopeScreenState extends State<ListScopeScreen> {
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
-                                    'Add first Scope',
+                                    AppLocalizations.of(context)!.addFirstScope,
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -199,7 +200,7 @@ class _ListScopeScreenState extends State<ListScopeScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No scopes added yet',
+                          AppLocalizations.of(context)!.noScopesAddedYet,
                           style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                         ),
                       ],
@@ -235,7 +236,7 @@ class _ListScopeScreenState extends State<ListScopeScreen> {
                                       ),
                                       const SizedBox(width: 16),
                                       Text(
-                                        'Add New Scope',
+                                        AppLocalizations.of(context)!.addNewScope,
                                         style: TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
@@ -287,7 +288,7 @@ class _ListScopeScreenState extends State<ListScopeScreen> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            'Sight Height: ${scope.sightHeight.toStringAsFixed(2)} cm',
+                                            AppLocalizations.of(context)!.sightHeightFormat(scope.sightHeight.toStringAsFixed(2), 'cm'),
                                             style: TextStyle(
                                               color: isSelected
                                                 ? Theme.of(context).colorScheme.background.withOpacity(0.8)
@@ -296,7 +297,7 @@ class _ListScopeScreenState extends State<ListScopeScreen> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            'Click Units: ${scope.getUnitsDisplayName()}',
+                                            AppLocalizations.of(context)!.clickUnitsFormat(scope.getUnitsDisplayName()),
                                             style: TextStyle(
                                               color: isSelected
                                                 ? Theme.of(context).colorScheme.background.withOpacity(0.8)

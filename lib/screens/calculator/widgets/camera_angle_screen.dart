@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'dart:math' as math;
+import 'package:musca/l10n/app_localizations.dart';
 
 class CameraAngleScreen extends StatefulWidget {
   const CameraAngleScreen({super.key});
@@ -78,7 +79,7 @@ class _CameraAngleScreenState extends State<CameraAngleScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Inclination', style: TextStyle(color: Colors.white)),
+        title: Text(AppLocalizations.of(context)!.inclination, style: TextStyle(color: Colors.white)),
         backgroundColor: const Color.fromARGB(255, 51, 43, 54),
         iconTheme: const IconThemeData(color: Colors.white), // Make back arrow white
       ),
@@ -157,7 +158,7 @@ class _CameraAngleScreenState extends State<CameraAngleScreen> {
             ? FloatingActionButton.extended(
               onPressed: _captureAngle,
               icon: const Icon(Icons.camera),
-              label: const Text('Save Angle'),
+              label: Text(AppLocalizations.of(context)!.saveAngle),
               backgroundColor: const Color.fromARGB(255, 115, 59, 126),
               foregroundColor: Colors.white,
             )

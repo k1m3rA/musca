@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../config/privacy_policy.dart';
+import 'package:musca/l10n/app_localizations.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
@@ -9,7 +10,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Privacy Policy'),
+        title: Text(AppLocalizations.of(context)!.privacyPolicy),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       ),
       body: SingleChildScrollView(
@@ -19,7 +20,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
           children: [
             // Header
             Text(
-              'Your Privacy Matters',
+              AppLocalizations.of(context)!.yourPrivacyMatters,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.primary,
@@ -53,7 +54,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
 
             // Key points
             Text(
-              'Key Privacy Points',
+              AppLocalizations.of(context)!.keyPrivacyPoints,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -83,7 +84,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
 
             // Permissions section
             Text(
-              'App Permissions',
+              AppLocalizations.of(context)!.appPermissions,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -128,8 +129,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   Icons.description,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                title: const Text('View Full Privacy Policy'),
-                subtitle: const Text('Read our complete privacy policy online'),
+                title: Text(AppLocalizations.of(context)!.viewFullPrivacyPolicy),
+                subtitle: Text(AppLocalizations.of(context)!.readOurCompletePrivacyPolicyOnline),
                 trailing: Icon(Icons.arrow_forward_ios),
                 onTap: () => _launchPrivacyPolicy(),
               ),

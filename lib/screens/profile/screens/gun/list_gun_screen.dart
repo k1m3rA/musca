@@ -3,6 +3,7 @@ import 'screens/gun_settings_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../services/gun_storage.dart'; // Import the gun storage service
 import '../../../../models/gun_model.dart'; // Import the new Gun model
+import 'package:musca/l10n/app_localizations.dart';
 
 class ListGunsScreen extends StatefulWidget {
   final Gun? selectedGun;
@@ -104,16 +105,16 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Delete Gun'),
-          content: Text('Are you sure you want to delete ${gunToDelete.name}?'),
+          title: Text(AppLocalizations.of(context)!.deleteGun),
+          content: Text(AppLocalizations.of(context)!.areYouSureDeleteGun(gunToDelete.name)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Delete'),
+              child: Text(AppLocalizations.of(context)!.delete),
             ),
           ],
         ),
@@ -153,7 +154,7 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               title: Text(
-                "Your Guns",
+                AppLocalizations.of(context)!.yourGuns,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                 ),
@@ -183,7 +184,7 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
-                                    'Add first Gun',
+                                    AppLocalizations.of(context)!.addFirstGun,
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -197,7 +198,7 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No guns added yet',
+                          AppLocalizations.of(context)!.noGunsAddedYet,
                           style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                         ),
                       ],
@@ -233,7 +234,7 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
                                       ),
                                       const SizedBox(width: 16),
                                       Text(
-                                        'Add New Gun',
+                                        AppLocalizations.of(context)!.addNewGun,
                                         style: TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
@@ -284,7 +285,12 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
                                             ),
                                           ),
                                           Text(
-                                            gun.getDescription(),
+                                            AppLocalizations.of(context)!.gunDescriptionFormat(
+                                              gun.twistDirection == 0 ? AppLocalizations.of(context)!.leftTwist : AppLocalizations.of(context)!.rightTwist,
+                                              gun.twistRate.toStringAsFixed(1),
+                                              gun.muzzleVelocity.toStringAsFixed(0),
+                                              gun.zeroRange.toStringAsFixed(0)
+                                            ),
                                             style: TextStyle(
                                               color: isSelected
                                                 ? Theme.of(context).colorScheme.background.withOpacity(0.8)

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/gun_model.dart';
 import '../../models/cartridge_model.dart';
@@ -84,7 +85,7 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               title: Text(
-                "Profile Details",
+                AppLocalizations.of(context)!.profileDetails,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                 ),
@@ -108,14 +109,14 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No profiles selected',
+                      AppLocalizations.of(context)!.noProfilesSelected,
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Go to the Armory to select your profiles',
+                      AppLocalizations.of(context)!.goToTheArmoryToSelectYourProfiles,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                       ),
@@ -174,7 +175,7 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Gun Profile',
+                        AppLocalizations.of(context)!.gunProfile,
                         style: Theme.of(context).textTheme.labelMedium?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w600,
@@ -192,9 +193,9 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            _buildDetailRow('Twist Rate', '${selectedGun!.twistRate.toStringAsFixed(1)}" (${selectedGun!.twistDirection == 1 ? 'Right' : 'Left'})'),
-            _buildDetailRow('Muzzle Velocity', '${selectedGun!.muzzleVelocity.toStringAsFixed(0)} m/s'),
-            _buildDetailRow('Zero Range', '${selectedGun!.zeroRange.toStringAsFixed(0)} m'),
+            _buildDetailRow(AppLocalizations.of(context)!.twistRate, '${selectedGun!.twistRate.toStringAsFixed(1)}" (${selectedGun!.twistDirection == 1 ? AppLocalizations.of(context)!.right : AppLocalizations.of(context)!.left})'),
+            _buildDetailRow(AppLocalizations.of(context)!.muzzleVelocity, '${selectedGun!.muzzleVelocity.toStringAsFixed(0)} m/s'),
+            _buildDetailRow(AppLocalizations.of(context)!.zeroRangeLabel, '${selectedGun!.zeroRange.toStringAsFixed(0)} m'),
           ],
         ),
       ),
@@ -233,7 +234,7 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Cartridge Profile',
+                        AppLocalizations.of(context)!.cartridgeProfile,
                         style: Theme.of(context).textTheme.labelMedium?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w600,
@@ -251,12 +252,12 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            _buildDetailRow('Diameter', selectedCartridge!.diameter),
-            _buildDetailRow('Bullet Weight', '${selectedCartridge!.bulletWeight.toStringAsFixed(1)} grains'),
-            _buildDetailRow('Bullet Length', selectedCartridge!.bulletLength.toString()),
-            _buildDetailRow('Ballistic Coefficient', selectedCartridge!.ballisticCoefficient.toStringAsFixed(3)),
+            _buildDetailRow(AppLocalizations.of(context)!.diameter, selectedCartridge!.diameter),
+            _buildDetailRow(AppLocalizations.of(context)!.bulletWeight, '${selectedCartridge!.bulletWeight.toStringAsFixed(1)} ${AppLocalizations.of(context)!.grains}'),
+            _buildDetailRow(AppLocalizations.of(context)!.bulletLength, selectedCartridge!.bulletLength.toString()),
+            _buildDetailRow(AppLocalizations.of(context)!.ballisticCoefficient, selectedCartridge!.ballisticCoefficient.toStringAsFixed(3)),
             if (selectedCartridge!.bcModelType != null)
-              _buildDetailRow('BC Model', selectedCartridge!.bcModelType == 0 ? 'G1' : 'G7'),
+              _buildDetailRow(AppLocalizations.of(context)!.bcModel, selectedCartridge!.bcModelType == 0 ? AppLocalizations.of(context)!.g1 : AppLocalizations.of(context)!.g7),
           ],
         ),
       ),
@@ -295,7 +296,7 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Scope Profile',
+                        AppLocalizations.of(context)!.scopeProfile,
                         style: Theme.of(context).textTheme.labelMedium?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w600,
@@ -313,8 +314,8 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            _buildDetailRow('Sight Height', '${selectedScope!.sightHeight.toStringAsFixed(2)} ${selectedScope!.units == 0 ? 'inches' : 'cm'}'),
-            _buildDetailRow('Units', selectedScope!.getUnitsDisplayName()),
+            _buildDetailRow(AppLocalizations.of(context)!.sightHeight, '${selectedScope!.sightHeight.toStringAsFixed(2)} ${selectedScope!.units == 0 ? AppLocalizations.of(context)!.inches : AppLocalizations.of(context)!.centimeters.toLowerCase()}'),
+            _buildDetailRow(AppLocalizations.of(context)!.unitsTitle, selectedScope!.getUnitsDisplayName()),
           ],
         ),
       ),

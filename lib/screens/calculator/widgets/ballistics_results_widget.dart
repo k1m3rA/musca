@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musca/l10n/app_localizations.dart';
 import '../../../services/ballistics_calculator.dart';
 
 class BallisticsResultsWidget extends StatefulWidget {
@@ -33,7 +34,7 @@ class _BallisticsResultsWidgetState extends State<BallisticsResultsWidget> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Enter data and select profiles to see ballistics calculations',
+                AppLocalizations.of(context)!.enterDataAndSelectProfilesToSeeBallisticsCalculations,
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey[600],
@@ -42,7 +43,7 @@ class _BallisticsResultsWidgetState extends State<BallisticsResultsWidget> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Distance must be greater than 0m',
+                AppLocalizations.of(context)!.distanceMustBeGreaterThan0m,
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[500],
@@ -103,8 +104,8 @@ class _BallisticsResultsWidgetState extends State<BallisticsResultsWidget> {
 
     return Row(
       children: [
-        const Text(
-          'Unidad: ',
+        Text(
+          AppLocalizations.of(context)!.unidad,
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
         const SizedBox(width: 8),

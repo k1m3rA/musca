@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter/gestures.dart';
 
 class TwistRateInput extends StatefulWidget {
@@ -54,7 +55,7 @@ class _TwistRateInputState extends State<TwistRateInput> {
                     controller: widget.controller,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      labelText: 'Twist Rate',
+                      labelText: AppLocalizations.of(context)!.twistRate,
                       labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
                       border: const OutlineInputBorder(
                         borderSide: BorderSide(width: 2.0),
@@ -162,7 +163,7 @@ class _TwistRateInputState extends State<TwistRateInput> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Left Twist',
+                            AppLocalizations.of(context)!.leftTwist,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -207,7 +208,7 @@ class _TwistRateInputState extends State<TwistRateInput> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Right Twist',
+                            AppLocalizations.of(context)!.rightTwist,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

@@ -16,6 +16,7 @@ import '../../services/scope_storage.dart';
 import '../../models/gun_model.dart';
 import '../../models/cartridge_model.dart';
 import '../../models/scope_model.dart';
+import 'package:musca/l10n/app_localizations.dart';
 
 class CalculatorScreen extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -325,7 +326,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       if (!mounted) return;
       
       final snackBar = SnackBar(
-        content: Text('Shot saved! Distance: ${_distance.toStringAsFixed(1)}m, Wind: ${_windSpeed.toStringAsFixed(1)}m/s'),
+        content: Text(AppLocalizations.of(context)!.shotSaved(_distance.toStringAsFixed(1), _windSpeed.toStringAsFixed(1))),
         backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.only(left: 16.0, right: 16.0),
@@ -340,7 +341,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       if (!mounted) return;
       
       final snackBar = SnackBar(
-        content: Text('Error saving calculation: $e'),
+        content: Text(AppLocalizations.of(context)!.errorSavingCalculation(e.toString())),
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.only(left: 16.0, right: 16.0),
@@ -355,24 +356,24 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Profiles Required'),
+          title: Text(AppLocalizations.of(context)!.profilesRequired),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Please select all required profiles before saving:'),
+              Text(AppLocalizations.of(context)!.pleaseSelectAllRequiredProfilesBeforeSaving),
               const SizedBox(height: 8),
-              if (_selectedGun == null) const Text('• Gun profile missing'),
-              if (_selectedCartridge == null) const Text('• Cartridge profile missing'),
-              if (_selectedScope == null) const Text('• Scope profile missing'),
+              if (_selectedGun == null) Text(AppLocalizations.of(context)!.gunProfileMissing),
+              if (_selectedCartridge == null) Text(AppLocalizations.of(context)!.cartridgeProfileMissing),
+              if (_selectedScope == null) Text(AppLocalizations.of(context)!.scopeProfileMissing),
               const SizedBox(height: 16),
-              const Text('Go to the Profiles tab to create and select profiles.'),
+              Text(AppLocalizations.of(context)!.goToTheProfilesTabToCreateAndSelectProfiles),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
+              child: Text(AppLocalizations.of(context)!.ok),
             ),
             TextButton(
               onPressed: () {
@@ -381,7 +382,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   widget.onNavigate!(2);
                 }
               },
-              child: const Text('Go to Profiles'),
+              child: Text(AppLocalizations.of(context)!.goToProfiles),
             ),
           ],
         );
@@ -394,12 +395,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Invalid Distance'),
-          content: const Text('Please enter a distance greater than 0 meters before saving.'),
+          title: Text(AppLocalizations.of(context)!.invalidDistance),
+          content: Text(AppLocalizations.of(context)!.pleaseEnterADistanceGreaterThan0MetersBeforeSaving),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
+              child: Text(AppLocalizations.of(context)!.ok),
             ),
           ],
         );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter/gestures.dart';
 
 class WindSpeedInput extends StatelessWidget {
@@ -33,7 +34,7 @@ class WindSpeedInput extends StatelessWidget {
                 controller: controller,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: 'Wind Speed',
+                  labelText: AppLocalizations.of(context)!.windSpeedLabel,
                   labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
                   border: const OutlineInputBorder(
                     borderSide: BorderSide(width: 2.0),

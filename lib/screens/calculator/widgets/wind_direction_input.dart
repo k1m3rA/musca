@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter/gestures.dart';
 import 'dart:math' as math;
 
@@ -121,7 +122,7 @@ class _WindDirectionInputState extends State<WindDirectionInput> {
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(
-                '0° = North',
+                AppLocalizations.of(context)!.zeroNorth,
                 style: TextStyle(
                   fontSize: 14,
                   fontStyle: FontStyle.italic,

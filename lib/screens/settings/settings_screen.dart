@@ -7,10 +7,16 @@ import '../../services/scope_storage.dart'; // Add import for ScopeStorage
 import '../../services/api_key_service.dart';
 import '../../services/weather_service.dart';
 import '../privacy/privacy_policy_screen.dart';
+import 'package:musca/l10n/app_localizations.dart';
 
 class SettingsPage extends StatefulWidget {
   final ValueChanged<ThemeMode> onThemeChanged;
-  const SettingsPage({super.key, required this.onThemeChanged});
+  final ValueChanged<Locale> onLocaleChanged;
+  const SettingsPage({
+    super.key, 
+    required this.onThemeChanged,
+    required this.onLocaleChanged,
+  });
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -18,6 +24,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   ThemeMode _selectedTheme = ThemeMode.light;
+  Locale? _selectedLocale;
   bool _isInitialized = false;
   bool _isApiConfigured = false;
 
@@ -27,6 +34,10 @@ class _SettingsPageState extends State<SettingsPage> {
     if (!_isInitialized) {
       final brightness = Theme.of(context).brightness;
       _selectedTheme = brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light;
+      
+      final currentLocale = Localizations.localeOf(context);
+      _selectedLocale = Locale(currentLocale.languageCode);
+      
       _isInitialized = true;
       _checkApiStatus();
     }
@@ -46,6 +57,13 @@ class _SettingsPageState extends State<SettingsPage> {
     widget.onThemeChanged(theme);
   }
 
+  void _updateLocale(Locale locale) {
+    setState(() {
+      _selectedLocale = locale;
+    });
+    widget.onLocaleChanged(locale);
+  }
+
   // Add method to clear all calculations with confirmation dialog
   Future<void> _showClearConfirmationDialog() async {
     return showDialog<void>(
@@ -53,14 +71,12 @@ class _SettingsPageState extends State<SettingsPage> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Delete all shots?'),
-          content: const Text(
-            'Ths will permanently delete all your saved shots. '
-            'This action cannot be undone.',
+          title: Text(AppLocalizations.of(context)!.deleteAllShots),
+          content: Text(AppLocalizations.of(context)!.thsWillPermanentlyDeleteAllYourSavedShots + ' This action cannot be undone.',
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
@@ -69,7 +85,7 @@ class _SettingsPageState extends State<SettingsPage> {
               style: TextButton.styleFrom(
                 foregroundColor: Colors.red,
               ),
-              child: const Text('Delete All'),
+              child: Text(AppLocalizations.of(context)!.deleteAll),
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
                 await _clearAllCalculations();
@@ -88,8 +104,8 @@ class _SettingsPageState extends State<SettingsPage> {
     // Show confirmation to user
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('All calculations have been deleted'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.allCalculationsHaveBeenDeleted),
           duration: Duration(seconds: 2),
         ),
       );
@@ -103,14 +119,12 @@ class _SettingsPageState extends State<SettingsPage> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Delete all guns?'),
-          content: const Text(
-            'This will permanently delete all your saved guns. '
-            'This action cannot be undone.',
+          title: Text(AppLocalizations.of(context)!.deleteAllGuns),
+          content: Text(AppLocalizations.of(context)!.thisWillPermanentlyDeleteAllYourSavedGuns + ' This action cannot be undone.',
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
@@ -119,7 +133,7 @@ class _SettingsPageState extends State<SettingsPage> {
               style: TextButton.styleFrom(
                 foregroundColor: Colors.red,
               ),
-              child: const Text('Delete All'),
+              child: Text(AppLocalizations.of(context)!.deleteAll),
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
                 await _clearAllGuns();
@@ -138,8 +152,8 @@ class _SettingsPageState extends State<SettingsPage> {
     // Show confirmation to user
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('All guns have been deleted'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.allGunsHaveBeenDeleted),
           duration: Duration(seconds: 2),
         ),
       );
@@ -153,14 +167,12 @@ class _SettingsPageState extends State<SettingsPage> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Delete all cartridges?'),
-          content: const Text(
-            'This will permanently delete all your saved cartridges. '
-            'This action cannot be undone.',
+          title: Text(AppLocalizations.of(context)!.deleteAllCartridges),
+          content: Text(AppLocalizations.of(context)!.thisWillPermanentlyDeleteAllYourSavedCartridges + ' This action cannot be undone.',
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
@@ -169,7 +181,7 @@ class _SettingsPageState extends State<SettingsPage> {
               style: TextButton.styleFrom(
                 foregroundColor: Colors.red,
               ),
-              child: const Text('Delete All'),
+              child: Text(AppLocalizations.of(context)!.deleteAll),
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
                 await _clearAllCartridges();
@@ -188,8 +200,8 @@ class _SettingsPageState extends State<SettingsPage> {
     // Show confirmation to user
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('All cartridges have been deleted'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.allCartridgesHaveBeenDeleted),
           duration: Duration(seconds: 2),
         ),
       );
@@ -203,14 +215,12 @@ class _SettingsPageState extends State<SettingsPage> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Delete all scopes?'),
-          content: const Text(
-            'This will permanently delete all your saved scopes. '
-            'This action cannot be undone.',
+          title: Text(AppLocalizations.of(context)!.deleteAllScopes),
+          content: Text(AppLocalizations.of(context)!.thisWillPermanentlyDeleteAllYourSavedScopes + ' This action cannot be undone.',
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
@@ -219,7 +229,7 @@ class _SettingsPageState extends State<SettingsPage> {
               style: TextButton.styleFrom(
                 foregroundColor: Colors.red,
               ),
-              child: const Text('Delete All'),
+              child: Text(AppLocalizations.of(context)!.deleteAll),
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
                 await _clearAllScopes();
@@ -238,8 +248,8 @@ class _SettingsPageState extends State<SettingsPage> {
     // Show confirmation to user
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('All scopes have been deleted'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.allScopesHaveBeenDeleted),
           duration: Duration(seconds: 2),
         ),
       );
@@ -281,12 +291,12 @@ class _SettingsPageState extends State<SettingsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Open Link'),
+          title: Text(AppLocalizations.of(context)!.openLink),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Copy this URL to your browser:'),
+              Text(AppLocalizations.of(context)!.copyThisUrlToYourBrowser),
               const SizedBox(height: 8),
               SelectableText(
                 url,
@@ -300,7 +310,7 @@ class _SettingsPageState extends State<SettingsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
+              child: Text(AppLocalizations.of(context)!.close),
             ),
           ],
         );
@@ -323,21 +333,20 @@ class _SettingsPageState extends State<SettingsPage> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Configure Weather API Key'),
+          title: Text(AppLocalizations.of(context)!.configureWeatherApiKey),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Enter your Free Weather API key from weatherapi.com:',
+              Text(AppLocalizations.of(context)!.enterYourFreeWeatherApiKeyFromWeatherapicom,
                 style: TextStyle(fontSize: 14),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: apiKeyController,
-                decoration: const InputDecoration(
-                  labelText: 'API Key',
-                  hintText: 'Enter your weather API key',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.apiKeyLabel,
+                  hintText: AppLocalizations.of(context)!.enterApiKeyHint,
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 1,
@@ -371,21 +380,21 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
             ),
             TextButton(
-              child: const Text('Clear'),
+              child: Text(AppLocalizations.of(context)!.clear),
               onPressed: () async {
                 await ApiKeyService.removeWeatherApiKey();
                 await _checkApiStatus(); // Update status
                 Navigator.of(dialogContext).pop();
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Weather API key removed'),
+                    SnackBar(
+                      content: Text(AppLocalizations.of(context)!.weatherApiKeyRemoved),
                       duration: Duration(seconds: 2),
                     ),
                   );
@@ -393,7 +402,7 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
             TextButton(
-              child: const Text('Save'),
+              child: Text(AppLocalizations.of(context)!.save),
               onPressed: () async {
                 final apiKey = apiKeyController.text.trim();
                 if (apiKey.isNotEmpty) {
@@ -402,16 +411,16 @@ class _SettingsPageState extends State<SettingsPage> {
                   Navigator.of(dialogContext).pop();
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Weather API key saved successfully'),
+                      SnackBar(
+                        content: Text(AppLocalizations.of(context)!.weatherApiKeySavedSuccessfully),
                         duration: Duration(seconds: 2),
                       ),
                     );
                   }
                 } else {
                   ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please enter a valid API key'),
+                    SnackBar(
+                      content: Text(AppLocalizations.of(context)!.pleaseEnterAValidApiKey),
                       duration: Duration(seconds: 2),
                     ),
                   );
@@ -436,7 +445,7 @@ class _SettingsPageState extends State<SettingsPage> {
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               title: Text(
-              "Settings",
+              AppLocalizations.of(context)!.settingsTitle,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.primary,
               ),
@@ -497,6 +506,82 @@ class _SettingsPageState extends State<SettingsPage> {
                 
                 const SizedBox(height: 32),
                 
+                // Language Selection Section
+                Text(
+                  AppLocalizations.of(context)!.language,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => _updateLocale(const Locale('en')),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: _selectedLocale?.languageCode == 'en'
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).brightness == Brightness.dark 
+                                    ? Theme.of(context).colorScheme.surfaceContainerHighest
+                                    : Colors.grey.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'EN',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: _selectedLocale?.languageCode == 'en'
+                                    ? Colors.white
+                                    : Theme.of(context).brightness == Brightness.dark
+                                        ? Colors.white
+                                        : Colors.black,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => _updateLocale(const Locale('es')),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: _selectedLocale?.languageCode == 'es'
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).brightness == Brightness.dark 
+                                    ? Theme.of(context).colorScheme.surfaceContainerHighest
+                                    : Colors.grey.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'ES',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: _selectedLocale?.languageCode == 'es'
+                                    ? Colors.white
+                                    : Theme.of(context).brightness == Brightness.dark
+                                        ? Colors.white
+                                        : Colors.black,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 32),
+                
                 // API Configuration Section
                 const Divider(),
                 const SizedBox(height: 16),
@@ -547,7 +632,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Configure Weather API',
+                            AppLocalizations.of(context)!.configureWeatherApi,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -587,7 +672,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Privacy Policy',
+                            AppLocalizations.of(context)!.privacyPolicy,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -624,7 +709,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Clear Saved Shots',
+                            AppLocalizations.of(context)!.clearSavedShots,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -657,7 +742,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Clear Saved Guns',
+                            AppLocalizations.of(context)!.clearSavedGuns,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -690,7 +775,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Clear Saved Cartridges',
+                            AppLocalizations.of(context)!.clearSavedCartridges,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -723,7 +808,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Clear Saved Scopes',
+                            AppLocalizations.of(context)!.clearSavedScopes,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,

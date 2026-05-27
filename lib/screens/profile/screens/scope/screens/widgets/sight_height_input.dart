@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter/gestures.dart';
 
 class SightHeightInput extends StatelessWidget {
@@ -36,7 +37,7 @@ class SightHeightInput extends StatelessWidget {
                 controller: controller,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
-                  labelText: 'Sight Height',
+                  labelText: AppLocalizations.of(context)!.sightHeight,
                   labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
                   border: const OutlineInputBorder(
                     borderSide: BorderSide(width: 2.0),

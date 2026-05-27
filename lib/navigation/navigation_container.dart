@@ -8,11 +8,13 @@ import '../screens/profile/armory_screen.dart';
 class NavigationContainer extends StatefulWidget {
   final String title;
   final Function(ThemeMode) onThemeChanged;
+  final Function(Locale) onLocaleChanged;
 
   const NavigationContainer({
     super.key,
     required this.title,
     required this.onThemeChanged,
+    required this.onLocaleChanged,
   });
 
   @override
@@ -60,7 +62,10 @@ class _NavigationContainerState extends State<NavigationContainer> {
         reloadProfilesNotifier: _reloadCalculatorProfiles,
       ), // Pass the navigation callback
       ProfileScreen(onNavigate: _changeScreen), // Add the new profile screen
-      SettingsPage(onThemeChanged: widget.onThemeChanged),
+      SettingsPage(
+        onThemeChanged: widget.onThemeChanged,
+        onLocaleChanged: widget.onLocaleChanged,
+      ),
     ];
 
     return Scaffold(
