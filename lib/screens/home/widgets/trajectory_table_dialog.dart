@@ -34,7 +34,7 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
   List<TrajectoryDataPoint> _tableData = [];
   bool _isCalculating = false;
 
-  final List<String> _unitLabels = ['cm', 'inches', 'MOA', 'MIL'];
+  List<String> get _unitLabels => ['cm', AppLocalizations.of(context)!.inches.toLowerCase(), 'MOA', 'MIL'];
   final List<int> _stepOptions = [25, 50, 100, 200];
 
   @override
@@ -179,7 +179,7 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,                children: [
                   pw.Text(
-                    'Profiles: ${widget.selectedGun?.name ?? 'Unknown Gun'} | ${widget.selectedCartridge?.name ?? 'Unknown Cartridge'} | ${widget.selectedScope?.name ?? 'Unknown Scope'}',
+                    AppLocalizations.of(context)!.profilesLabel(widget.selectedGun?.name ?? AppLocalizations.of(context)!.unknownGun, widget.selectedCartridge?.name ?? AppLocalizations.of(context)!.unknownCartridge, widget.selectedScope?.name ?? AppLocalizations.of(context)!.unknownScope),
                     style: pw.TextStyle(
                       fontSize: 16,
                       fontWeight: pw.FontWeight.bold,
@@ -188,14 +188,14 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                   pw.SizedBox(height: 8),
                   pw.SizedBox(height: 4),
                   pw.Text(
-                    'Wind: ${widget.calculation.windSpeed.toStringAsFixed(1)}m/s at ${widget.calculation.windDirection.toStringAsFixed(0)} degrees',
+                    AppLocalizations.of(context)!.windInfoPdf(widget.calculation.windSpeed.toStringAsFixed(1), widget.calculation.windDirection.toStringAsFixed(0)),
                     style: const pw.TextStyle(fontSize: 12),
                   ),
                   pw.Text(
-                    'Angle: ${widget.calculation.angle.toStringAsFixed(1)} degrees - Temperature: ${widget.calculation.temperature.toStringAsFixed(1)} degrees C',
+                    AppLocalizations.of(context)!.angleTempInfoPdf(widget.calculation.angle.toStringAsFixed(1), widget.calculation.temperature.toStringAsFixed(1)),
                     style: const pw.TextStyle(fontSize: 12),
                   ),                  pw.Text(
-                    'Step Size: ${_stepSize}m - Units: ${_unitLabels[_selectedUnits]}',
+                    AppLocalizations.of(context)!.stepSizeUnitsPdf(_stepSize.toString(), _unitLabels[_selectedUnits]),
                     style: const pw.TextStyle(fontSize: 12),
                   ),
                   pw.SizedBox(height: 8),
@@ -224,9 +224,9 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                     color: PdfColors.grey200,
                   ),
                   children: [
-                    _buildPdfCell('Distance (m)', isHeader: true),
-                    _buildPdfCell('Drop (${_unitLabels[_selectedUnits]})', isHeader: true),
-                    _buildPdfCell('Drift (${_unitLabels[_selectedUnits]})', isHeader: true),
+                    _buildPdfCell(AppLocalizations.of(context)!.distanceM, isHeader: true),
+                    _buildPdfCell(AppLocalizations.of(context)!.dropUnits(_unitLabels[_selectedUnits]), isHeader: true),
+                    _buildPdfCell(AppLocalizations.of(context)!.driftUnits(_unitLabels[_selectedUnits]), isHeader: true),
                   ],
                 ),
                 // Data rows
@@ -380,9 +380,9 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                           color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                         ),
                         children: [
-                          _buildHeaderCell('Distance\n(m)'),
-                          _buildHeaderCell('Drop\n(${_unitLabels[_selectedUnits]})'),
-                          _buildHeaderCell('Drift\n(${_unitLabels[_selectedUnits]})'),
+                          _buildHeaderCell(AppLocalizations.of(context)!.distanceMTable),
+                          _buildHeaderCell(AppLocalizations.of(context)!.dropUnitsTable(_unitLabels[_selectedUnits])),
+                          _buildHeaderCell(AppLocalizations.of(context)!.driftUnitsTable(_unitLabels[_selectedUnits])),
                         ],
                       ),
                       ..._tableData.map((data) => TableRow(

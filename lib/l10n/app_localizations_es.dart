@@ -168,7 +168,7 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String
   get correctionsRelativeToLineOfSightPositiveDropBulletHitsBelowLineOfSightPositiveDriftBulletHitsToTheRight =>
-      'Corrections relative to line of sight. Positive drop = bullet hits below line of sight. Positive drift = bullet hits to the right.';
+      'Correcciones relativas a la línea de visión. Caída positiva = impacto debajo de la línea. Deriva positiva = impacto a la derecha.';
 
   @override
   String get delete => 'Eliminar';
@@ -353,7 +353,7 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String
   get notePositiveDropBulletHitsBelowLineOfSightPositiveDriftBulletHitsToTheRight =>
-      'Note: Positive drop = bullet hits below line of sight, Positive drift = bullet hits to the right';
+      'Nota: Caída positiva = impacto debajo de la línea, Deriva positiva = impacto a la derecha';
 
   @override
   String get ok => 'OK';
