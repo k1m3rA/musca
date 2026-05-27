@@ -588,6 +588,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileDetails => 'Profile Details';
 
   @override
+  String get viewTrajectoryChartTooltip =>
+      'View Trajectory Chart with Line of Sight';
+
+  @override
   String get bulletWeight => 'Bullet Weight';
 
   @override

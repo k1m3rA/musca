@@ -592,6 +592,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get profileDetails => 'Detalles del Perfil';
 
   @override
+  String get viewTrajectoryChartTooltip =>
+      'Ver Gráfica de Trayectoria con Línea de Visión';
+
+  @override
   String get bulletWeight => 'Peso de la Bala';
 
   @override

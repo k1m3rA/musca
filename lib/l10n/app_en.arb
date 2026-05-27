@@ -325,6 +325,7 @@
   "adjustDirection": "Adjust {direction}",
   "angle": "Angle",
   "profileDetails": "Profile Details",
+  "viewTrajectoryChartTooltip": "View Trajectory Chart with Line of Sight",
   "bulletWeight": "Bullet Weight",
   "bulletLength": "Bullet Length",
   "bcModel": "BC Model",

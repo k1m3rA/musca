@@ -1143,6 +1143,12 @@ abstract class AppLocalizations {
   /// **'Profile Details'**
   String get profileDetails;
 
+  /// No description provided for @viewTrajectoryChartTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'View Trajectory Chart with Line of Sight'**
+  String get viewTrajectoryChartTooltip;
+
   /// No description provided for @bulletWeight.
   ///
   /// In en, this message translates to:

@@ -507,15 +507,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 const SizedBox(height: 32),
                 
                 // Language Selection Section
-                Text(
-                  AppLocalizations.of(context)!.language,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(

@@ -133,7 +133,7 @@ class _HomeContentState extends State<HomeContent> {
                             color: Theme.of(context).colorScheme.primary,
                             size: 24,
                           ),
-                          tooltip: 'View Trajectory Chart with Line of Sight',
+                          tooltip: AppLocalizations.of(context)!.viewTrajectoryChartTooltip,
                           padding: const EdgeInsets.all(8),
                           constraints: const BoxConstraints(
                             minWidth: 40,
@@ -495,7 +495,7 @@ class _HomeContentState extends State<HomeContent> {
                       ),
                     );
                   },
-                  tooltip: 'Profile Details',
+                  tooltip: AppLocalizations.of(context)!.profileDetails,
                 ),
               ],
             ),

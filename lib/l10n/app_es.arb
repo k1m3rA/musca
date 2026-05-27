@@ -173,6 +173,7 @@
   "adjustDirection": "Ajustar {direction}",
   "angle": "Ángulo",
   "profileDetails": "Detalles del Perfil",
+  "viewTrajectoryChartTooltip": "Ver Gráfica de Trayectoria con Línea de Visión",
   "bulletWeight": "Peso de la Bala",
   "bulletLength": "Longitud de la Bala",
   "bcModel": "Modelo CB",
