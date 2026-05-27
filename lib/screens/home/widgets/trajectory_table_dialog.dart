@@ -120,7 +120,7 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
     final pdf = pw.Document();
     
     // Load the logo image
-    final logoData = await rootBundle.load('assets/icon/musca.png');
+    final logoData = await rootBundle.load('assets/icon/iconos/android/res/mipmap-xxxhdpi/ic_launcher.png');
     final logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
 
     pdf.addPage(
