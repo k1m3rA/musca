@@ -27,6 +27,7 @@ class _HomeContentState extends State<HomeContent> {
   List<Calculation> _calculations = [];
   bool _isLoading = true;
   String _selectedUnit = 'MRAD';
+  bool _chartButtonPressed = false;
   
   @override
   void initState() {
@@ -108,36 +109,68 @@ class _HomeContentState extends State<HomeContent> {
                           ),
                           child: Text(
                             '${latest.distance.toStringAsFixed(0)}m',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary,
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        // Add trajectory chart button with proper LOS visualization
-                        IconButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => BallisticsChartScreen(
-                                  calculation: latest,
+                        // Add trajectory chart button — ring (border-only) + fill (separate layer)
+                        Tooltip(
+                          message: AppLocalizations.of(context)!.viewTrajectoryChartTooltip,
+                          child: GestureDetector(
+                            onTapDown: (_) => setState(() => _chartButtonPressed = true),
+                            onTapUp: (_) {
+                              setState(() => _chartButtonPressed = false);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BallisticsChartScreen(
+                                    calculation: latest,
+                                  ),
                                 ),
+                              );
+                            },
+                            onTapCancel: () => setState(() => _chartButtonPressed = false),
+                            child: SizedBox(
+                              width: 62,
+                              height: 36,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  // Layer 1: ring (border only, transparent fill)
+                                  Container(
+                                    width: 62,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(18),
+                                      border: Border.all(
+                                        color: Theme.of(context).colorScheme.primary,
+                                        width: 2,
+                                      ),
+                                    ),
+                                  ),
+                                  // Layer 2: fill — sits ON TOP of the ring, same color → no artifact
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 30),
+                                    width: _chartButtonPressed ? 62 : 50,
+                                    height: _chartButtonPressed ? 36 : 24,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(18),
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
+                                  ),
+                                  // Layer 3: icon always on top
+                                  Icon(
+                                    Icons.show_chart,
+                                    size: 16,
+                                    color: Theme.of(context).colorScheme.onPrimary,
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                          icon: Icon(
-                            Icons.show_chart, // Changed to more appropriate icon for trajectory
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 24,
-                          ),
-                          tooltip: AppLocalizations.of(context)!.viewTrajectoryChartTooltip,
-                          padding: const EdgeInsets.all(8),
-                          constraints: const BoxConstraints(
-                            minWidth: 40,
-                            minHeight: 40,
+                            ),
                           ),
                         ),
                       ],
