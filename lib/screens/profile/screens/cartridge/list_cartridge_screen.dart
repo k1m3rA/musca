@@ -71,11 +71,19 @@ class _ListCartridgeScreenState extends State<ListCartridgeScreen> {
     
     // If a cartridge was returned, add it to the list and save
     if (newCartridge != null) {
+      final wasEmpty = cartridges.isEmpty;
       setState(() {
         cartridges.add(newCartridge);
+        if (wasEmpty) {
+          _selectedIndex = 0;
+        }
       });
       // Save the updated list
       await CartridgeStorage.saveCartridges(cartridges);
+      
+      if (wasEmpty) {
+        _confirmSelection();
+      }
     }
   }
 

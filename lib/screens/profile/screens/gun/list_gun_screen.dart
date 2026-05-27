@@ -71,11 +71,19 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
     
     // If a gun was returned, add it to the list and save
     if (newGun != null) {
+      final wasEmpty = guns.isEmpty;
       setState(() {
         guns.add(newGun);
+        if (wasEmpty) {
+          _selectedIndex = 0;
+        }
       });
       // Save the updated list
       await GunStorage.saveGun(newGun);
+      
+      if (wasEmpty) {
+        _confirmSelection();
+      }
     }
   }
   void _editSelectedGun() {

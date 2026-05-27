@@ -71,11 +71,19 @@ class _ListScopeScreenState extends State<ListScopeScreen> {
     
     // If a scope was returned, add it to the list and save
     if (newScope != null) {
+      final wasEmpty = scopes.isEmpty;
       setState(() {
         scopes.add(newScope);
+        if (wasEmpty) {
+          _selectedIndex = 0;
+        }
       });
       // Save the updated list
       await ScopeStorage.saveScopes(scopes);
+      
+      if (wasEmpty) {
+        _confirmSelection();
+      }
     }
   }
 
