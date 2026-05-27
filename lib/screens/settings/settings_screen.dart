@@ -528,7 +528,9 @@ class _SettingsPageState extends State<SettingsPage> {
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: _selectedLocale?.languageCode == 'en'
-                                    ? Colors.white
+                                    ? (Theme.of(context).brightness == Brightness.dark 
+                                        ? Theme.of(context).scaffoldBackgroundColor 
+                                        : Colors.white)
                                     : Theme.of(context).brightness == Brightness.dark
                                         ? Colors.white
                                         : Colors.black,
@@ -558,7 +560,9 @@ class _SettingsPageState extends State<SettingsPage> {
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: _selectedLocale?.languageCode == 'es'
-                                    ? Colors.white
+                                    ? (Theme.of(context).brightness == Brightness.dark 
+                                        ? Theme.of(context).scaffoldBackgroundColor 
+                                        : Colors.white)
                                     : Theme.of(context).brightness == Brightness.dark
                                         ? Colors.white
                                         : Colors.black,
