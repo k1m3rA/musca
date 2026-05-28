@@ -92,19 +92,22 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
     // Zero range for line of sight calculation
     final double zeroRange = _selectedGun!.zeroRange;
     
-    // Handle special cases for line of sight calculation
-    double losSlope = 0.0;
-    bool useSimpleCalculation = false;
+    // Line of sight slope based on inclination angle
+    // When angle is 0°, LOS coincides with horizontal axis (y=0)
+    // Positive angles tilt upward, negative angles tilt downward
+    final double inclinationAngleRad = widget.calculation.angle * pi / 180.0;
+    final double losSlope = tan(inclinationAngleRad);
+    bool useSimpleCalculation = zeroRange == 0.0;
     
-    if (zeroRange == 0.0) {
-      // When zero range is 0, line of sight is horizontal (no zeroing)
-      losSlope = 0.0;
-      useSimpleCalculation = true;
-      print('Special case: Zero range = 0, LOS is horizontal at scope height');
-    } else {
-      // Normal case: calculate bullet trajectory at zero range to find intersection point
-      double bulletHeightAtZero = 0.0;
-      try {        final zeroResult = BallisticsCalculator.calculateWithProfiles(
+    // Calculate bore correction so trajectory crosses LOS at zero range
+    // The bore is angled upward so the bullet rises from -visorHeight to meet the LOS
+    double boreCorrection = 0.0;
+    
+    if (zeroRange > 0.0) {
+      // Get raw bullet drop at zero range
+      double rawDropAtZero = 0.0;
+      try {
+        final zeroResult = BallisticsCalculator.calculateWithProfiles(
           zeroRange,
           widget.calculation.windSpeed,
           widget.calculation.windDirection,
@@ -116,27 +119,35 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
           humidity: widget.calculation.humidity,
           elevationAngle: widget.calculation.angle,
           azimuthAngle: widget.calculation.windDirection,
-          latitude: widget.calculation.latitude, // Use latitude from calculation
+          latitude: widget.calculation.latitude,
         );
-        bulletHeightAtZero = zeroResult.dropVertical;
+        rawDropAtZero = zeroResult.dropVertical;
       } catch (e) {
         print('Error calculating zero point: $e');
-        // Fallback: use simple ballistic approximation
+        // Fallback: simple gravity drop
         final muzzleVelocity = _selectedGun!.muzzleVelocity;
-        bulletHeightAtZero = 0.5 * 9.81 * pow(zeroRange / muzzleVelocity, 2); // Positive = downward drop
+        rawDropAtZero = 0.5 * 9.81 * pow(zeroRange / muzzleVelocity, 2);
       }
-
-      // Calculate line of sight slope: from scope height at x=0 to bullet height at zero range
-      losSlope = (bulletHeightAtZero - visorHeight) / zeroRange;
+      
+      // LOS height at zero range
+      final double losAtZero = zeroRange * losSlope;
+      
+      // Correction so: -visorHeight + rawDropAtZero + boreCorrection * zeroRange = losAtZero
+      // boreCorrection = (losAtZero + visorHeight - rawDropAtZero) / zeroRange
+      boreCorrection = (losAtZero + visorHeight - rawDropAtZero) / zeroRange;
+      
+      print('Bore correction: rawDropAtZero=${rawDropAtZero.toStringAsFixed(6)}m, losAtZero=${losAtZero.toStringAsFixed(6)}m, boreCorrection=${boreCorrection.toStringAsFixed(6)}');
     }
+    
+    print('LOS: inclination=${widget.calculation.angle}°, slope=${losSlope.toStringAsFixed(6)}');
 
     for (int i = 0; i <= 100; i++) {
       final distance = i * step;
       
       if (distance == 0) {
-        // At muzzle: bullet is at bore height (0), line of sight starts at scope height
-        trajectory.add(FlSpot(0, 0));
-        lineOfSight.add(FlSpot(0, visorHeight));
+        // At muzzle: bullet starts at bore height, which is visorHeight below the LOS (y=0)
+        trajectory.add(FlSpot(0, -visorHeight));
+        lineOfSight.add(FlSpot(0, 0)); // LOS starts at y=0 (horizontal axis)
         horizontalDrift.add(FlSpot(0, 0)); // No drift at muzzle
         continue;
       }
@@ -148,10 +159,10 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
           final timeOfFlight = distance / muzzleVelocity;
           final simpleDrop = 0.5 * 9.81 * timeOfFlight * timeOfFlight;
           
-          // Bullet drops downward (positive Y value)
-          trajectory.add(FlSpot(distance, simpleDrop));
-        }        // Line of sight is horizontal at scope height
-        lineOfSight.add(FlSpot(distance, visorHeight));
+          // Bullet position: starts at -visorHeight, corrected by bore angle
+          trajectory.add(FlSpot(distance, -visorHeight + simpleDrop + distance * boreCorrection));
+        }        // Line of sight based on inclination angle
+        lineOfSight.add(FlSpot(distance, distance * losSlope));
         
         // Enhanced drift calculation including spin drift and basic effects
         final timeOfFlight = distance / muzzleVelocity;
@@ -190,7 +201,8 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
           if (result.dropVertical.isFinite && result.driftHorizontal.isFinite) {
             final bulletDrop = result.dropVertical;
             final bulletDrift = result.driftHorizontal;
-            trajectory.add(FlSpot(distance, bulletDrop));
+            // Offset by -visorHeight + bore correction to cross LOS at zero range
+            trajectory.add(FlSpot(distance, -visorHeight + bulletDrop + distance * boreCorrection));
             horizontalDrift.add(FlSpot(distance, bulletDrift));          } else {
             // Fallback to simple calculation
             final muzzleVelocity = _selectedGun!.muzzleVelocity;
@@ -204,12 +216,12 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
             final coriolisDrift = distance * timeOfFlight * 0.00001;
             final simpleDrift = windDrift + spinDrift + coriolisDrift;
             
-            trajectory.add(FlSpot(distance, simpleDrop));
+            trajectory.add(FlSpot(distance, -visorHeight + simpleDrop + distance * boreCorrection));
             horizontalDrift.add(FlSpot(distance, simpleDrift));
           }
 
-          // Line of sight: straight line from scope height with calculated slope
-          final sightLineHeight = visorHeight + (distance * losSlope);
+          // Line of sight: straight line from origin with inclination angle slope
+          final sightLineHeight = distance * losSlope;
           lineOfSight.add(FlSpot(distance, sightLineHeight));        } catch (e) {
           print('Error calculating ballistics at distance $distance: $e');
           // Use simple fallback
@@ -224,10 +236,10 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
           final coriolisDrift = distance * timeOfFlight * 0.00001;
           final simpleDrift = windDrift + spinDrift + coriolisDrift;
           
-          trajectory.add(FlSpot(distance, simpleDrop));
+          trajectory.add(FlSpot(distance, -visorHeight + simpleDrop + distance * boreCorrection));
           horizontalDrift.add(FlSpot(distance, simpleDrift));
           
-          final sightLineHeight = visorHeight + (distance * losSlope);
+          final sightLineHeight = distance * losSlope;
           lineOfSight.add(FlSpot(distance, sightLineHeight));
         }
       }
@@ -247,8 +259,8 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
         final coriolisDrift = distance * timeOfFlight * 0.00001;
         final simpleDrift = windDrift + spinDrift + coriolisDrift;
         
-        trajectory.add(FlSpot(distance, simpleDrop));
-        lineOfSight.add(FlSpot(distance, visorHeight + (distance * losSlope)));
+        trajectory.add(FlSpot(distance, -visorHeight + simpleDrop + distance * boreCorrection));
+        lineOfSight.add(FlSpot(distance, distance * losSlope));
         horizontalDrift.add(FlSpot(distance, simpleDrift));
       }
     }
