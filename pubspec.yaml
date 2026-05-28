@@ -85,7 +85,10 @@ flutter:
     - assets/icon/
     - assets/icon/iconos/android/res/mipmap-xxxhdpi/ic_launcher.png
 
-flutter_icons:
+flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/musca.png"
+  image_path: "assets/icon/iconos/android/res/mipmap-xxxhdpi/ic_launcher.png"
+  windows:
+    generate: true
+    image_path: "assets/icon/iconos/android/res/mipmap-xxxhdpi/ic_launcher.png"
