@@ -117,7 +117,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
           temperature: widget.calculation.temperature,
           pressure: widget.calculation.pressure,
           humidity: widget.calculation.humidity,
-          elevationAngle: widget.calculation.angle,
+          elevationAngle: 0.0, // Zeroing is always done at 0° inclination
           azimuthAngle: widget.calculation.windDirection,
           latitude: widget.calculation.latitude,
         );
@@ -129,8 +129,8 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
         rawDropAtZero = 0.5 * 9.81 * pow(zeroRange / muzzleVelocity, 2);
       }
       
-      // LOS height at zero range
-      final double losAtZero = zeroRange * losSlope;
+      // LOS height at zero range during zeroing (horizontal, so LOS is at y=0)
+      final double losAtZero = 0.0;
       
       // Correction so: -visorHeight + rawDropAtZero + boreCorrection * zeroRange = losAtZero
       // boreCorrection = (losAtZero + visorHeight - rawDropAtZero) / zeroRange
