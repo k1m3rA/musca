@@ -4,6 +4,8 @@ import '../screens/home/home_screen.dart';
 import '../screens/calculator/calculator_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/profile/armory_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'tutorial_overlay.dart';
 
 class NavigationContainer extends StatefulWidget {
   final String title;
@@ -28,10 +30,38 @@ class _NavigationContainerState extends State<NavigationContainer> {
   
   // Simple notification mechanism
   final ValueNotifier<bool> _reloadCalculatorProfiles = ValueNotifier<bool>(false);
+  
+  bool _showTutorial = false;
 
   @override
   void initState() {
     super.initState();
+    _checkTutorial();
+  }
+
+  Future<void> _checkTutorial() async {
+    final prefs = await SharedPreferences.getInstance();
+    // Forzamos a false temporalmente para que puedas verlo
+    final hasSeenTutorial = false; // prefs.getBool('has_seen_tutorial') ?? false;
+    
+    if (!hasSeenTutorial) {
+      // Retraso para que la animación de la UI inicial termine antes de mostrar el overlay
+      Future.delayed(const Duration(milliseconds: 600), () {
+        if (mounted) {
+          setState(() {
+            _showTutorial = true;
+          });
+        }
+      });
+    }
+  }
+
+  Future<void> _dismissTutorial() async {
+    setState(() {
+      _showTutorial = false;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_seen_tutorial', true);
   }
 
   void _changeScreen(int index) {
@@ -68,7 +98,7 @@ class _NavigationContainerState extends State<NavigationContainer> {
       ),
     ];
 
-    return Scaffold(
+    Widget scaffold = Scaffold(
       body: screens[_currentIndex],
       bottomNavigationBar: BottomAppBar(
         color: Theme.of(context).scaffoldBackgroundColor,
@@ -86,6 +116,24 @@ class _NavigationContainerState extends State<NavigationContainer> {
         ),
       ),
     );
+
+    if (_showTutorial) {
+      return Stack(
+        children: [
+          scaffold,
+          TutorialOverlay(
+            onDismiss: _dismissTutorial,
+            onTargetTap: () {
+              _dismissTutorial();
+              _changeScreen(2);
+            },
+            targetButtonFraction: 0.625, // Apunta al tercer botón (0, 1, [2], 3)
+          ),
+        ],
+      );
+    }
+
+    return scaffold;
   }
 
   Widget _buildNavItem(int index, IconData? icon, {String? svgAsset}) {
