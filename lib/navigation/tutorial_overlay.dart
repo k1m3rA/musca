@@ -80,16 +80,14 @@ class TutorialOverlay extends StatefulWidget {
   /// Callback para cuando se toca el botón resaltado.
   final VoidCallback onTargetTap;
 
-  /// Posición horizontal del botón objetivo (0.0 = izquierda, 1.0 = derecha).
-  /// Con 4 botones uniformes el rifle está en el slot 2 (índice 2 de 4),
-  /// lo que equivale a aproximadamente 0.625.
-  final double targetButtonFraction;
+  /// GlobalKey del botón objetivo para centrar el tutorial dinámicamente.
+  final GlobalKey targetKey;
 
   const TutorialOverlay({
     super.key,
     required this.onDismiss,
     required this.onTargetTap,
-    this.targetButtonFraction = 0.625, // 3er botón de 4
+    required this.targetKey,
   });
 
   @override
@@ -102,6 +100,11 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   late Animation<double> _fadeAnim;
   late Animation<double> _scaleAnim;
   late Animation<Offset> _bounceAnim;
+
+  // Posición real del botón, calculada tras el primer frame
+  double? _buttonCenterX;
+  double? _cutoutBottomOffset;
+  bool _positionReady = false;
 
   @override
   void initState() {
@@ -123,6 +126,33 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
+    // Leer la posición del botón después del primer frame completo
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _resolveButtonPosition();
+    });
+  }
+
+  void _resolveButtonPosition() {
+    final targetContext = widget.targetKey.currentContext;
+    if (targetContext == null || !mounted) return;
+
+    final RenderBox box = targetContext.findRenderObject() as RenderBox;
+    final Offset position = box.localToGlobal(Offset.zero);
+    final Size size = box.size;
+    final screenHeight = MediaQuery.of(context).size.height;
+    const cutoutDiameter = 65.0;
+
+    final centerX = position.dx + size.width / 2;
+    final centerY = position.dy + size.height / 2;
+    final bottomOffset = (screenHeight - centerY) - cutoutDiameter / 2;
+
+    setState(() {
+      _buttonCenterX = centerX;
+      _cutoutBottomOffset = bottomOffset;
+      _positionReady = true;
+    });
+
+    // Arrancar la animación sólo cuando ya tenemos la posición
     _controller.forward();
   }
 
@@ -139,6 +169,9 @@ class _TutorialOverlayState extends State<TutorialOverlay>
 
   @override
   Widget build(BuildContext context) {
+    // No renderizar nada hasta que tengamos la posición real del botón
+    if (!_positionReady) return const SizedBox.shrink();
+
     final primary = Theme.of(context).colorScheme.primary;
     final onPrimary = Theme.of(context).colorScheme.onPrimary;
     final brightness = Theme.of(context).brightness;
@@ -149,14 +182,10 @@ class _TutorialOverlayState extends State<TutorialOverlay>
             ? Color.lerp(Theme.of(context).colorScheme.surface, primary, 0.15)!
             : Theme.of(context).colorScheme.surfaceContainerHighest;
 
-    // Calculamos la posición del botón
-    final screenWidth = MediaQuery.of(context).size.width;
-    // Ajuste fino del centro X basado en el espaciado de la barra de navegación
-    final buttonCenterScreen =
-        (screenWidth * widget.targetButtonFraction) - 7.0;
-    final cutoutDiameter = 65.0;
-    // El centro Y del botón está a unos 32px del fondo. 32 - (65/2) = -0.5
-    final cutoutBottomOffset = 6.0;
+    final buttonCenterScreen = _buttonCenterX!;
+    final cutoutBottomOffset = _cutoutBottomOffset!;
+    const cutoutDiameter = 65.0;
+
     // El bocadillo tiene que estar justo encima de la barra de navegación.
     // Usamos un Stack principal
     return Material(
@@ -277,15 +306,13 @@ class _TutorialOverlayState extends State<TutorialOverlay>
             ? 'Crea tus perfiles de arma, cartucho y visor\npara realizar cálculos balísticos precisos.'
             : 'Create your rifle, cartridge and scope profiles\nto perform accurate ballistics calculations.';
 
-    // Calculamos el arrowOffset para apuntar al botón del rifle
-    // (índice 2 de 4). Con padding simétrico de 16px en una fila con
-    // mainAxisAlignment.spaceAround, el centro de cada botón está en:
-    // 1/8, 3/8, 5/8, 7/8 del ancho de pantalla.
-    // Corregimos por el padding horizontal del overlay (24px a cada lado).
     final screenWidth = MediaQuery.of(context).size.width;
     final overlayContentWidth = screenWidth - 48; // 24*2 de padding
-    final buttonCenterScreen =
-        (screenWidth * widget.targetButtonFraction) - 7.0;
+    
+    // Usar el centro calculado tras el primer frame (ya disponible aquí)
+    final buttonCenterScreen = _buttonCenterX ?? screenWidth * 0.625;
+    
+
     final arrowOffset = ((buttonCenterScreen - 24) / overlayContentWidth).clamp(
       0.1,
       0.9,

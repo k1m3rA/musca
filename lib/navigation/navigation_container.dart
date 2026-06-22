@@ -27,6 +27,7 @@ class _NavigationContainerState extends State<NavigationContainer> {
   int _currentIndex = 0;
   DateTime _lastHomeRefresh = DateTime.now();
   final GlobalKey<State<CalculatorScreen>> _calculatorKey = GlobalKey<State<CalculatorScreen>>();
+  final GlobalKey _rifleButtonKey = GlobalKey();
   
   // Simple notification mechanism
   final ValueNotifier<bool> _reloadCalculatorProfiles = ValueNotifier<bool>(false);
@@ -109,7 +110,7 @@ class _NavigationContainerState extends State<NavigationContainer> {
             children: [
               _buildNavItem(0, Icons.home),
               _buildNavItem(1, null, svgAsset: 'assets/icon/shoot.svg'),
-              _buildNavItem(2, null, svgAsset: 'assets/icon/rifle.svg'),
+              _buildNavItem(2, null, svgAsset: 'assets/icon/rifle.svg', key: _rifleButtonKey),
               _buildNavItem(3, Icons.settings),
             ],
           ),
@@ -127,7 +128,7 @@ class _NavigationContainerState extends State<NavigationContainer> {
               _dismissTutorial();
               _changeScreen(2);
             },
-            targetButtonFraction: 0.625, // Apunta al tercer botón (0, 1, [2], 3)
+            targetKey: _rifleButtonKey,
           ),
         ],
       );
@@ -136,13 +137,14 @@ class _NavigationContainerState extends State<NavigationContainer> {
     return scaffold;
   }
 
-  Widget _buildNavItem(int index, IconData? icon, {String? svgAsset}) {
+  Widget _buildNavItem(int index, IconData? icon, {String? svgAsset, Key? key}) {
     final isSelected = _currentIndex == index;
     final iconColor = isSelected || Theme.of(context).brightness == Brightness.light
         ? Theme.of(context).colorScheme.primary
         : Theme.of(context).colorScheme.onSurface;
         
     return Container(
+      key: key,
       width: 70, // Added a wider width
       decoration: BoxDecoration(
         color: isSelected 
