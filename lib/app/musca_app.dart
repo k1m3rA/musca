@@ -42,6 +42,12 @@ class _MyAppState extends State<MyApp> {
         Locale('en'), // English
         Locale('es'), // Spanish
       ],
+      localeResolutionCallback: (deviceLocale, supportedLocales) {
+        if (deviceLocale != null && deviceLocale.languageCode == 'es') {
+          return const Locale('es');
+        }
+        return const Locale('en');
+      },
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color.fromARGB(255, 96, 25, 163),
