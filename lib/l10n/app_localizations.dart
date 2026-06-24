@@ -645,6 +645,12 @@ abstract class AppLocalizations {
   /// **'Length'**
   String get length;
 
+  /// No description provided for @manageData.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Data'**
+  String get manageData;
+
   /// No description provided for @mAbsolute.
   ///
   /// In en, this message translates to:

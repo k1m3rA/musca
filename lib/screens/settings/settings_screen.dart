@@ -685,133 +685,60 @@ class _SettingsPageState extends State<SettingsPage> {
                 const Divider(),
                 const SizedBox(height: 16),
                 
-                // Clear Calculations Button
-                GestureDetector(
-                  onTap: _showClearConfirmationDialog,
-                  child: Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.delete_forever,
-                            size: 32,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
+                Card(
+                  elevation: 4,
+                  clipBehavior: Clip.antiAlias,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Theme(
+                    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                    child: ExpansionTile(
+                      leading: Icon(
+                        Icons.folder_delete,
+                        size: 32,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      title: Text(
+                        AppLocalizations.of(context)!.manageData,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      children: [
+                        ListTile(
+                          leading: Icon(Icons.delete_forever, color: Theme.of(context).colorScheme.error),
+                          title: Text(
                             AppLocalizations.of(context)!.clearSavedShots,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
+                            style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                // Clear Guns Button
-                GestureDetector(
-                  onTap: _showClearGunsConfirmationDialog,
-                  child: Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.delete_forever,
-                            size: 32,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
+                          onTap: _showClearConfirmationDialog,
+                        ),
+                        ListTile(
+                          leading: Icon(Icons.delete_forever, color: Theme.of(context).colorScheme.error),
+                          title: Text(
                             AppLocalizations.of(context)!.clearSavedGuns,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
+                            style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Clear Cartridges Button
-                GestureDetector(
-                  onTap: _showClearCartridgesConfirmationDialog,
-                  child: Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.delete_forever,
-                            size: 32,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
+                          onTap: _showClearGunsConfirmationDialog,
+                        ),
+                        ListTile(
+                          leading: Icon(Icons.delete_forever, color: Theme.of(context).colorScheme.error),
+                          title: Text(
                             AppLocalizations.of(context)!.clearSavedCartridges,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
+                            style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Clear Scopes Button
-                GestureDetector(
-                  onTap: _showClearScopesConfirmationDialog,
-                  child: Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.delete_forever,
-                            size: 32,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
+                          onTap: _showClearCartridgesConfirmationDialog,
+                        ),
+                        ListTile(
+                          leading: Icon(Icons.delete_forever, color: Theme.of(context).colorScheme.error),
+                          title: Text(
                             AppLocalizations.of(context)!.clearSavedScopes,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
+                            style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600),
                           ),
-                        ],
-                      ),
+                          onTap: _showClearScopesConfirmationDialog,
+                        ),
+                      ],
                     ),
                   ),
                 ),

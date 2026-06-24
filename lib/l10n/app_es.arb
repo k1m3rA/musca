@@ -164,6 +164,7 @@
   "weatherApiNotConfigured": "API del clima no configurada",
   "invalidWeatherApiKey": "Clave API del clima inválida",
   "horizontalDrift": "Deriva Horizontal",
+  "manageData": "Gestionar Datos",
   "verticalDrop": "Caída Vertical",
   "right": "Derecha",
   "left": "Izquierda",

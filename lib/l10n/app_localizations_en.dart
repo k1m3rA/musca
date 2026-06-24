@@ -312,6 +312,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get length => 'Length';
 
   @override
+  String get manageData => 'Manage Data';
+
+  @override
   String get mAbsolute => 'm (absolute)';
 
   @override
