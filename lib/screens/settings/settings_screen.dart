@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../services/calculation_storage.dart';
-import '../../services/cartridge_storage.dart'; // Add import for CartridgeStorage
-import '../../services/scope_storage.dart'; // Add import for ScopeStorage
+import '../../services/cartridge_storage.dart';
+import '../../services/scope_storage.dart';
 import '../../services/api_key_service.dart';
 import '../../services/weather_service.dart';
 import '../privacy/privacy_policy_screen.dart';
@@ -13,7 +14,7 @@ class SettingsPage extends StatefulWidget {
   final ValueChanged<ThemeMode> onThemeChanged;
   final ValueChanged<Locale> onLocaleChanged;
   const SettingsPage({
-    super.key, 
+    super.key,
     required this.onThemeChanged,
     required this.onLocaleChanged,
   });
@@ -33,11 +34,12 @@ class _SettingsPageState extends State<SettingsPage> {
     super.didChangeDependencies();
     if (!_isInitialized) {
       final brightness = Theme.of(context).brightness;
-      _selectedTheme = brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light;
-      
+      _selectedTheme =
+          brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light;
+
       final currentLocale = Localizations.localeOf(context);
       _selectedLocale = Locale(currentLocale.languageCode);
-      
+
       _isInitialized = true;
       _checkApiStatus();
     }
@@ -72,7 +74,11 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: Text(AppLocalizations.of(context)!.deleteAllShots),
-          content: Text(AppLocalizations.of(context)!.thsWillPermanentlyDeleteAllYourSavedShots + ' This action cannot be undone.',
+          content: Text(
+            AppLocalizations.of(
+                  context,
+                )!.thsWillPermanentlyDeleteAllYourSavedShots +
+                ' This action cannot be undone.',
           ),
           actions: <Widget>[
             TextButton(
@@ -82,9 +88,7 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
             TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: Text(AppLocalizations.of(context)!.deleteAll),
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
@@ -96,16 +100,18 @@ class _SettingsPageState extends State<SettingsPage> {
       },
     );
   }
-  
+
   // Method to clear all calculations
   Future<void> _clearAllCalculations() async {
     await CalculationStorage.clearAllCalculations();
-    
+
     // Show confirmation to user
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)!.allCalculationsHaveBeenDeleted),
+          content: Text(
+            AppLocalizations.of(context)!.allCalculationsHaveBeenDeleted,
+          ),
           duration: Duration(seconds: 2),
         ),
       );
@@ -120,7 +126,11 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: Text(AppLocalizations.of(context)!.deleteAllGuns),
-          content: Text(AppLocalizations.of(context)!.thisWillPermanentlyDeleteAllYourSavedGuns + ' This action cannot be undone.',
+          content: Text(
+            AppLocalizations.of(
+                  context,
+                )!.thisWillPermanentlyDeleteAllYourSavedGuns +
+                ' This action cannot be undone.',
           ),
           actions: <Widget>[
             TextButton(
@@ -130,9 +140,7 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
             TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: Text(AppLocalizations.of(context)!.deleteAll),
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
@@ -144,11 +152,11 @@ class _SettingsPageState extends State<SettingsPage> {
       },
     );
   }
-  
+
   // Method to clear all guns
   Future<void> _clearAllGuns() async {
     await CalculationStorage.clearAllGuns();
-    
+
     // Show confirmation to user
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -168,7 +176,11 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: Text(AppLocalizations.of(context)!.deleteAllCartridges),
-          content: Text(AppLocalizations.of(context)!.thisWillPermanentlyDeleteAllYourSavedCartridges + ' This action cannot be undone.',
+          content: Text(
+            AppLocalizations.of(
+                  context,
+                )!.thisWillPermanentlyDeleteAllYourSavedCartridges +
+                ' This action cannot be undone.',
           ),
           actions: <Widget>[
             TextButton(
@@ -178,9 +190,7 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
             TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: Text(AppLocalizations.of(context)!.deleteAll),
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
@@ -192,16 +202,18 @@ class _SettingsPageState extends State<SettingsPage> {
       },
     );
   }
-  
+
   // Method to clear all cartridges
   Future<void> _clearAllCartridges() async {
     await CartridgeStorage.clearAllCartridges();
-    
+
     // Show confirmation to user
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)!.allCartridgesHaveBeenDeleted),
+          content: Text(
+            AppLocalizations.of(context)!.allCartridgesHaveBeenDeleted,
+          ),
           duration: Duration(seconds: 2),
         ),
       );
@@ -216,7 +228,11 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: Text(AppLocalizations.of(context)!.deleteAllScopes),
-          content: Text(AppLocalizations.of(context)!.thisWillPermanentlyDeleteAllYourSavedScopes + ' This action cannot be undone.',
+          content: Text(
+            AppLocalizations.of(
+                  context,
+                )!.thisWillPermanentlyDeleteAllYourSavedScopes +
+                ' This action cannot be undone.',
           ),
           actions: <Widget>[
             TextButton(
@@ -226,9 +242,7 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
             TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: Text(AppLocalizations.of(context)!.deleteAll),
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
@@ -240,11 +254,11 @@ class _SettingsPageState extends State<SettingsPage> {
       },
     );
   }
-  
+
   // Method to clear all scopes
   Future<void> _clearAllScopes() async {
     await ScopeStorage.clearAllScopes();
-    
+
     // Show confirmation to user
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -260,7 +274,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _launchUrl(String url) async {
     try {
       final Uri uri = Uri.parse(url);
-      
+
       if (kIsWeb) {
         // For web, try external mode first
         if (await canLaunchUrl(uri)) {
@@ -321,7 +335,7 @@ class _SettingsPageState extends State<SettingsPage> {
   // Method to show Weather API key configuration dialog
   Future<void> _showWeatherApiKeyDialog() async {
     final TextEditingController apiKeyController = TextEditingController();
-    
+
     // Load current API key if exists
     final currentApiKey = await ApiKeyService.getWeatherApiKey();
     if (currentApiKey != null) {
@@ -338,7 +352,10 @@ class _SettingsPageState extends State<SettingsPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(AppLocalizations.of(context)!.enterYourFreeWeatherApiKeyFromWeatherapicom,
+              Text(
+                AppLocalizations.of(
+                  context,
+                )!.enterYourFreeWeatherApiKeyFromWeatherapicom,
                 style: TextStyle(fontSize: 14),
               ),
               const SizedBox(height: 16),
@@ -359,10 +376,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     children: [
                       TextSpan(
                         text: 'Get your free API key at: ',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                       TextSpan(
                         text: 'https://www.weatherapi.com/',
@@ -394,7 +408,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(AppLocalizations.of(context)!.weatherApiKeyRemoved),
+                      content: Text(
+                        AppLocalizations.of(context)!.weatherApiKeyRemoved,
+                      ),
                       duration: Duration(seconds: 2),
                     ),
                   );
@@ -412,7 +428,11 @@ class _SettingsPageState extends State<SettingsPage> {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(AppLocalizations.of(context)!.weatherApiKeySavedSuccessfully),
+                        content: Text(
+                          AppLocalizations.of(
+                            context,
+                          )!.weatherApiKeySavedSuccessfully,
+                        ),
                         duration: Duration(seconds: 2),
                       ),
                     );
@@ -420,7 +440,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 } else {
                   ScaffoldMessenger.of(dialogContext).showSnackBar(
                     SnackBar(
-                      content: Text(AppLocalizations.of(context)!.pleaseEnterAValidApiKey),
+                      content: Text(
+                        AppLocalizations.of(context)!.pleaseEnterAValidApiKey,
+                      ),
                       duration: Duration(seconds: 2),
                     ),
                   );
@@ -438,17 +460,15 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-            SliverAppBar(
+          SliverAppBar(
             pinned: true,
             expandedHeight: 100,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               title: Text(
-              AppLocalizations.of(context)!.settingsTitle,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-              ),
+                AppLocalizations.of(context)!.settingsTitle,
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
               ),
             ),
           ),
@@ -466,17 +486,19 @@ class _SettingsPageState extends State<SettingsPage> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: _selectedTheme == ThemeMode.light
-                                ? Theme.of(context).colorScheme.primary
-                                : Colors.grey.withOpacity(0.2),
+                            color:
+                                _selectedTheme == ThemeMode.light
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Colors.grey.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
                             Icons.wb_sunny,
                             size: 20,
-                            color: _selectedTheme == ThemeMode.light
-                                ? Colors.white
-                                : Colors.grey,
+                            color:
+                                _selectedTheme == ThemeMode.light
+                                    ? Colors.white
+                                    : Colors.grey,
                           ),
                         ),
                       ),
@@ -486,26 +508,29 @@ class _SettingsPageState extends State<SettingsPage> {
                       child: GestureDetector(
                         onTap: () => _updateTheme(ThemeMode.dark),
                         child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: _selectedTheme == ThemeMode.dark
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.nightlight_round,
-                          size: 20,
-                          color: Theme.of(context).colorScheme.surfaceBright,
-                        ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color:
+                                _selectedTheme == ThemeMode.dark
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(
+                                      context,
+                                    ).colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.nightlight_round,
+                            size: 20,
+                            color: Theme.of(context).colorScheme.surfaceBright,
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 32),
-                
+
                 // Language Selection Section
                 Row(
                   children: [
@@ -515,10 +540,14 @@ class _SettingsPageState extends State<SettingsPage> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: _selectedLocale?.languageCode == 'en'
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).brightness == Brightness.dark 
-                                    ? Theme.of(context).colorScheme.surfaceContainerHighest
+                            color:
+                                _selectedLocale?.languageCode == 'en'
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Theme.of(
+                                      context,
+                                    ).colorScheme.surfaceContainerHighest
                                     : Colors.grey.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -527,11 +556,16 @@ class _SettingsPageState extends State<SettingsPage> {
                               'EN',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: _selectedLocale?.languageCode == 'en'
-                                    ? (Theme.of(context).brightness == Brightness.dark 
-                                        ? Theme.of(context).scaffoldBackgroundColor 
-                                        : Colors.white)
-                                    : Theme.of(context).brightness == Brightness.dark
+                                color:
+                                    _selectedLocale?.languageCode == 'en'
+                                        ? (Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? Theme.of(
+                                              context,
+                                            ).scaffoldBackgroundColor
+                                            : Colors.white)
+                                        : Theme.of(context).brightness ==
+                                            Brightness.dark
                                         ? Colors.white
                                         : Colors.black,
                               ),
@@ -547,10 +581,14 @@ class _SettingsPageState extends State<SettingsPage> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: _selectedLocale?.languageCode == 'es'
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).brightness == Brightness.dark 
-                                    ? Theme.of(context).colorScheme.surfaceContainerHighest
+                            color:
+                                _selectedLocale?.languageCode == 'es'
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Theme.of(
+                                      context,
+                                    ).colorScheme.surfaceContainerHighest
                                     : Colors.grey.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -559,11 +597,16 @@ class _SettingsPageState extends State<SettingsPage> {
                               'ES',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: _selectedLocale?.languageCode == 'es'
-                                    ? (Theme.of(context).brightness == Brightness.dark 
-                                        ? Theme.of(context).scaffoldBackgroundColor 
-                                        : Colors.white)
-                                    : Theme.of(context).brightness == Brightness.dark
+                                color:
+                                    _selectedLocale?.languageCode == 'es'
+                                        ? (Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? Theme.of(
+                                              context,
+                                            ).scaffoldBackgroundColor
+                                            : Colors.white)
+                                        : Theme.of(context).brightness ==
+                                            Brightness.dark
                                         ? Colors.white
                                         : Colors.black,
                               ),
@@ -574,22 +617,27 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 32),
-                
+
                 // API Configuration Section
                 const Divider(),
                 const SizedBox(height: 16),
-                
+
                 // Weather API Key Configuration Button
                 GestureDetector(
                   onTap: _showWeatherApiKeyDialog,
                   child: Card(
                     elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0,
+                        vertical: 12.0,
+                      ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -603,14 +651,21 @@ class _SettingsPageState extends State<SettingsPage> {
                               ),
                               const SizedBox(width: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: _isApiConfigured 
-                                    ? Colors.green.withOpacity(0.1)
-                                    : Colors.orange.withOpacity(0.1),
+                                  color:
+                                      _isApiConfigured
+                                          ? Colors.green.withOpacity(0.1)
+                                          : Colors.orange.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: _isApiConfigured ? Colors.green : Colors.orange,
+                                    color:
+                                        _isApiConfigured
+                                            ? Colors.green
+                                            : Colors.orange,
                                     width: 1,
                                   ),
                                 ),
@@ -619,7 +674,10 @@ class _SettingsPageState extends State<SettingsPage> {
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
-                                    color: _isApiConfigured ? Colors.green : Colors.orange,
+                                    color:
+                                        _isApiConfigured
+                                            ? Colors.green
+                                            : Colors.orange,
                                   ),
                                 ),
                               ),
@@ -653,10 +711,15 @@ class _SettingsPageState extends State<SettingsPage> {
                   },
                   child: Card(
                     elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0,
+                        vertical: 12.0,
+                      ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -680,63 +743,142 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Data Management Section
                 const Divider(),
                 const SizedBox(height: 16),
-                
+
                 Card(
                   elevation: 4,
                   clipBehavior: Clip.antiAlias,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Theme(
-                    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                    data: Theme.of(
+                      context,
+                    ).copyWith(dividerColor: Colors.transparent),
                     child: ExpansionTile(
-                      leading: Icon(
-                        Icons.folder_delete,
-                        size: 32,
-                        color: Theme.of(context).colorScheme.primary,
+                      tilePadding: const EdgeInsets.only(
+                        left: 48.0,
+                        right: 16.0,
                       ),
-                      title: Text(
-                        AppLocalizations.of(context)!.manageData,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
+                      title: Container(
+                        width: double.infinity,
+                        alignment: Alignment.center,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.folder_delete,
+                              size: 32,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              AppLocalizations.of(context)!.manageData,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                      trailing: const SizedBox.shrink(),
                       children: [
-                        ListTile(
-                          leading: Icon(Icons.delete_forever, color: Theme.of(context).colorScheme.error),
-                          title: Text(
-                            AppLocalizations.of(context)!.clearSavedShots,
-                            style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600),
-                          ),
+                        InkWell(
                           onTap: _showClearConfirmationDialog,
-                        ),
-                        ListTile(
-                          leading: Icon(Icons.delete_forever, color: Theme.of(context).colorScheme.error),
-                          title: Text(
-                            AppLocalizations.of(context)!.clearSavedGuns,
-                            style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/icon/shoot.svg',
+                                  width: 32,
+                                  height: 32,
+                                  colorFilter: ColorFilter.mode(Theme.of(context).colorScheme.error, BlendMode.srcIn),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  AppLocalizations.of(context)!.clearSavedShots,
+                                  style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
                           ),
+                        ),
+                        InkWell(
                           onTap: _showClearGunsConfirmationDialog,
-                        ),
-                        ListTile(
-                          leading: Icon(Icons.delete_forever, color: Theme.of(context).colorScheme.error),
-                          title: Text(
-                            AppLocalizations.of(context)!.clearSavedCartridges,
-                            style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/icon/rifle.svg',
+                                  width: 32,
+                                  height: 32,
+                                  colorFilter: ColorFilter.mode(Theme.of(context).colorScheme.error, BlendMode.srcIn),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  AppLocalizations.of(context)!.clearSavedGuns,
+                                  style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
                           ),
+                        ),
+                        InkWell(
                           onTap: _showClearCartridgesConfirmationDialog,
-                        ),
-                        ListTile(
-                          leading: Icon(Icons.delete_forever, color: Theme.of(context).colorScheme.error),
-                          title: Text(
-                            AppLocalizations.of(context)!.clearSavedScopes,
-                            style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/icon/bullet.svg',
+                                  width: 32,
+                                  height: 32,
+                                  colorFilter: ColorFilter.mode(Theme.of(context).colorScheme.error, BlendMode.srcIn),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  AppLocalizations.of(context)!.clearSavedCartridges,
+                                  style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
                           ),
+                        ),
+                        InkWell(
                           onTap: _showClearScopesConfirmationDialog,
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/icon/scope.svg',
+                                  width: 32,
+                                  height: 32,
+                                  colorFilter: ColorFilter.mode(Theme.of(context).colorScheme.error, BlendMode.srcIn),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  AppLocalizations.of(context)!.clearSavedScopes,
+                                  style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ),
