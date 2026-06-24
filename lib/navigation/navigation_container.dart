@@ -42,8 +42,7 @@ class _NavigationContainerState extends State<NavigationContainer> {
 
   Future<void> _checkTutorial() async {
     final prefs = await SharedPreferences.getInstance();
-    // Forzamos a false temporalmente para que puedas verlo
-    final hasSeenTutorial = false; // prefs.getBool('has_seen_tutorial') ?? false;
+    final hasSeenTutorial = prefs.getBool('has_seen_tutorial') ?? false;
     
     if (!hasSeenTutorial) {
       // Retraso para que la animación de la UI inicial termine antes de mostrar el overlay

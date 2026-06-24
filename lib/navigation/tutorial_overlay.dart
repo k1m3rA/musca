@@ -127,8 +127,12 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
     // Leer la posición del botón después del primer frame completo
+    // Encadenamos dos postFrameCallbacks para asegurarnos de que el layout
+    // de la barra de navegación ya esté estabilizado antes de leer posiciones.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _resolveButtonPosition();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _resolveButtonPosition();
+      });
     });
   }
 
@@ -137,8 +141,17 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     if (targetContext == null || !mounted) return;
 
     final RenderBox box = targetContext.findRenderObject() as RenderBox;
-    final Offset position = box.localToGlobal(Offset.zero);
     final Size size = box.size;
+
+    // Si el widget todavía no tiene tamaño, reintentamos en el siguiente frame
+    if (size.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _resolveButtonPosition();
+      });
+      return;
+    }
+
+    final Offset position = box.localToGlobal(Offset.zero);
     final screenHeight = MediaQuery.of(context).size.height;
     const cutoutDiameter = 65.0;
 
