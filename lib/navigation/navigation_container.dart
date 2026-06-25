@@ -31,6 +31,7 @@ class _NavigationContainerState extends State<NavigationContainer> {
   
   // Simple notification mechanism
   final ValueNotifier<bool> _reloadCalculatorProfiles = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _highlightApiNotifier = ValueNotifier<bool>(false);
   
   bool _showTutorial = false;
 
@@ -79,7 +80,14 @@ class _NavigationContainerState extends State<NavigationContainer> {
         });
       }
     });
-  }@override
+  }
+
+  void _changeScreenAndHighlight(int index) {
+    _changeScreen(index);
+    _highlightApiNotifier.value = true;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final List<Widget> screens = [
       HomeContent(
@@ -90,11 +98,13 @@ class _NavigationContainerState extends State<NavigationContainer> {
         key: _calculatorKey,
         onNavigate: _changeScreen,
         reloadProfilesNotifier: _reloadCalculatorProfiles,
+        onNavigateToSettingsWithHighlight: () => _changeScreenAndHighlight(3),
       ), // Pass the navigation callback
       ProfileScreen(onNavigate: _changeScreen), // Add the new profile screen
       SettingsPage(
         onThemeChanged: widget.onThemeChanged,
         onLocaleChanged: widget.onLocaleChanged,
+        highlightApiNotifier: _highlightApiNotifier,
       ),
     ];
 

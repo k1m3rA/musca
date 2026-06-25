@@ -158,6 +158,12 @@ abstract class AppLocalizations {
   /// **'All cartridges have been deleted'**
   String get allCartridgesHaveBeenDeleted;
 
+  /// No description provided for @goThere.
+  ///
+  /// In en, this message translates to:
+  /// **'Go there'**
+  String get goThere;
+
   /// No description provided for @allGunsHaveBeenDeleted.
   ///
   /// In en, this message translates to:

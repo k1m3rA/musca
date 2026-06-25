@@ -13,10 +13,12 @@ import 'package:musca/l10n/app_localizations.dart';
 class SettingsPage extends StatefulWidget {
   final ValueChanged<ThemeMode> onThemeChanged;
   final ValueChanged<Locale> onLocaleChanged;
+  final ValueNotifier<bool>? highlightApiNotifier;
   const SettingsPage({
     super.key,
     required this.onThemeChanged,
     required this.onLocaleChanged,
+    this.highlightApiNotifier,
   });
 
   @override
@@ -28,6 +30,49 @@ class _SettingsPageState extends State<SettingsPage> {
   Locale? _selectedLocale;
   bool _isInitialized = false;
   bool _isApiConfigured = false;
+  final GlobalKey _apiConfigKey = GlobalKey();
+  bool _isHighlightingApi = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.highlightApiNotifier?.addListener(_onHighlightApiRequested);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _onHighlightApiRequested();
+    });
+  }
+
+  void _onHighlightApiRequested() {
+    if (widget.highlightApiNotifier?.value == true) {
+      if (_apiConfigKey.currentContext != null) {
+        Scrollable.ensureVisible(
+          _apiConfigKey.currentContext!, 
+          duration: const Duration(milliseconds: 300),
+          alignment: 0.5,
+        );
+      }
+      
+      setState(() {
+        _isHighlightingApi = true;
+      });
+      
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (mounted) {
+          setState(() {
+            _isHighlightingApi = false;
+          });
+        }
+      });
+      
+      widget.highlightApiNotifier?.value = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.highlightApiNotifier?.removeListener(_onHighlightApiRequested);
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -628,11 +673,21 @@ class _SettingsPageState extends State<SettingsPage> {
                 GestureDetector(
                   onTap: _showWeatherApiKeyDialog,
                   child: Card(
+                    key: _apiConfigKey,
                     elevation: 4,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Container(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 500),
+                      decoration: BoxDecoration(
+                        color: _isHighlightingApi ? Theme.of(context).colorScheme.primary.withOpacity(0.2) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _isHighlightingApi ? Theme.of(context).colorScheme.primary : Colors.transparent,
+                          width: _isHighlightingApi ? 2.0 : 0.0,
+                        ),
+                      ),
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12.0,

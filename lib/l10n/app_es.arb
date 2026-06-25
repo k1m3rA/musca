@@ -162,6 +162,7 @@
   "humidity": "Humedad",
   "latitude": "Latitud",
   "weatherApiNotConfigured": "API del clima no configurada",
+  "goThere": "Ir allí",
   "invalidWeatherApiKey": "Clave API del clima inválida",
   "horizontalDrift": "Deriva Horizontal",
   "manageData": "Gestionar Datos",

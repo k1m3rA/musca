@@ -94,13 +94,7 @@ class TutorialOverlay extends StatefulWidget {
   State<TutorialOverlay> createState() => _TutorialOverlayState();
 }
 
-class _TutorialOverlayState extends State<TutorialOverlay>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnim;
-  late Animation<double> _scaleAnim;
-  late Animation<Offset> _bounceAnim;
-
+class _TutorialOverlayState extends State<TutorialOverlay> {
   // Posición real del botón, calculada tras el primer frame
   double? _buttonCenterX;
   double? _cutoutBottomOffset;
@@ -109,23 +103,6 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-
-    _fadeAnim = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-
-    _scaleAnim = Tween<double>(
-      begin: 0.85,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
-
-    _bounceAnim = Tween<Offset>(
-      begin: const Offset(0, 0.08),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
-
     // Leer la posición del botón después del primer frame completo
     // Encadenamos dos postFrameCallbacks para asegurarnos de que el layout
     // de la barra de navegación ya esté estabilizado antes de leer posiciones.
@@ -164,19 +141,9 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       _cutoutBottomOffset = bottomOffset;
       _positionReady = true;
     });
-
-    // Arrancar la animación sólo cuando ya tenemos la posición
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 
   Future<void> _dismiss() async {
-    await _controller.reverse();
     widget.onDismiss();
   }
 
@@ -278,21 +245,11 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                   right: 0,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: FadeTransition(
-                      opacity: _fadeAnim,
-                      child: SlideTransition(
-                        position: _bounceAnim,
-                        child: ScaleTransition(
-                          scale: _scaleAnim,
-                          alignment: Alignment.bottomCenter,
-                          child: _buildBubble(
-                            context,
-                            primary: primary,
-                            onPrimary: onPrimary,
-                            bubbleColor: bubbleColor,
-                          ),
-                        ),
-                      ),
+                    child: _buildBubble(
+                      context,
+                      primary: primary,
+                      onPrimary: onPrimary,
+                      bubbleColor: bubbleColor,
                     ),
                   ),
                 ),

@@ -40,6 +40,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allCartridgesHaveBeenDeleted => 'All cartridges have been deleted';
 
   @override
+  String get goThere => 'Go there';
+
+  @override
   String get allGunsHaveBeenDeleted => 'All guns have been deleted';
 
   @override

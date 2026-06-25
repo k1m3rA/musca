@@ -41,6 +41,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Todos los cartuchos han sido eliminados';
 
   @override
+  String get goThere => 'Ir allí';
+
+  @override
   String get allGunsHaveBeenDeleted => 'Todas las armas han sido eliminadas';
 
   @override

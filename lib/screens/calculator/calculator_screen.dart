@@ -21,11 +21,13 @@ import 'package:musca/l10n/app_localizations.dart';
 class CalculatorScreen extends StatefulWidget {
   final Function(int)? onNavigate;
   final ValueNotifier<bool>? reloadProfilesNotifier;
+  final VoidCallback? onNavigateToSettingsWithHighlight;
   
   const CalculatorScreen({
     super.key, 
     this.onNavigate,
     this.reloadProfilesNotifier,
+    this.onNavigateToSettingsWithHighlight,
   });
 
   @override
@@ -492,6 +494,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     onUpdatePressure: _updatePressure,
                     onUpdateHumidity: _updateHumidity,
                     onUpdateLatitude: _updateLatitude, // Pass the latitude callback
+                    onNavigateToSettingsWithHighlight: widget.onNavigateToSettingsWithHighlight,
                   ),
                     const SizedBox(height: 20),                  // Display the current latitude value (optional)
                 ],

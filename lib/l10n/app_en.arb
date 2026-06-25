@@ -162,6 +162,7 @@
   "addNewShot": "Add New Shot",
   "allCalculationsHaveBeenDeleted": "All calculations have been deleted",
   "allCartridgesHaveBeenDeleted": "All cartridges have been deleted",
+  "goThere": "Go there",
   "allGunsHaveBeenDeleted": "All guns have been deleted",
   "allScopesHaveBeenDeleted": "All scopes have been deleted",
   "angleAndWind": "Angle: {angle}° • Wind: {windSpeed}m/s @ {windDirection}°",

@@ -14,6 +14,8 @@ class EnvironmentalInput extends StatefulWidget {
   final Function(double) onUpdatePressure;
   final Function(double) onUpdateHumidity;
   final Function(double)? onUpdateLatitude; // Add callback for latitude updates
+  final VoidCallback? onNavigateToSettingsWithHighlight;
+
   const EnvironmentalInput({
     super.key,
     required this.temperatureController,
@@ -25,6 +27,7 @@ class EnvironmentalInput extends StatefulWidget {
     required this.onUpdatePressure,
     required this.onUpdateHumidity,
     this.onUpdateLatitude, // Add this parameter
+    this.onNavigateToSettingsWithHighlight,
   });
 
   @override
@@ -172,25 +175,40 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       children: [
-                        Text(
-                          _apiErrorType == WeatherApiError.noApiKey 
-                            ? AppLocalizations.of(context)!.weatherApiNotConfigured
-                            : AppLocalizations.of(context)!.invalidWeatherApiKey,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.orange[800],
+                        Expanded(
+                          child: Text(
+                            _apiErrorType == WeatherApiError.noApiKey 
+                              ? AppLocalizations.of(context)!.weatherApiNotConfigured
+                              : AppLocalizations.of(context)!.invalidWeatherApiKey,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange[800],
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          AppLocalizations.of(context)!.configureInSettingsConfigureWeatherApi,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.orange[700],
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          height: 32,
+                          child: OutlinedButton(
+                            onPressed: widget.onNavigateToSettingsWithHighlight,
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.orange[800],
+                              side: BorderSide(color: Colors.orange[800]!),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                            ),
+                            child: Text(
+                              AppLocalizations.of(context)!.goThere,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
                       ],
