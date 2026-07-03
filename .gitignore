@@ -46,7 +46,7 @@ app.*.map.json
 /android/app/release
 
 # API keys
-/lib/config/api_keys.dart
+# /lib/config/api_keys.dart
 
 #python
 __pycache__/
