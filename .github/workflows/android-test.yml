@@ -1,0 +1,74 @@
+name: Android API 36 test APK
+on:
+  push:
+    branches: [android16-target-api-36]
+    paths: [.github/workflows/android-test.yml]
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: false
+      - name: Prepare isolated test variant
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/build.gradle.kts')
+          s = p.read_text().replace('// id("kotlin-android") // Removed for Built-in Kotlin', 'id("org.jetbrains.kotlin.android")')
+          s = s.replace('applicationId = "com.musca.app"', 'applicationId = "com.musca.app.apitest"')
+          p.write_text(s)
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          p.write_text(p.read_text().replace('android:label="Musca"', 'android:label="Musca API36 Test"'))
+          PY
+      - name: Resolve dependencies
+        run: flutter pub get
+      - name: Build signed test APK
+        run: flutter build apk --release --build-name=1.0.4-api36-test --build-number=7
+      - name: Verify APK signature and manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          APK=build/app/outputs/flutter-apk/app-release.apk
+          "$BT/apksigner" verify --verbose "$APK" | tee signature.txt
+          "$BT/aapt" dump badging "$APK" | tee manifest.txt
+          grep -q "name='com.musca.app.apitest'" manifest.txt
+          grep -q "targetSdkVersion:'36'" manifest.txt
+          grep -q "arm64-v8a" manifest.txt
+          cp "$APK" musca-api36-test.apk
+          sha256sum musca-api36-test.apk > SHA256SUMS.txt
+          flutter --version > build-info.txt
+          git rev-parse HEAD >> build-info.txt
+          cat signature.txt manifest.txt >> build-info.txt
+      - name: Publish GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          TAG="api36-test-${GITHUB_RUN_NUMBER}"
+          cat > notes.md <<'NOTES'
+          APK de pruebas de la rama android16-target-api-36. No es una versión de Play.
+
+
+          - Android target API 36. APK universal con arm64-v8a.
+          - Aplicación independiente: Musca API36 Test (com.musca.app.apitest). No reemplaza la app de Play ni comparte sus datos.
+          - Firma de pruebas, no la firma de Play. Se ha verificado firma, manifiesto y arquitectura del APK.
+          - No se ha probado la instalación ni el funcionamiento en un dispositivo Android. Pendiente de prueba manual.
+          - La meteorología requiere una clave WeatherAPI propia configurada en la aplicación; no se incluyen secretos.
+          - No usar los cálculos de esta versión sin validación independiente.
+
+
+          Instala musca-api36-test.apk. SHA256SUMS.txt permite comprobar la descarga; build-info.txt registra herramientas y verificaciones.
+          NOTES
+          gh release create "$TAG" musca-api36-test.apk SHA256SUMS.txt build-info.txt --target "$GITHUB_SHA" --title "Musca API 36 - prueba Android" --notes-file notes.md --prerelease --latest=false
