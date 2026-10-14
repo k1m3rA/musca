@@ -33,8 +33,13 @@ jobs:
           PY
       - name: Resolve dependencies
         run: flutter pub get
+      - name: Preference persistence tests
+        run: |
+          mkdir -p test
+          echo aW1wb3J0ICdwYWNrYWdlOmZsdXR0ZXIvbWF0ZXJpYWwuZGFydCc7CmltcG9ydCAncGFja2FnZTpmbHV0dGVyX3Rlc3QvZmx1dHRlcl90ZXN0LmRhcnQnOwppbXBvcnQgJ3BhY2thZ2U6c2hhcmVkX3ByZWZlcmVuY2VzL3NoYXJlZF9wcmVmZXJlbmNlcy5kYXJ0JzsKaW1wb3J0ICdwYWNrYWdlOm11c2NhL2FwcC9tdXNjYV9hcHAuZGFydCc7CmltcG9ydCAncGFja2FnZTptdXNjYS9uYXZpZ2F0aW9uL25hdmlnYXRpb25fY29udGFpbmVyLmRhcnQnOwoKdm9pZCBtYWluKCkgewogIEZ1dHVyZTx2b2lkPiBzdGFydChXaWRnZXRUZXN0ZXIgdGVzdGVyKSBhc3luYyB7CiAgICBhd2FpdCB0ZXN0ZXIucHVtcFdpZGdldChjb25zdCBNeUFwcCgpKTsKICAgIGF3YWl0IHRlc3Rlci5wdW1wQW5kU2V0dGxlKCk7CiAgfQogIEZ1dHVyZTx2b2lkPiByZXN0YXJ0KFdpZGdldFRlc3RlciB0ZXN0ZXIpIGFzeW5jIHsKICAgIGF3YWl0IHRlc3Rlci5wdW1wV2lkZ2V0KGNvbnN0IFNpemVkQm94LnNocmluaygpKTsKICAgIGF3YWl0IHRlc3Rlci5wdW1wQW5kU2V0dGxlKCk7CiAgICBhd2FpdCBzdGFydCh0ZXN0ZXIpOwogIH0KICB0ZXN0V2lkZ2V0cygnc3lzdGVtIGRlZmF1bHRzIHdpdGhvdXQgc2F2ZWQgY2hvaWNlJywgKHRlc3RlcikgYXN5bmMgewogICAgU2hhcmVkUHJlZmVyZW5jZXMuc2V0TW9ja0luaXRpYWxWYWx1ZXMoeydoYXNfc2Vlbl90dXRvcmlhbCc6IHRydWV9KTsKICAgIGF3YWl0IHN0YXJ0KHRlc3Rlcik7CiAgICBmaW5hbCBhcHAgPSB0ZXN0ZXIud2lkZ2V0PE1hdGVyaWFsQXBwPihmaW5kLmJ5VHlwZShNYXRlcmlhbEFwcCkpOwogICAgZXhwZWN0KGFwcC50aGVtZU1vZGUsIFRoZW1lTW9kZS5zeXN0ZW0pOwogICAgZXhwZWN0KGFwcC5sb2NhbGUsIGlzTnVsbCk7CiAgfSk7CiAgdGVzdFdpZGdldHMoJ21hbnVhbCBjaG9pY2VzIHN1cnZpdmUgYXBwIHJlY3JlYXRpb24nLCAodGVzdGVyKSBhc3luYyB7CiAgICBTaGFyZWRQcmVmZXJlbmNlcy5zZXRNb2NrSW5pdGlhbFZhbHVlcyh7J2hhc19zZWVuX3R1dG9yaWFsJzogdHJ1ZX0pOwogICAgYXdhaXQgc3RhcnQodGVzdGVyKTsKICAgIHZhciBuYXYgPSB0ZXN0ZXIud2lkZ2V0PE5hdmlnYXRpb25Db250YWluZXI+KGZpbmQuYnlUeXBlKE5hdmlnYXRpb25Db250YWluZXIpKTsKICAgIG5hdi5vblRoZW1lQ2hhbmdlZChUaGVtZU1vZGUuZGFyayk7CiAgICBuYXYub25Mb2NhbGVDaGFuZ2VkKGNvbnN0IExvY2FsZSgnZXMnKSk7CiAgICBhd2FpdCB0ZXN0ZXIucHVtcEFuZFNldHRsZSgpOwogICAgZmluYWwgcHJlZnMgPSBhd2FpdCBTaGFyZWRQcmVmZXJlbmNlcy5nZXRJbnN0YW5jZSgpOwogICAgZXhwZWN0KHByZWZzLmdldFN0cmluZygnbXVzY2EudGhlbWVNb2RlJyksICdkYXJrJyk7CiAgICBleHBlY3QocHJlZnMuZ2V0U3RyaW5nKCdtdXNjYS5sb2NhbGUnKSwgJ2VzJyk7CiAgICBhd2FpdCByZXN0YXJ0KHRlc3Rlcik7CiAgICB2YXIgYXBwID0gdGVzdGVyLndpZGdldDxNYXRlcmlhbEFwcD4oZmluZC5ieVR5cGUoTWF0ZXJpYWxBcHApKTsKICAgIGV4cGVjdChhcHAudGhlbWVNb2RlLCBUaGVtZU1vZGUuZGFyayk7CiAgICBleHBlY3QoYXBwLmxvY2FsZSwgY29uc3QgTG9jYWxlKCdlcycpKTsKICAgIG5hdiA9IHRlc3Rlci53aWRnZXQ8TmF2aWdhdGlvbkNvbnRhaW5lcj4oZmluZC5ieVR5cGUoTmF2aWdhdGlvbkNvbnRhaW5lcikpOwogICAgbmF2Lm9uVGhlbWVDaGFuZ2VkKFRoZW1lTW9kZS5saWdodCk7CiAgICBuYXYub25Mb2NhbGVDaGFuZ2VkKGNvbnN0IExvY2FsZSgnZW4nKSk7CiAgICBhd2FpdCB0ZXN0ZXIucHVtcEFuZFNldHRsZSgpOwogICAgYXdhaXQgcmVzdGFydCh0ZXN0ZXIpOwogICAgYXBwID0gdGVzdGVyLndpZGdldDxNYXRlcmlhbEFwcD4oZmluZC5ieVR5cGUoTWF0ZXJpYWxBcHApKTsKICAgIGV4cGVjdChhcHAudGhlbWVNb2RlLCBUaGVtZU1vZGUubGlnaHQpOwogICAgZXhwZWN0KGFwcC5sb2NhbGUsIGNvbnN0IExvY2FsZSgnZW4nKSk7CiAgfSk7CiAgdGVzdFdpZGdldHMoJ3Vua25vd24gc2F2ZWQgdmFsdWVzIHVzZSBzeXN0ZW0gZGVmYXVsdHMnLCAodGVzdGVyKSBhc3luYyB7CiAgICBTaGFyZWRQcmVmZXJlbmNlcy5zZXRNb2NrSW5pdGlhbFZhbHVlcyh7J2hhc19zZWVuX3R1dG9yaWFsJzogdHJ1ZSwgJ211c2NhLnRoZW1lTW9kZSc6J2ludmFsaWQnLCAnbXVzY2EubG9jYWxlJzonenonfSk7CiAgICBhd2FpdCBzdGFydCh0ZXN0ZXIpOwogICAgZmluYWwgYXBwID0gdGVzdGVyLndpZGdldDxNYXRlcmlhbEFwcD4oZmluZC5ieVR5cGUoTWF0ZXJpYWxBcHApKTsKICAgIGV4cGVjdChhcHAudGhlbWVNb2RlLCBUaGVtZU1vZGUuc3lzdGVtKTsKICAgIGV4cGVjdChhcHAubG9jYWxlLCBpc051bGwpOwogIH0pOwp9Cg== | base64 -d > test/preferences_persistence_test.dart
+          flutter test test/preferences_persistence_test.dart
       - name: Build signed test APK
-        run: flutter build apk --release --build-name=1.0.4-api36-test --build-number=7
+        run: flutter build apk --release --build-name=1.0.4-api36-prefs --build-number=8
       - name: Verify APK signature and manifest
         shell: bash
         run: |
@@ -51,24 +56,3 @@ jobs:
           flutter --version > build-info.txt
           git rev-parse HEAD >> build-info.txt
           cat signature.txt manifest.txt >> build-info.txt
-      - name: Publish GitHub prerelease
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          TAG="api36-test-${GITHUB_RUN_NUMBER}"
-          cat > notes.md <<'NOTES'
-          APK de pruebas de la rama android16-target-api-36. No es una versión de Play.
-
-
-          - Android target API 36. APK universal con arm64-v8a.
-          - Aplicación independiente: Musca API36 Test (com.musca.app.apitest). No reemplaza la app de Play ni comparte sus datos.
-          - Firma de pruebas, no la firma de Play. Se ha verificado firma, manifiesto y arquitectura del APK.
-          - No se ha probado la instalación ni el funcionamiento en un dispositivo Android. Pendiente de prueba manual.
-          - La meteorología requiere una clave WeatherAPI propia configurada en la aplicación; no se incluyen secretos.
-          - No usar los cálculos de esta versión sin validación independiente.
-
-
-          Instala musca-api36-test.apk. SHA256SUMS.txt permite comprobar la descarga; build-info.txt registra herramientas y verificaciones.
-          NOTES
-          gh release create "$TAG" musca-api36-test.apk SHA256SUMS.txt build-info.txt --target "$GITHUB_SHA" --title "Musca API 36 - prueba Android" --notes-file notes.md --prerelease --latest=false
