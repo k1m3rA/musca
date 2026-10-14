@@ -1,0 +1,61 @@
+name: Android 16 emulator smoke test
+on:
+  push:
+    branches: [android16-target-api-36]
+    paths: [.github/workflows/android-emulator-test.yml]
+permissions:
+  contents: write
+jobs:
+  emulator:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - name: Download test APK from release
+        run: |
+          mkdir -p out
+          curl -fL -o musca-api36-test.apk https://github.com/k1m3rA/musca/releases/download/api36-test-1/musca-api36-test.apk
+          sha256sum musca-api36-test.apk | tee out/sha.txt
+          grep -q 8cdc606217b302773801d0cb62d2acc0548bf25dd313b516ec3d017be0a9018b out/sha.txt
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run on Android 16 emulator (API 36)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            adb shell getprop ro.build.version.release | tee out/android-version.txt
+            adb shell getprop ro.build.version.sdk | tee -a out/android-version.txt
+            adb logcat -c
+            (adb install -r musca-api36-test.apk 2>&1 | tee out/install.txt) || true
+            adb shell pm list packages com.musca | tee out/package.txt || true
+            adb shell am start -W -n com.musca.app.apitest/com.musca.app.MainActivity 2>&1 | tee out/launch.txt || true
+            sleep 15
+            adb exec-out screencap -p > out/screen1.png || true
+            adb shell pidof com.musca.app.apitest | tee out/pid1.txt || true
+            adb shell input tap 540 1200 || true
+            sleep 3
+            adb exec-out screencap -p > out/screen2.png || true
+            adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 || true
+            adb pull /sdcard/ui.xml out/ui.xml || true
+            sleep 20
+            adb exec-out screencap -p > out/screen3.png || true
+            adb shell pidof com.musca.app.apitest | tee out/pid2.txt || true
+            adb logcat -d > out/logcat-full.txt || true
+            grep -E "FATAL EXCEPTION|ANR in|Process com.musca.app.apitest.*died|AndroidRuntime" out/logcat-full.txt | head -50 > out/crashes.txt || true
+            grep -iE "musca|flutter" out/logcat-full.txt | tail -300 > out/logcat-app.txt || true
+      - name: Publish results prerelease
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd out
+          echo "Resultados de prueba en emulador Android 16 (solo humo: instala, abre, capturas, logs). No valida sensores reales." > notes.md
+          gh release create "api36-emu-${GITHUB_RUN_NUMBER}" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Emulator results ${GITHUB_RUN_NUMBER}" --notes-file notes.md --prerelease --latest=false
+          for f in *; do [ "$f" = notes.md ] || gh release upload "api36-emu-${GITHUB_RUN_NUMBER}" "$f" --repo "$GITHUB_REPOSITORY" || true; done
