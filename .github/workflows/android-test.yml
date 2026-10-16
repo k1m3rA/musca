@@ -75,9 +75,12 @@ jobs:
           export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
           # Never accept new SDK licences. Existing runner licences are reused.
           sdkmanager --install 'system-images;android-36;google_apis;x86_64' emulator </dev/null
+          export ANDROID_AVD_HOME="$HOME/.android/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
           echo no | avdmanager create avd --name musca-test --package 'system-images;android-36;google_apis;x86_64' --device pixel_6 --force
+          test -f "$ANDROID_AVD_HOME/musca-test.ini"
           "$ANDROID_HOME/emulator/emulator" -avd musca-test -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot -no-metrics > emulator.log 2>&1 &
-          adb wait-for-device
+          timeout 120 adb wait-for-device || { cat emulator.log; exit 1; }
           timeout 300 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 2; done'
           adb shell input keyevent 82
           adb shell settings put global window_animation_scale 0
