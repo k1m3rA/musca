@@ -72,6 +72,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
           # Never accept new SDK licences. Existing runner licences are reused.
           sdkmanager --install 'system-images;android-36;google_apis;x86_64' emulator </dev/null
           echo no | avdmanager create avd --name musca-test --package 'system-images;android-36;google_apis;x86_64' --device pixel_6 --force
