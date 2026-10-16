@@ -10,7 +10,8 @@ import java.io.FileInputStream
 
 android {
     namespace = "com.musca.app"
-    compileSdk = flutter.compileSdkVersion
+    // Google Play requires targeting Android 16 (API 36) for updates
+    compileSdk = maxOf(flutter.compileSdkVersion, 36)
     ndkVersion = "27.0.12077973"
 
     // Load release keystore properties from android/key.properties (not committed)
@@ -41,7 +42,7 @@ android {
         // You can update the following values to match your application needs.
         // Set explicitly to 19 to maintain compatibility with older devices
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }

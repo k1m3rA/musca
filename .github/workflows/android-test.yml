@@ -1,0 +1,85 @@
+name: Android API 36 test APK
+on:
+  push:
+    branches: [android16-target-api-36]
+    paths: [.github/workflows/android-test.yml]
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: false
+      - name: Prepare isolated test variant
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/build.gradle.kts')
+          s = p.read_text().replace('// id("kotlin-android") // Removed for Built-in Kotlin', 'id("org.jetbrains.kotlin.android")')
+          s = s.replace('applicationId = "com.musca.app"', 'applicationId = "com.musca.app.apitest"')
+          # Strip native debug symbols only in this generated test variant.
+          s = s.replace('keepDebugSymbols += setOf("**/*.so")', '// Native debug symbols stripped for compact test APK')
+          p.write_text(s)
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          p.write_text(p.read_text().replace('android:label="Musca"', 'android:label="Musca API36 Test"'))
+          PY
+      - name: Resolve dependencies
+        run: flutter pub get
+      - name: Preference persistence tests
+        run: |
+          mkdir -p test
+          echo aW1wb3J0ICdwYWNrYWdlOmZsdXR0ZXIvbWF0ZXJpYWwuZGFydCc7CmltcG9ydCAncGFja2FnZTpmbHV0dGVyX3Rlc3QvZmx1dHRlcl90ZXN0LmRhcnQnOwppbXBvcnQgJ3BhY2thZ2U6c2hhcmVkX3ByZWZlcmVuY2VzL3NoYXJlZF9wcmVmZXJlbmNlcy5kYXJ0JzsKaW1wb3J0ICdwYWNrYWdlOm11c2NhL2FwcC9tdXNjYV9hcHAuZGFydCc7CmltcG9ydCAncGFja2FnZTptdXNjYS9uYXZpZ2F0aW9uL25hdmlnYXRpb25fY29udGFpbmVyLmRhcnQnOwoKdm9pZCBtYWluKCkgewogIEZ1dHVyZTx2b2lkPiBzdGFydChXaWRnZXRUZXN0ZXIgdGVzdGVyKSBhc3luYyB7CiAgICBhd2FpdCB0ZXN0ZXIucHVtcFdpZGdldChjb25zdCBNeUFwcCgpKTsKICAgIGF3YWl0IHRlc3Rlci5wdW1wQW5kU2V0dGxlKCk7CiAgfQogIEZ1dHVyZTx2b2lkPiByZXN0YXJ0KFdpZGdldFRlc3RlciB0ZXN0ZXIpIGFzeW5jIHsKICAgIGF3YWl0IHRlc3Rlci5wdW1wV2lkZ2V0KGNvbnN0IFNpemVkQm94LnNocmluaygpKTsKICAgIGF3YWl0IHRlc3Rlci5wdW1wQW5kU2V0dGxlKCk7CiAgICBhd2FpdCBzdGFydCh0ZXN0ZXIpOwogIH0KICB0ZXN0V2lkZ2V0cygnc3lzdGVtIGRlZmF1bHRzIHdpdGhvdXQgc2F2ZWQgY2hvaWNlJywgKHRlc3RlcikgYXN5bmMgewogICAgU2hhcmVkUHJlZmVyZW5jZXMuc2V0TW9ja0luaXRpYWxWYWx1ZXMoeydoYXNfc2Vlbl90dXRvcmlhbCc6IHRydWV9KTsKICAgIGF3YWl0IHN0YXJ0KHRlc3Rlcik7CiAgICBmaW5hbCBhcHAgPSB0ZXN0ZXIud2lkZ2V0PE1hdGVyaWFsQXBwPihmaW5kLmJ5VHlwZShNYXRlcmlhbEFwcCkpOwogICAgZXhwZWN0KGFwcC50aGVtZU1vZGUsIFRoZW1lTW9kZS5zeXN0ZW0pOwogICAgZXhwZWN0KGFwcC5sb2NhbGUsIGlzTnVsbCk7CiAgfSk7CiAgdGVzdFdpZGdldHMoJ21hbnVhbCBjaG9pY2VzIHN1cnZpdmUgYXBwIHJlY3JlYXRpb24nLCAodGVzdGVyKSBhc3luYyB7CiAgICBTaGFyZWRQcmVmZXJlbmNlcy5zZXRNb2NrSW5pdGlhbFZhbHVlcyh7J2hhc19zZWVuX3R1dG9yaWFsJzogdHJ1ZX0pOwogICAgYXdhaXQgc3RhcnQodGVzdGVyKTsKICAgIHZhciBuYXYgPSB0ZXN0ZXIud2lkZ2V0PE5hdmlnYXRpb25Db250YWluZXI+KGZpbmQuYnlUeXBlKE5hdmlnYXRpb25Db250YWluZXIpKTsKICAgIG5hdi5vblRoZW1lQ2hhbmdlZChUaGVtZU1vZGUuZGFyayk7CiAgICBuYXYub25Mb2NhbGVDaGFuZ2VkKGNvbnN0IExvY2FsZSgnZXMnKSk7CiAgICBhd2FpdCB0ZXN0ZXIucHVtcEFuZFNldHRsZSgpOwogICAgZmluYWwgcHJlZnMgPSBhd2FpdCBTaGFyZWRQcmVmZXJlbmNlcy5nZXRJbnN0YW5jZSgpOwogICAgZXhwZWN0KHByZWZzLmdldFN0cmluZygnbXVzY2EudGhlbWVNb2RlJyksICdkYXJrJyk7CiAgICBleHBlY3QocHJlZnMuZ2V0U3RyaW5nKCdtdXNjYS5sb2NhbGUnKSwgJ2VzJyk7CiAgICBhd2FpdCByZXN0YXJ0KHRlc3Rlcik7CiAgICB2YXIgYXBwID0gdGVzdGVyLndpZGdldDxNYXRlcmlhbEFwcD4oZmluZC5ieVR5cGUoTWF0ZXJpYWxBcHApKTsKICAgIGV4cGVjdChhcHAudGhlbWVNb2RlLCBUaGVtZU1vZGUuZGFyayk7CiAgICBleHBlY3QoYXBwLmxvY2FsZSwgY29uc3QgTG9jYWxlKCdlcycpKTsKICAgIG5hdiA9IHRlc3Rlci53aWRnZXQ8TmF2aWdhdGlvbkNvbnRhaW5lcj4oZmluZC5ieVR5cGUoTmF2aWdhdGlvbkNvbnRhaW5lcikpOwogICAgbmF2Lm9uVGhlbWVDaGFuZ2VkKFRoZW1lTW9kZS5saWdodCk7CiAgICBuYXYub25Mb2NhbGVDaGFuZ2VkKGNvbnN0IExvY2FsZSgnZW4nKSk7CiAgICBhd2FpdCB0ZXN0ZXIucHVtcEFuZFNldHRsZSgpOwogICAgYXdhaXQgcmVzdGFydCh0ZXN0ZXIpOwogICAgYXBwID0gdGVzdGVyLndpZGdldDxNYXRlcmlhbEFwcD4oZmluZC5ieVR5cGUoTWF0ZXJpYWxBcHApKTsKICAgIGV4cGVjdChhcHAudGhlbWVNb2RlLCBUaGVtZU1vZGUubGlnaHQpOwogICAgZXhwZWN0KGFwcC5sb2NhbGUsIGNvbnN0IExvY2FsZSgnZW4nKSk7CiAgfSk7CiAgdGVzdFdpZGdldHMoJ3Vua25vd24gc2F2ZWQgdmFsdWVzIHVzZSBzeXN0ZW0gZGVmYXVsdHMnLCAodGVzdGVyKSBhc3luYyB7CiAgICBTaGFyZWRQcmVmZXJlbmNlcy5zZXRNb2NrSW5pdGlhbFZhbHVlcyh7J2hhc19zZWVuX3R1dG9yaWFsJzogdHJ1ZSwgJ211c2NhLnRoZW1lTW9kZSc6J2ludmFsaWQnLCAnbXVzY2EubG9jYWxlJzonenonfSk7CiAgICBhd2FpdCBzdGFydCh0ZXN0ZXIpOwogICAgZmluYWwgYXBwID0gdGVzdGVyLndpZGdldDxNYXRlcmlhbEFwcD4oZmluZC5ieVR5cGUoTWF0ZXJpYWxBcHApKTsKICAgIGV4cGVjdChhcHAudGhlbWVNb2RlLCBUaGVtZU1vZGUuc3lzdGVtKTsKICAgIGV4cGVjdChhcHAubG9jYWxlLCBpc051bGwpOwogIH0pOwp9Cg== | base64 -d > test/preferences_persistence_test.dart
+          flutter test test/preferences_persistence_test.dart
+      - name: Build signed test APK
+        run: flutter build apk --release --split-per-abi --target-platform android-arm64 --build-name=1.0.4-api36-prefs --build-number=9
+      - name: Verify APK signature and manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          APK=build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          "$BT/apksigner" verify --verbose "$APK" | tee signature.txt
+          "$BT/aapt" dump badging "$APK" | tee manifest.txt
+          grep -q "name='com.musca.app.apitest'" manifest.txt
+          grep -q "targetSdkVersion:'36'" manifest.txt
+          grep -q "arm64-v8a" manifest.txt
+          grep -q "native-code: 'arm64-v8a'$" manifest.txt
+          cp "$APK" musca-api36-arm64-test.apk
+          sha256sum musca-api36-arm64-test.apk > SHA256SUMS.txt
+          flutter --version > build-info.txt
+          git rev-parse HEAD >> build-info.txt
+          cat signature.txt manifest.txt >> build-info.txt
+      - name: Publish arm64 prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > release-notes.md <<'NOTES'
+          Android 16 test build with saved language and theme preferences, from android16-target-api-36. arm64-only for real devices, with native debug symbols stripped. Separate app: Musca API36 Test (com.musca.app.apitest). Not a Play update.
+
+          Checks: preference widget tests, APK signature/manifest and arm64-only ABI. No emulator smoke test was run on this build, as requested.
+
+          Not tested: this arm64 APK on a real device, real sensors, weather API, ballistic calculations or updating the Play app. If Android reports a signature conflict with an older Musca API36 Test, uninstall only that test app first (its local test data will be removed). The Play app is separate.
+          NOTES
+          gh release create "api36-arm64-${GITHUB_RUN_NUMBER}" musca-api36-arm64-test.apk SHA256SUMS.txt build-info.txt --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Musca API36 arm64 test ${GITHUB_RUN_NUMBER}" --notes-file release-notes.md --prerelease --latest=false
+      - name: Keep diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: musca-api36-build-and-smoke
+          path: |
+            out/
+            build-info.txt
+            signature.txt
+            manifest.txt
+            emulator.log
+          retention-days: 7
