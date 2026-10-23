@@ -39,6 +39,8 @@ jobs:
             echo "keyAlias=$KEY_ALIAS"
             echo "storeFile=../upload.jks"
           } > android/key.properties
+      - name: Let Flutter strip native symbols (CI only, source unchanged)
+        run: sed -i 's|keepDebugSymbols += setOf("\*\*/\*.so")|// keepDebugSymbols disabled in CI|' android/app/build.gradle.kts && grep -n 'keepDebugSymbols' android/app/build.gradle.kts
       - name: Build release AAB
         run: |
           flutter pub get
