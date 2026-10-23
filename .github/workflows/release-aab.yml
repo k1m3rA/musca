@@ -1,0 +1,64 @@
+name: Musca release AAB
+on:
+  push:
+    branches: [ci/musca-release-aab]
+    paths: [.github/workflows/release-aab.yml]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: develop
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: false
+      - name: Show source version
+        run: |
+          git log -1 --format='commit %H' | tee build-info.txt
+          grep -m1 '^version:' pubspec.yaml | tee -a build-info.txt
+      - name: Write signing config
+        env:
+          KS_B64: ${{ secrets.MUSCA_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.MUSCA_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.MUSCA_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.MUSCA_KEY_PASSWORD }}
+        run: |
+          echo "$KS_B64" | base64 -d > android/upload.jks
+          {
+            echo "storePassword=$KS_PASS"
+            echo "keyPassword=$KEY_PASS"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "storeFile=../upload.jks"
+          } > android/key.properties
+      - name: Build release AAB
+        run: |
+          flutter pub get
+          flutter build appbundle --release
+      - name: Verify signature
+        env:
+          KS_PASS: ${{ secrets.MUSCA_STORE_PASSWORD }}
+        run: |
+          AAB=build/app/outputs/bundle/release/app-release.aab
+          ls -l "$AAB"
+          sha256sum "$AAB" | tee signature.txt
+          jarsigner -verify -verbose:summary -certs "$AAB" | tail -15 | tee -a signature.txt
+          keytool -printcert -jarfile "$AAB" | tee -a signature.txt
+          unzip -p "$AAB" base/manifest/AndroidManifest.xml | strings | grep -iE 'versionCode|versionName' | tee -a signature.txt || true
+          mkdir -p out && cp "$AAB" out/app-release.aab && cp build-info.txt signature.txt out/
+      - name: Remove signing material
+        if: always()
+        run: rm -f android/upload.jks android/key.properties
+      - uses: actions/upload-artifact@v4
+        with:
+          name: musca-release-aab
+          path: out/
+          retention-days: 3
