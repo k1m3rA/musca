@@ -3,7 +3,7 @@ import 'package:musca/data/cartridge_presets.dart';
 
 void main() {
   test('la batería de calibres es válida', () {
-    expect(kCartridgePresets.length, 44);
+    expect(kCartridgePresets.length, 45);
     final names = kCartridgePresets.map((p) => p.name).toList();
     expect(names.toSet().length, names.length); // sin duplicados
     for (final p in kCartridgePresets) {
