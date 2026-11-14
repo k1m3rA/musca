@@ -476,6 +476,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                             _windDirectionController.text = _windDirection.round().toString();
                           });
                         },
+                        onAzimuthChanged: (azimuth) {
+                          setState(() {
+                            _azimuth = azimuth;
+                          });
+                        },
                       )
                     : WindDirectionInput(
                         controller: _windDirectionController,

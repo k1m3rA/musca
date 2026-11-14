@@ -739,4 +739,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String driftUnitsTable(Object units) {
     return 'Drift\n($units)';
   }
+
+  // Modelo balístico v5
+  @override
+  String get energyJHeader => 'Energy (J)';
+
+  @override
+  String get energyLabel => 'Energy';
+
+  @override
+  String get impactData => 'Impact data';
+
+  @override
+  String get spinDriftLabel => 'Spin drift';
+
+  @override
+  String get timeOfFlightLabel => 'Flight time';
+
+  @override
+  String get tofSHeader => 'Time (s)';
+
+  @override
+  String get velocityLabel => 'Velocity';
+
+  @override
+  String get velocityMsHeader => 'Velocity (m/s)';
 }

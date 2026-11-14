@@ -228,6 +228,24 @@ class _HomeContentState extends State<HomeContent> {
                 ),
                 const SizedBox(height: 16),
                 _buildLatestCorrectionDisplay(latest),
+                // Datos de impacto del modelo v5 (velocidad, energía,
+                // tiempo de vuelo, deriva por giro). Solo en cálculos
+                // guardados con el modelo nuevo.
+                if (latest.impactVelocity != null ||
+                    latest.impactEnergy != null ||
+                    latest.timeOfFlight != null) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    AppLocalizations.of(context)!.impactData,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildImpactDataRow(latest),
+                ],
               ],
             ),
           ),
@@ -261,6 +279,48 @@ class _HomeContentState extends State<HomeContent> {
           ),
         ),
       ],
+    );
+  }
+
+  /// Fila con los datos de impacto del modelo v5.
+  Widget _buildImpactDataRow(Calculation c) {
+    final l10n = AppLocalizations.of(context)!;
+    final items = <String, String?>{
+      l10n.velocityLabel: c.impactVelocity == null
+          ? null
+          : '${c.impactVelocity!.toStringAsFixed(1)} m/s',
+      l10n.energyLabel: c.impactEnergy == null
+          ? null
+          : '${c.impactEnergy!.toStringAsFixed(0)} J',
+      l10n.timeOfFlightLabel: c.timeOfFlight == null
+          ? null
+          : '${c.timeOfFlight!.toStringAsFixed(3)} s',
+      l10n.spinDriftLabel: c.spinDrift == null
+          ? null
+          : '${(c.spinDrift! * 100).toStringAsFixed(1)} cm',
+    };
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: items.entries
+          .where((e) => e.value != null)
+          .map((e) => Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color:
+                        Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                  ),
+                ),
+                child: Text(
+                  '${e.key}: ${e.value}',
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ))
+          .toList(),
     );
   }
 

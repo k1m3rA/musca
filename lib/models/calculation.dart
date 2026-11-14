@@ -7,6 +7,8 @@ class Calculation {
   final double pressure;
   final double humidity;
   final double latitude; // Add latitude field
+  final double azimuth; // Acimut del disparo [grados] (brújula)
+  final double altitude; // Altitud GPS de la boca del arma [m]
 
   // Add ballistics results
   final double? driftHorizontal;
@@ -15,6 +17,11 @@ class Calculation {
   final double? dropMrad;
   final double? driftMoa;
   final double? dropMoa;
+  // Novedades del modelo v5
+  final double? timeOfFlight; // [s]
+  final double? impactVelocity; // [m/s]
+  final double? impactEnergy; // [J]
+  final double? spinDrift; // deriva por giro [m]
   Calculation({
     required this.distance,
     required this.angle,
@@ -25,12 +32,18 @@ class Calculation {
     this.pressure = 1013.0,
     this.humidity = 50.0,
     this.latitude = 0.0, // Default latitude
+    this.azimuth = 0.0,
+    this.altitude = 0.0,
     this.driftHorizontal,
     this.dropVertical,
     this.driftMrad,
     this.dropMrad,
     this.driftMoa,
     this.dropMoa,
+    this.timeOfFlight,
+    this.impactVelocity,
+    this.impactEnergy,
+    this.spinDrift,
   }) : timestamp = timestamp ?? DateTime.now();
 
   // Convert to JSON for storage
@@ -44,12 +57,18 @@ class Calculation {
       'pressure': pressure,
       'humidity': humidity,
       'latitude': latitude, // Add latitude to JSON
+      'azimuth': azimuth,
+      'altitude': altitude,
       'driftHorizontal': driftHorizontal,
       'dropVertical': dropVertical,
       'driftMrad': driftMrad,
       'dropMrad': dropMrad,
       'driftMoa': driftMoa,
       'dropMoa': dropMoa,
+      'timeOfFlight': timeOfFlight,
+      'impactVelocity': impactVelocity,
+      'impactEnergy': impactEnergy,
+      'spinDrift': spinDrift,
     };
   }
 
@@ -64,12 +83,18 @@ class Calculation {
       pressure: json['pressure'] ?? 1013.0,
       humidity: json['humidity'] ?? 50.0,
       latitude: json['latitude'] ?? 0.0, // Add latitude from JSON with default
+      azimuth: json['azimuth']?.toDouble() ?? 0.0,
+      altitude: json['altitude']?.toDouble() ?? 0.0,
       driftHorizontal: json['driftHorizontal']?.toDouble(),
       dropVertical: json['dropVertical']?.toDouble(),
       driftMrad: json['driftMrad']?.toDouble(),
       dropMrad: json['dropMrad']?.toDouble(),
       driftMoa: json['driftMoa']?.toDouble(),
       dropMoa: json['dropMoa']?.toDouble(),
+      timeOfFlight: json['timeOfFlight']?.toDouble(),
+      impactVelocity: json['impactVelocity']?.toDouble(),
+      impactEnergy: json['impactEnergy']?.toDouble(),
+      spinDrift: json['spinDrift']?.toDouble(),
     );
   }
   Calculation copyWith({
@@ -82,12 +107,18 @@ class Calculation {
     double? pressure,
     double? humidity,
     double? latitude, // Add latitude parameter
+    double? azimuth,
+    double? altitude,
     double? driftHorizontal,
     double? dropVertical,
     double? driftMrad,
     double? dropMrad,
     double? driftMoa,
     double? dropMoa,
+    double? timeOfFlight,
+    double? impactVelocity,
+    double? impactEnergy,
+    double? spinDrift,
   }) {
     return Calculation(
       distance: distance ?? this.distance,
@@ -99,12 +130,18 @@ class Calculation {
       pressure: pressure ?? this.pressure,
       humidity: humidity ?? this.humidity,
       latitude: latitude ?? this.latitude, // Add latitude field
+      azimuth: azimuth ?? this.azimuth,
+      altitude: altitude ?? this.altitude,
       driftHorizontal: driftHorizontal ?? this.driftHorizontal,
       dropVertical: dropVertical ?? this.dropVertical,
       driftMrad: driftMrad ?? this.driftMrad,
       dropMrad: dropMrad ?? this.dropMrad,
       driftMoa: driftMoa ?? this.driftMoa,
       dropMoa: dropMoa ?? this.dropMoa,
+      timeOfFlight: timeOfFlight ?? this.timeOfFlight,
+      impactVelocity: impactVelocity ?? this.impactVelocity,
+      impactEnergy: impactEnergy ?? this.impactEnergy,
+      spinDrift: spinDrift ?? this.spinDrift,
     );
   }
 }

@@ -46,7 +46,7 @@
   "configureWeatherApiKey": "Configurar Clave API del Clima",
   "copyThisUrlToYourBrowser": "Copia esta URL en tu navegador:",
   "correctionTable": "Tabla de Correcciones",
-  "correctionsRelativeToLineOfSightPositiveDropBulletHitsBelowLineOfSightPositiveDriftBulletHitsToTheRight": "Correcciones relativas a la l\u00ednea de visi\u00f3n. Ca\u00edda positiva = impacto debajo de la l\u00ednea. Deriva positiva = impacto a la derecha.",
+  "correctionsRelativeToLineOfSightPositiveDropBulletHitsBelowLineOfSightPositiveDriftBulletHitsToTheRight": "Correcciones relativas a la línea de visión. Caída positiva = impacto debajo de la línea. Deriva positiva = impacto a la derecha.",
   "delete": "Eliminar",
   "deleteAll": "Eliminar Todo",
   "deleteAllCartridges": "¿Eliminar todos los cartuchos?",
@@ -103,7 +103,7 @@
   "noProfilesSelected": "No se han seleccionado perfiles",
   "noSavedShotsYet": "Aún no hay disparos guardados",
   "noScopesAddedYet": "Aún no se han añadido visores",
-  "notePositiveDropBulletHitsBelowLineOfSightPositiveDriftBulletHitsToTheRight": "Nota: Ca\u00edda positiva = impacto debajo de la l\u00ednea, Deriva positiva = impacto a la derecha",
+  "notePositiveDropBulletHitsBelowLineOfSightPositiveDriftBulletHitsToTheRight": "Nota: Caída positiva = impacto debajo de la línea, Deriva positiva = impacto a la derecha",
   "ok": "OK",
   "oneEighthMoa": "1/8 MOA",
   "oneThirdMoa": "1/3 MOA",
@@ -212,5 +212,13 @@
   "driftUnits": "Deriva ({units})",
   "distanceMTable": "Distancia\n(m)",
   "dropUnitsTable": "Caída\n({units})",
-  "driftUnitsTable": "Deriva\n({units})"
+  "driftUnitsTable": "Deriva\n({units})",
+  "energyJHeader": "Energía (J)",
+  "energyLabel": "Energía",
+  "impactData": "Datos de impacto",
+  "spinDriftLabel": "Deriva por giro",
+  "timeOfFlightLabel": "Tiempo de vuelo",
+  "tofSHeader": "Tiempo (s)",
+  "velocityLabel": "Velocidad",
+  "velocityMsHeader": "Velocidad (m/s)"
 }

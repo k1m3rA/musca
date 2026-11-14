@@ -364,5 +364,13 @@
   "driftUnits": "Drift ({units})",
   "distanceMTable": "Distance\n(m)",
   "dropUnitsTable": "Drop\n({units})",
-  "driftUnitsTable": "Drift\n({units})"
+  "driftUnitsTable": "Drift\n({units})",
+  "energyJHeader": "Energy (J)",
+  "energyLabel": "Energy",
+  "impactData": "Impact data",
+  "spinDriftLabel": "Spin drift",
+  "timeOfFlightLabel": "Flight time",
+  "tofSHeader": "Time (s)",
+  "velocityLabel": "Velocity",
+  "velocityMsHeader": "Velocity (m/s)"
 }

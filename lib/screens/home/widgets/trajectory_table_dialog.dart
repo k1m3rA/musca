@@ -56,41 +56,49 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
     });
 
     final maxDistance = widget.calculation.distance * 1.5;
-    
-    for (double distance = 0; distance <= maxDistance; distance += _stepSize) {
-      try {
-        final result = BallisticsCalculator.calculateWithProfiles(
-          distance,
-          widget.calculation.windSpeed,
-          widget.calculation.windDirection,
-          widget.selectedGun!,
-          widget.selectedCartridge!,
-          widget.selectedScope!,
-          temperature: widget.calculation.temperature,
-          pressure: widget.calculation.pressure,
-          humidity: widget.calculation.humidity,
-          elevationAngle: widget.calculation.angle,
-          azimuthAngle: widget.calculation.windDirection,
-        );        double dropValue, driftValue;
-        
+
+    // UNA sola simulación del modelo v5 para toda la tabla (antes se
+    // re-simulaba por fila).
+    try {
+      final results = BallisticsCalculator.generateBallisticTable(
+        _stepSize.toDouble(),
+        maxDistance,
+        _stepSize.toDouble(),
+        widget.calculation.windSpeed,
+        widget.calculation.windDirection,
+        widget.selectedGun!,
+        widget.selectedCartridge!,
+        widget.selectedScope!,
+        temperature: widget.calculation.temperature,
+        pressure: widget.calculation.pressure,
+        humidity: widget.calculation.humidity,
+        elevationAngle: widget.calculation.angle,
+        azimuthAngle: widget.calculation.azimuth,
+        latitude: widget.calculation.latitude,
+        altitude: widget.calculation.altitude,
+      );
+
+      for (int i = 0; i < results.length; i++) {
+        final result = results[i];
+        final distance = (i + 1) * _stepSize.toDouble();
+        double dropValue, driftValue;
+
         // Determine values based on selected units
         switch (_selectedUnits) {
           case 0: // cm - linear displacement
-            // 1 mrad = distance_in_meters / 1000 * 100 (to convert to cm)
-            dropValue = -result.dropMrad * distance / 10.0; // Convert mrad to cm at distance
+            dropValue = -result.dropMrad * distance / 10.0;
             driftValue = result.driftMrad * distance / 10.0;
             break;
-          case 1: // inches - linear displacement  
-            // 1 mrad = distance_in_meters * 39.37 / 1000 (to convert to inches)
-            dropValue = -result.dropMrad * distance * 39.37 / 1000.0; // Convert mrad to inches at distance
+          case 1: // inches - linear displacement
+            dropValue = -result.dropMrad * distance * 39.37 / 1000.0;
             driftValue = result.driftMrad * distance * 39.37 / 1000.0;
             break;
           case 2: // MOA - angular correction
-            dropValue = -result.dropMoa; // Direct MOA correction
+            dropValue = -result.dropMoa;
             driftValue = result.driftMoa;
             break;
           case 3: // MIL - angular correction
-            dropValue = -result.dropMrad; // Direct MRAD correction
+            dropValue = -result.dropMrad;
             driftValue = result.driftMrad;
             break;
           default:
@@ -102,10 +110,13 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
           distance: distance,
           dropVertical: dropValue,
           driftHorizontal: driftValue,
+          velocityMs: result.speedMs,
+          energyJ: result.energyJ,
+          timeS: result.timeS,
         ));
-      } catch (e) {
-        print('Error calculating trajectory at ${distance}m: $e');
       }
+    } catch (e) {
+      print('Error calculando la tabla balística (modelo v5): $e');
     }
 
     setState(() {
@@ -214,8 +225,11 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
               border: pw.TableBorder.all(color: PdfColors.grey),
               columnWidths: {
                 0: const pw.FlexColumnWidth(1),
-                1: const pw.FlexColumnWidth(1.5),
-                2: const pw.FlexColumnWidth(1.5),
+                1: const pw.FlexColumnWidth(1.4),
+                2: const pw.FlexColumnWidth(1.4),
+                3: const pw.FlexColumnWidth(1.4),
+                4: const pw.FlexColumnWidth(1.2),
+                5: const pw.FlexColumnWidth(1.2),
               },
               children: [
                 // Header row
@@ -227,6 +241,9 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                     _buildPdfCell(AppLocalizations.of(context)!.distanceM, isHeader: true),
                     _buildPdfCell(AppLocalizations.of(context)!.dropUnits(_unitLabels[_selectedUnits]), isHeader: true),
                     _buildPdfCell(AppLocalizations.of(context)!.driftUnits(_unitLabels[_selectedUnits]), isHeader: true),
+                    _buildPdfCell(AppLocalizations.of(context)!.velocityMsHeader, isHeader: true),
+                    _buildPdfCell(AppLocalizations.of(context)!.energyJHeader, isHeader: true),
+                    _buildPdfCell(AppLocalizations.of(context)!.tofSHeader, isHeader: true),
                   ],
                 ),
                 // Data rows
@@ -235,6 +252,9 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                     _buildPdfCell(data.distance.toStringAsFixed(0)),
                     _buildPdfCell(_convertToSelectedUnit(data.dropVertical).toStringAsFixed(1)),
                     _buildPdfCell(_convertToSelectedUnit(data.driftHorizontal).toStringAsFixed(1)),
+                    _buildPdfCell(data.velocityMs.toStringAsFixed(1)),
+                    _buildPdfCell(data.energyJ.toStringAsFixed(0)),
+                    _buildPdfCell(data.timeS.toStringAsFixed(3)),
                   ],
                 )).toList(),
               ],
@@ -371,8 +391,11 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                     border: TableBorder.all(color: Colors.grey),
                     columnWidths: const {
                       0: FlexColumnWidth(1),
-                      1: FlexColumnWidth(1.5),
-                      2: FlexColumnWidth(1.5),
+                      1: FlexColumnWidth(1.4),
+                      2: FlexColumnWidth(1.4),
+                      3: FlexColumnWidth(1.3),
+                      4: FlexColumnWidth(1.1),
+                      5: FlexColumnWidth(1.1),
                     },
                     children: [
                       TableRow(
@@ -383,6 +406,9 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                           _buildHeaderCell(AppLocalizations.of(context)!.distanceMTable),
                           _buildHeaderCell(AppLocalizations.of(context)!.dropUnitsTable(_unitLabels[_selectedUnits])),
                           _buildHeaderCell(AppLocalizations.of(context)!.driftUnitsTable(_unitLabels[_selectedUnits])),
+                          _buildHeaderCell(AppLocalizations.of(context)!.velocityMsHeader),
+                          _buildHeaderCell(AppLocalizations.of(context)!.energyJHeader),
+                          _buildHeaderCell(AppLocalizations.of(context)!.tofSHeader),
                         ],
                       ),
                       ..._tableData.map((data) => TableRow(
@@ -390,6 +416,9 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                           _buildDataCell(data.distance.toStringAsFixed(0)),
                           _buildDataCell(_convertToSelectedUnit(data.dropVertical).toStringAsFixed(1)),
                           _buildDataCell(_convertToSelectedUnit(data.driftHorizontal).toStringAsFixed(1)),
+                          _buildDataCell(data.velocityMs.toStringAsFixed(1)),
+                          _buildDataCell(data.energyJ.toStringAsFixed(0)),
+                          _buildDataCell(data.timeS.toStringAsFixed(3)),
                         ],
                       )).toList(),
                     ],
@@ -452,10 +481,16 @@ class TrajectoryDataPoint {
   final double distance;
   final double dropVertical;
   final double driftHorizontal;
+  final double velocityMs;
+  final double energyJ;
+  final double timeS;
 
   TrajectoryDataPoint({
     required this.distance,
     required this.dropVertical,
     required this.driftHorizontal,
+    required this.velocityMs,
+    required this.energyJ,
+    required this.timeS,
   });
 }

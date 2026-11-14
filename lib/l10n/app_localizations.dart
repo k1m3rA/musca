@@ -1382,7 +1382,59 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Drift\n({units})'**
   String driftUnitsTable(Object units);
+
+  // Modelo balístico v5
+
+  /// No description provided for @energyJHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy (J)'**
+  String get energyJHeader;
+
+  /// No description provided for @energyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy'**
+  String get energyLabel;
+
+  /// No description provided for @impactData.
+  ///
+  /// In en, this message translates to:
+  /// **'Impact data'**
+  String get impactData;
+
+  /// No description provided for @spinDriftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Spin drift'**
+  String get spinDriftLabel;
+
+  /// No description provided for @timeOfFlightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight time'**
+  String get timeOfFlightLabel;
+
+  /// No description provided for @tofSHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Time (s)'**
+  String get tofSHeader;
+
+  /// No description provided for @velocityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Velocity'**
+  String get velocityLabel;
+
+  /// No description provided for @velocityMsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Velocity (m/s)'**
+  String get velocityMsHeader;
 }
+
+
 
 class _AppLocalizationsDelegate
     extends LocalizationsDelegate<AppLocalizations> {

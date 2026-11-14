@@ -7,10 +7,12 @@ import 'package:musca/l10n/app_localizations.dart';
 
 class CompassWidget extends StatefulWidget {
   final Function(double)? onWindDirectionChanged; // Add callback function
+  final Function(double)? onAzimuthChanged; // Rumbo del dispositivo (acimut del tiro)
   
   const CompassWidget({
     super.key,
     this.onWindDirectionChanged, // Add parameter
+    this.onAzimuthChanged,
   });
 
   @override
@@ -20,6 +22,7 @@ class CompassWidget extends StatefulWidget {
 class _CompassWidgetState extends State<CompassWidget> {
   double _direction = 0;
   double _windDirection = 0; // Wind direction angle
+  double? _lastReportedAzimuth;
   StreamSubscription<CompassEvent>? _compassSubscription;
 
   @override
@@ -51,6 +54,14 @@ class _CompassWidgetState extends State<CompassWidget> {
         
         _direction = heading;
       });
+
+      // Notificar el acimut solo cuando cambia >= 1° (evita redibujos en cadena)
+      if (widget.onAzimuthChanged != null &&
+          (_lastReportedAzimuth == null ||
+              (heading - _lastReportedAzimuth!).abs() >= 1.0)) {
+        _lastReportedAzimuth = heading;
+        widget.onAzimuthChanged!(heading);
+      }
     });
   }
 

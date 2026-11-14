@@ -14,6 +14,7 @@ class EnvironmentalInput extends StatefulWidget {
   final Function(double) onUpdatePressure;
   final Function(double) onUpdateHumidity;
   final Function(double)? onUpdateLatitude; // Add callback for latitude updates
+  final Function(double)? onUpdateAltitude; // Callback con la altitud GPS [m]
   final VoidCallback? onNavigateToSettingsWithHighlight;
 
   const EnvironmentalInput({
@@ -27,6 +28,7 @@ class EnvironmentalInput extends StatefulWidget {
     required this.onUpdatePressure,
     required this.onUpdateHumidity,
     this.onUpdateLatitude, // Add this parameter
+    this.onUpdateAltitude,
     this.onNavigateToSettingsWithHighlight,
   });
 
@@ -85,6 +87,11 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
       // Notify parent component about latitude change
       if (widget.onUpdateLatitude != null) {
         widget.onUpdateLatitude!(_latitude);
+      }
+
+      // Notify parent about GPS altitude (sobre el nivel del mar)
+      if (widget.onUpdateAltitude != null) {
+        widget.onUpdateAltitude!(position.altitude);
       }
       
       // Fetch weather data using the new weather service
