@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:musca/l10n/app_localizations.dart';
 import 'package:musca/screens/profile/screens/cartridge/screens/widgets/length_input.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../../models/cartridge_model.dart'; // Import the proper Cartridge model
 import '../../../../../services/cartridge_storage.dart'; // Import the cartridge storage service
 import 'widgets/bc_input.dart'; // Import the BC input widget
-import 'widgets/name_input.dart'; // Import the name input widget
+import 'package:musca/data/cartridge_presets.dart';
 import 'widgets/diameter_input.dart'; // Import the diameter input widget
 import 'widgets/weight_input.dart'; // Import the weight input widget
 import 'package:musca/utils/decimal_input.dart';
@@ -171,6 +172,80 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
     }
   }
 
+  // Aplica un calibre precargado a todos los campos de la ficha.
+  void _applyPreset(CartridgePreset preset) {
+    setState(() {
+      _name = preset.name;
+      _diameter = preset.diameterCm.toStringAsFixed(3);
+      _bulletLength = preset.bulletLengthCm.toStringAsFixed(3);
+      _bulletWeight = preset.bulletWeightGr;
+      _ballisticCoefficient = preset.ballisticCoefficient;
+      _bcModelType = preset.bcModelType;
+      _muzzleVelocity = preset.muzzleVelocity;
+
+      _diameterController.text = _diameter;
+      _bulletLengthController.text = _bulletLength;
+      _bulletWeightController.text = _bulletWeight.toStringAsFixed(1);
+      _ballisticCoefficientController.text = _ballisticCoefficient
+          .toStringAsFixed(3);
+      _muzzleVelocityController.text = _muzzleVelocity.toStringAsFixed(0);
+    });
+  }
+
+  // Campo de nombre con autocompletado de calibres precargados.
+  Widget _buildNameWithPresets(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      padding: const EdgeInsets.all(10),
+      child: Autocomplete<CartridgePreset>(
+        initialValue: TextEditingValue(text: _name),
+        displayStringForOption: (preset) => preset.name,
+        optionsBuilder: (TextEditingValue value) {
+          final query = value.text.trim().toLowerCase();
+          if (query.isEmpty) return kCartridgePresets;
+          return kCartridgePresets.where(
+            (preset) => preset.name.toLowerCase().contains(query),
+          );
+        },
+        onSelected: _applyPreset,
+        fieldViewBuilder: (
+          BuildContext fieldContext,
+          TextEditingController textController,
+          FocusNode focusNode,
+          VoidCallback onFieldSubmitted,
+        ) {
+          return TextField(
+            controller: textController,
+            focusNode: focusNode,
+            decoration: InputDecoration(
+              labelText: l10n.cartridgeName,
+              helperText: l10n.cartridgePresetHint,
+              labelStyle: TextStyle(
+                color: Theme.of(fieldContext).colorScheme.primary,
+              ),
+              border: const OutlineInputBorder(
+                borderSide: BorderSide(width: 2.0),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  width: 2.0,
+                  color: Theme.of(fieldContext).colorScheme.outline,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  width: 2.0,
+                  color: Theme.of(fieldContext).colorScheme.primary,
+                ),
+              ),
+            ),
+            onChanged: _updateName,
+          );
+        },
+      ),
+    );
+  }
+
   // Add method to handle weight delta updates
   void _updateBulletWeightDelta(double delta) {
     final currentWeight =
@@ -304,11 +379,9 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
               delegate: SliverChildListDelegate([
                 const SizedBox(height: 10),
 
-                // Name Input
-                NameInput(
-                  controller: _nameController,
-                  onUpdateName: _updateName,
-                ),
+                // Nombre con batería de calibres precargados: al elegir
+                // uno se autorrellenan todos los datos del cartucho.
+                _buildNameWithPresets(context),
                 const SizedBox(height: 16),
                 // Diameter Input - using our updated DiameterInput widget
                 DiameterInput(
@@ -343,6 +416,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
 
                 // Ballistic Coefficient Input
                 BCTypeInput(
+                  key: ValueKey(_bcModelType),
                   controller: _ballisticCoefficientController,
                   scrollStep: 0.001,
                   onUpdateBCType: _updateBCModelType, // Fix this parameter

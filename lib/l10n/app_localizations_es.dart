@@ -107,6 +107,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cartridgeName => 'Nombre del Cartucho';
 
   @override
+  String get cartridgePresetHint =>
+      'Escribe el nombre o elige un calibre de la lista';
+
+  @override
   String get cartridgeProfile => 'Perfil de Cartucho';
 
   @override

@@ -266,6 +266,12 @@ abstract class AppLocalizations {
   /// **'Cartridge Name'**
   String get cartridgeName;
 
+  /// No description provided for @cartridgePresetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a name or pick a caliber from the list'**
+  String get cartridgePresetHint;
+
   /// No description provided for @cartridgeProfile.
   ///
   /// In en, this message translates to:

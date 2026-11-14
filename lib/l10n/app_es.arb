@@ -27,6 +27,7 @@
   "bulletTrajectoryVerticalDrop": "Trayectoria de la bala (caída vertical)",
   "cancel": "Cancelar",
   "cartridgeName": "Nombre del Cartucho",
+  "cartridgePresetHint": "Escribe el nombre o elige un calibre de la lista",
   "cartridgeProfile": "Perfil de Cartucho",
   "cartridgeProfileMissing": "• Falta el perfil del cartucho",
   "centimeters": "Centímetros",

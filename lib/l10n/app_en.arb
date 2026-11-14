@@ -180,6 +180,7 @@
   "bulletTrajectoryVerticalDrop": "Bullet trajectory (vertical drop)",
   "cancel": "Cancel",
   "cartridgeName": "Cartridge Name",
+  "cartridgePresetHint": "Type a name or pick a caliber from the list",
   "cartridgeProfile": "Cartridge Profile",
   "cartridgeProfileMissing": "• Cartridge profile missing",
   "centimeters": "Centimeters",
