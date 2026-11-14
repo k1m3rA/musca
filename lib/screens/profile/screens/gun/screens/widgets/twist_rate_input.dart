@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter/gestures.dart';
+import 'package:musca/utils/decimal_input.dart';
 
 class TwistRateInput extends StatefulWidget {
   final TextEditingController controller;
@@ -42,7 +43,10 @@ class _TwistRateInputState extends State<TwistRateInput> {
         Listener(
           onPointerSignal: (pointerSignal) {
             if (pointerSignal is PointerScrollEvent) {
-              final delta = pointerSignal.scrollDelta.dy > 0 ? -widget.scrollStep * 5 : widget.scrollStep * 5;
+              final delta =
+                  pointerSignal.scrollDelta.dy > 0
+                      ? -widget.scrollStep * 5
+                      : widget.scrollStep * 5;
               widget.onUpdateTwistRate(delta);
             }
           },
@@ -53,10 +57,15 @@ class _TwistRateInputState extends State<TwistRateInput> {
                 Expanded(
                   child: TextField(
                     controller: widget.controller,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: const [DecimalPointFormatter()],
                     decoration: InputDecoration(
                       labelText: AppLocalizations.of(context)!.twistRate,
-                      labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+                      labelStyle: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                       border: const OutlineInputBorder(
                         borderSide: BorderSide(width: 2.0),
                       ),
@@ -86,19 +95,27 @@ class _TwistRateInputState extends State<TwistRateInput> {
                     width: 40,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         InkWell(
-                          onTap: () => widget.onUpdateTwistRate(widget.scrollStep * 5),
+                          onTap:
+                              () => widget.onUpdateTwistRate(
+                                widget.scrollStep * 5,
+                              ),
                           child: Container(
                             height: 30,
                             width: 40,
                             alignment: Alignment.center,
-                            child: Icon(Icons.keyboard_arrow_up, color: iconColor),
+                            child: Icon(
+                              Icons.keyboard_arrow_up,
+                              color: iconColor,
+                            ),
                           ),
                         ),
                         Container(
@@ -111,12 +128,18 @@ class _TwistRateInputState extends State<TwistRateInput> {
                           ),
                         ),
                         InkWell(
-                          onTap: () => widget.onUpdateTwistRate(-widget.scrollStep * 5),
+                          onTap:
+                              () => widget.onUpdateTwistRate(
+                                -widget.scrollStep * 5,
+                              ),
                           child: Container(
                             height: 30,
                             width: 40,
                             alignment: Alignment.center,
-                            child: Icon(Icons.keyboard_arrow_down, color: iconColor),
+                            child: Icon(
+                              Icons.keyboard_arrow_down,
+                              color: iconColor,
+                            ),
                           ),
                         ),
                       ],
@@ -127,7 +150,7 @@ class _TwistRateInputState extends State<TwistRateInput> {
             ),
           ),
         ),
-        
+
         // Two buttons in a row
         const SizedBox(height: 16),
         Padding(
@@ -141,14 +164,19 @@ class _TwistRateInputState extends State<TwistRateInput> {
                     setState(() {
                       _selectedButtonIndex = 0;
                     });
-                    widget.onUpdateTwistDirection(0); // Report left twist selected
+                    widget.onUpdateTwistDirection(
+                      0,
+                    ); // Report left twist selected
                   },
                   child: Card(
                     elevation: 4,
-                    color: _selectedButtonIndex == 0 
-                      ? Theme.of(context).colorScheme.primary 
-                      : null,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    color:
+                        _selectedButtonIndex == 0
+                            ? Theme.of(context).colorScheme.primary
+                            : null,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -157,9 +185,10 @@ class _TwistRateInputState extends State<TwistRateInput> {
                           Image.asset(
                             'assets/icon/counterclockwise.png',
                             height: 80,
-                            color: _selectedButtonIndex == 0
-                              ? Theme.of(context).colorScheme.background
-                              : Theme.of(context).colorScheme.primary,
+                            color:
+                                _selectedButtonIndex == 0
+                                    ? Theme.of(context).colorScheme.background
+                                    : Theme.of(context).colorScheme.primary,
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -167,9 +196,10 @@ class _TwistRateInputState extends State<TwistRateInput> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: _selectedButtonIndex == 0
-                                ? Theme.of(context).colorScheme.background
-                                : Theme.of(context).colorScheme.primary,
+                              color:
+                                  _selectedButtonIndex == 0
+                                      ? Theme.of(context).colorScheme.background
+                                      : Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ],
@@ -186,14 +216,19 @@ class _TwistRateInputState extends State<TwistRateInput> {
                     setState(() {
                       _selectedButtonIndex = 1;
                     });
-                    widget.onUpdateTwistDirection(1); // Report right twist selected
+                    widget.onUpdateTwistDirection(
+                      1,
+                    ); // Report right twist selected
                   },
                   child: Card(
                     elevation: 4,
-                    color: _selectedButtonIndex == 1 
-                      ? Theme.of(context).colorScheme.primary 
-                      : null,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    color:
+                        _selectedButtonIndex == 1
+                            ? Theme.of(context).colorScheme.primary
+                            : null,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -202,9 +237,10 @@ class _TwistRateInputState extends State<TwistRateInput> {
                           Image.asset(
                             'assets/icon/clockwise.png',
                             height: 80,
-                            color: _selectedButtonIndex == 1
-                              ? Theme.of(context).colorScheme.background
-                              : Theme.of(context).colorScheme.primary,
+                            color:
+                                _selectedButtonIndex == 1
+                                    ? Theme.of(context).colorScheme.background
+                                    : Theme.of(context).colorScheme.primary,
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -212,9 +248,10 @@ class _TwistRateInputState extends State<TwistRateInput> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: _selectedButtonIndex == 1
-                                ? Theme.of(context).colorScheme.background
-                                : Theme.of(context).colorScheme.primary,
+                              color:
+                                  _selectedButtonIndex == 1
+                                      ? Theme.of(context).colorScheme.background
+                                      : Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ],

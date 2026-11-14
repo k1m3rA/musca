@@ -2,6 +2,7 @@ import '../models/gun_model.dart';
 import '../models/cartridge_model.dart';
 import '../models/scope_model.dart';
 import 'ballistics_v5.dart' as v5;
+import 'package:musca/utils/decimal_input.dart';
 
 /// Resultado de un cálculo balístico.
 ///
@@ -108,7 +109,7 @@ class BallisticsCalculator {
 
   static double _diameterFromCartridge(Cartridge cartridge) {
     // El usuario introduce el diámetro en centímetros
-    return double.parse(cartridge.diameter) * 0.01;
+    return parseDecimal(cartridge.diameter) * 0.01;
   }
 
   static v5.Projectile _projectileFrom(Gun gun, Cartridge cartridge) {
@@ -143,7 +144,9 @@ class BallisticsCalculator {
   }
 
   static double _sightHeightM(Scope scope) {
-    return scope.units == 0 ? scope.sightHeight * 0.0254 : scope.sightHeight * 0.01;
+    return scope.units == 0
+        ? scope.sightHeight * 0.0254
+        : scope.sightHeight * 0.01;
   }
 
   /// Dirección del viento de la UI (0 = de cara, 90 = de la izquierda,
@@ -155,7 +158,10 @@ class BallisticsCalculator {
 
   /// Método legacy con perfiles de prueba por defecto.
   static BallisticsResult calculate(
-      double distance, double windSpeed, double windDirection) {
+    double distance,
+    double windSpeed,
+    double windDirection,
+  ) {
     final defaultGun = Gun(
       id: 'default-test-gun',
       name: 'Default Test Rifle',
@@ -223,11 +229,13 @@ class BallisticsCalculator {
     }
     if (cartridge == null) {
       throw ArgumentError(
-          'Cartridge profile is required for ballistics calculation');
+        'Cartridge profile is required for ballistics calculation',
+      );
     }
     if (scope == null) {
       throw ArgumentError(
-          'Scope profile is required for ballistics calculation');
+        'Scope profile is required for ballistics calculation',
+      );
     }
     if (distance <= 0) {
       throw ArgumentError('Distance must be greater than 0');
@@ -275,8 +283,11 @@ class BallisticsCalculator {
       groundLevel: null,
       maxRange: distance * 1.05 + 1.0,
     );
-    final sample = trajectory.atRange(distance,
-        sightHeight: sightHeight, losAngleDeg: shotAngleDeg);
+    final sample = trajectory.atRange(
+      distance,
+      sightHeight: sightHeight,
+      losAngleDeg: shotAngleDeg,
+    );
 
     return _resultFromSample(sample, trajectory, distance);
   }
@@ -284,7 +295,10 @@ class BallisticsCalculator {
   /// Construye el resultado en todas las unidades a partir de una muestra de
   /// trayectoria (referida a la línea de mira).
   static BallisticsResult _resultFromSample(
-      v5.RangeSample sample, v5.Trajectory trajectory, double distance) {
+    v5.RangeSample sample,
+    v5.Trajectory trajectory,
+    double distance,
+  ) {
     final heightDifference = sample.dropM;
     final lateralDifference = sample.driftTotalM;
 
@@ -417,14 +431,19 @@ class BallisticsCalculator {
     final results = <BallisticsResult>[];
     double d = startDistance;
     while (d <= endDistance + 1e-9) {
-      results.add(d == endDistance
-          ? probe
-          : _resultFromSample(
-              probe.trajectory.atRange(d,
-                  sightHeight: sightHeight, losAngleDeg: shotAngleDeg),
+      results.add(
+        d == endDistance
+            ? probe
+            : _resultFromSample(
+              probe.trajectory.atRange(
+                d,
+                sightHeight: sightHeight,
+                losAngleDeg: shotAngleDeg,
+              ),
               probe.trajectory,
               d,
-            ));
+            ),
+      );
       d += interval;
     }
     return results;

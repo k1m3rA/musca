@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
+import 'package:musca/utils/decimal_input.dart';
 
 class ZeroRangeInput extends StatelessWidget {
   final TextEditingController controller;
@@ -16,7 +17,7 @@ class ZeroRangeInput extends StatelessWidget {
   });
 
   void _handleZeroRangeUpdate(double delta) {
-    final currentValue = double.tryParse(controller.text) ?? 0.0;
+    final currentValue = tryParseDecimal(controller.text) ?? 0.0;
     final newValue = currentValue + delta;
     final finalValue = newValue == 0.0 ? 99999.0 : newValue;
     onUpdateZeroRange(finalValue - currentValue);
@@ -30,7 +31,10 @@ class ZeroRangeInput extends StatelessWidget {
     return Listener(
       onPointerSignal: (pointerSignal) {
         if (pointerSignal is PointerScrollEvent) {
-          final delta = pointerSignal.scrollDelta.dy > 0 ? -scrollStep * 5 : scrollStep * 5;
+          final delta =
+              pointerSignal.scrollDelta.dy > 0
+                  ? -scrollStep * 5
+                  : scrollStep * 5;
           _handleZeroRangeUpdate(delta);
         }
       },
@@ -41,8 +45,11 @@ class ZeroRangeInput extends StatelessWidget {
             Expanded(
               child: TextField(
                 controller: controller,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 inputFormatters: [
+                  const DecimalPointFormatter(),
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
                   TextInputFormatter.withFunction((oldValue, newValue) {
                     // Check if the new value is "0" and replace with "99999"
@@ -57,7 +64,9 @@ class ZeroRangeInput extends StatelessWidget {
                 ],
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.zeroRangeLabel,
-                  labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+                  labelStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   border: const OutlineInputBorder(
                     borderSide: BorderSide(width: 2.0),
                   ),
@@ -117,7 +126,10 @@ class ZeroRangeInput extends StatelessWidget {
                         height: 30,
                         width: 40,
                         alignment: Alignment.center,
-                        child: Icon(Icons.keyboard_arrow_down, color: iconColor),
+                        child: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: iconColor,
+                        ),
                       ),
                     ),
                   ],

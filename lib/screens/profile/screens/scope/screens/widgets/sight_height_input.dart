@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter/gestures.dart';
+import 'package:musca/utils/decimal_input.dart';
 
 class SightHeightInput extends StatelessWidget {
   final TextEditingController controller;
@@ -24,7 +25,8 @@ class SightHeightInput extends StatelessWidget {
     return Listener(
       onPointerSignal: (pointerSignal) {
         if (pointerSignal is PointerScrollEvent) {
-          final delta = pointerSignal.scrollDelta.dy > 0 ? -scrollStep : scrollStep;
+          final delta =
+              pointerSignal.scrollDelta.dy > 0 ? -scrollStep : scrollStep;
           onUpdateSightHeight(delta);
         }
       },
@@ -35,10 +37,15 @@ class SightHeightInput extends StatelessWidget {
             Expanded(
               child: TextField(
                 controller: controller,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                inputFormatters: const [DecimalPointFormatter()],
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.sightHeight,
-                  labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+                  labelStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   border: const OutlineInputBorder(
                     borderSide: BorderSide(width: 2.0),
                   ),
@@ -55,14 +62,17 @@ class SightHeightInput extends StatelessWidget {
                     ),
                   ),
                   suffixText: 'cm',
-                  helperText: AppLocalizations.of(context)!.minSightHeightHelper, // Add helper text to indicate 0 is allowed
+                  helperText:
+                      AppLocalizations.of(
+                        context,
+                      )!.minSightHeightHelper, // Add helper text to indicate 0 is allowed
                 ),
                 onChanged: (value) {
                   // Allow empty string and 0 value
                   if (value.isEmpty || value == '0' || value == '0.0') {
                     return;
                   }
-                  final parsedValue = double.tryParse(value);
+                  final parsedValue = tryParseDecimal(value);
                   if (parsedValue != null && parsedValue >= 0) {
                     // Accept any non-negative value including 0
                   }
@@ -109,7 +119,10 @@ class SightHeightInput extends StatelessWidget {
                         height: 30,
                         width: 40,
                         alignment: Alignment.center,
-                        child: Icon(Icons.keyboard_arrow_down, color: iconColor),
+                        child: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: iconColor,
+                        ),
                       ),
                     ),
                   ],

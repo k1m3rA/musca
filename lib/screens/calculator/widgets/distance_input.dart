@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter/gestures.dart';
+import 'package:musca/utils/decimal_input.dart';
 
 class DistanceInput extends StatelessWidget {
   final TextEditingController controller;
@@ -16,7 +17,6 @@ class DistanceInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
     // Definir colores según el tema
     final iconColor = Theme.of(context).colorScheme.primary;
 
@@ -24,7 +24,10 @@ class DistanceInput extends StatelessWidget {
       onPointerSignal: (pointerSignal) {
         if (pointerSignal is PointerScrollEvent) {
           // Aumentar el factor de sensibilidad multiplicando por 5
-          final delta = pointerSignal.scrollDelta.dy > 0 ? -scrollStep * 5 : scrollStep * 5;
+          final delta =
+              pointerSignal.scrollDelta.dy > 0
+                  ? -scrollStep * 5
+                  : scrollStep * 5;
           onUpdateDistance(delta);
         }
       },
@@ -35,10 +38,15 @@ class DistanceInput extends StatelessWidget {
             Expanded(
               child: TextField(
                 controller: controller,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                inputFormatters: const [DecimalPointFormatter()],
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.distanceLabel,
-                  labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+                  labelStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   border: const OutlineInputBorder(
                     borderSide: BorderSide(width: 2.0),
                   ),
@@ -63,7 +71,9 @@ class DistanceInput extends StatelessWidget {
             GestureDetector(
               onVerticalDragUpdate: (details) {
                 // Aumentar el factor de sensibilidad de 0.1 a 0.5
-                double delta = -details.delta.dy * 0.5; // Factor para controlar la sensibilidad
+                double delta =
+                    -details.delta.dy *
+                    0.5; // Factor para controlar la sensibilidad
                 onUpdateDistance(delta);
               },
               child: Container(
@@ -94,7 +104,6 @@ class DistanceInput extends StatelessWidget {
                         color: Theme.of(context).colorScheme.primary,
                         shape: BoxShape.rectangle,
                         borderRadius: BorderRadius.circular(10),
-                        
                       ),
                     ),
                     // Área táctil inferior
@@ -104,7 +113,10 @@ class DistanceInput extends StatelessWidget {
                         height: 30,
                         width: 40,
                         alignment: Alignment.center,
-                        child: Icon(Icons.keyboard_arrow_down, color: iconColor),
+                        child: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: iconColor,
+                        ),
                       ),
                     ),
                   ],

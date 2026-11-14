@@ -3,6 +3,7 @@ import 'package:musca/l10n/app_localizations.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../services/weather_service.dart';
 import '../../../services/weather_api_exceptions.dart';
+import 'package:musca/utils/decimal_input.dart';
 
 class EnvironmentalInput extends StatefulWidget {
   final TextEditingController temperatureController;
@@ -41,7 +42,7 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
   String _errorMessage = '';
   WeatherApiError? _apiErrorType;
   double _latitude = 0.0; // Add state variable for latitude
-  
+
   @override
   void initState() {
     super.initState();
@@ -50,13 +51,13 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
       _getLocationWeatherData();
     });
   }
-  
+
   Future<void> _getLocationWeatherData() async {
     setState(() {
       _isLoading = true;
       _errorMessage = '';
     });
-    
+
     try {
       // Check location permission
       LocationPermission permission = await Geolocator.checkPermission();
@@ -66,24 +67,24 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
           throw Exception('Location permission denied');
         }
       }
-      
+
       if (permission == LocationPermission.deniedForever) {
         throw Exception('Location permission permanently denied');
       }
-      
+
       // Get current position
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-      
+
       // Update latitude and notify parent
       setState(() {
         _latitude = position.latitude;
       });
-      
+
       // Update latitude controller with the fetched value
       widget.latitudeController.text = _latitude.toStringAsFixed(6);
-      
+
       // Notify parent component about latitude change
       if (widget.onUpdateLatitude != null) {
         widget.onUpdateLatitude!(_latitude);
@@ -93,18 +94,18 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
       if (widget.onUpdateAltitude != null) {
         widget.onUpdateAltitude!(position.altitude);
       }
-      
+
       // Fetch weather data using the new weather service
       final weatherData = await WeatherService.getWeatherData(
-        position.latitude, 
-        position.longitude
+        position.latitude,
+        position.longitude,
       );
-      
+
       // Update controller values with fetched data
-      widget.temperatureController.text = weatherData.temperature.toStringAsFixed(1);
+      widget.temperatureController.text = weatherData.temperature
+          .toStringAsFixed(1);
       widget.pressureController.text = weatherData.pressure.toString();
       widget.humidityController.text = weatherData.humidity.toString();
-      
     } on WeatherApiException catch (e) {
       setState(() {
         _errorMessage = e.toString();
@@ -122,13 +123,14 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
     }
   }
 
-    @override
-  Widget build(BuildContext context) {    
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [// Title row
+        children: [
+          // Title row
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -142,16 +144,16 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
               ),
             ],
           ),
-          
+
           if (_isLoading)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 10),
               child: Center(child: CircularProgressIndicator()),
             ),
-            
+
           // Show general error message only if it's not an API-related error (to avoid duplication)
-          if (_errorMessage.isNotEmpty && 
-              _apiErrorType != WeatherApiError.noApiKey && 
+          if (_errorMessage.isNotEmpty &&
+              _apiErrorType != WeatherApiError.noApiKey &&
               _apiErrorType != WeatherApiError.invalidApiKey)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
@@ -160,11 +162,12 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ),
-          
+
           const SizedBox(height: 10),
-          
+
           // API Warning (if there's an API-related error)
-          if (_apiErrorType == WeatherApiError.noApiKey || _apiErrorType == WeatherApiError.invalidApiKey)
+          if (_apiErrorType == WeatherApiError.noApiKey ||
+              _apiErrorType == WeatherApiError.invalidApiKey)
             Container(
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(12),
@@ -186,9 +189,13 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
                       children: [
                         Expanded(
                           child: Text(
-                            _apiErrorType == WeatherApiError.noApiKey 
-                              ? AppLocalizations.of(context)!.weatherApiNotConfigured
-                              : AppLocalizations.of(context)!.invalidWeatherApiKey,
+                            _apiErrorType == WeatherApiError.noApiKey
+                                ? AppLocalizations.of(
+                                  context,
+                                )!.weatherApiNotConfigured
+                                : AppLocalizations.of(
+                                  context,
+                                )!.invalidWeatherApiKey,
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -207,7 +214,9 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
                             ),
                             child: Text(
                               AppLocalizations.of(context)!.goThere,
@@ -224,7 +233,7 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
                 ],
               ),
             ),
-          
+
           // Temperature input
           _buildInputRow(
             controller: widget.temperatureController,
@@ -235,9 +244,9 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
             onDrag: (delta) => widget.onUpdateTemperature(-delta * 0.2),
             context: context,
           ),
-          
+
           const SizedBox(height: 10),
-          
+
           // Pressure input
           _buildInputRow(
             controller: widget.pressureController,
@@ -248,9 +257,9 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
             onDrag: (delta) => widget.onUpdatePressure(-delta * 0.5),
             context: context,
           ),
-          
+
           const SizedBox(height: 10),
-            // Humidity input
+          // Humidity input
           _buildInputRow(
             controller: widget.humidityController,
             label: AppLocalizations.of(context)!.humidity,
@@ -260,16 +269,17 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
             onDrag: (delta) => widget.onUpdateHumidity(-delta * 0.2),
             context: context,
           ),
-          
+
           const SizedBox(height: 10),
-          
+
           // Latitude input
           _buildInputRow(
             controller: widget.latitudeController,
             label: AppLocalizations.of(context)!.latitude,
             suffix: '°',
             onIncrease: () {
-              final currentValue = double.tryParse(widget.latitudeController.text) ?? 0.0;
+              final currentValue =
+                  tryParseDecimal(widget.latitudeController.text) ?? 0.0;
               final newValue = currentValue + 0.000001;
               widget.latitudeController.text = newValue.toStringAsFixed(6);
               if (widget.onUpdateLatitude != null) {
@@ -277,7 +287,8 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
               }
             },
             onDecrease: () {
-              final currentValue = double.tryParse(widget.latitudeController.text) ?? 0.0;
+              final currentValue =
+                  tryParseDecimal(widget.latitudeController.text) ?? 0.0;
               final newValue = currentValue - 0.000001;
               widget.latitudeController.text = newValue.toStringAsFixed(6);
               if (widget.onUpdateLatitude != null) {
@@ -285,7 +296,8 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
               }
             },
             onDrag: (delta) {
-              final currentValue = double.tryParse(widget.latitudeController.text) ?? 0.0;
+              final currentValue =
+                  tryParseDecimal(widget.latitudeController.text) ?? 0.0;
               final newValue = currentValue + (-delta * 0.000001);
               widget.latitudeController.text = newValue.toStringAsFixed(6);
               if (widget.onUpdateLatitude != null) {
@@ -298,7 +310,7 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
       ),
     );
   }
-  
+
   Widget _buildInputRow({
     required TextEditingController controller,
     required String label,
@@ -310,7 +322,7 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
     required BuildContext context,
   }) {
     final iconColor = Theme.of(context).colorScheme.primary;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -319,10 +331,16 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
             Expanded(
               child: TextField(
                 controller: controller,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                  signed: true,
+                ),
+                inputFormatters: const [DecimalPointFormatter()],
                 decoration: InputDecoration(
                   labelText: label,
-                  labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+                  labelStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   border: const OutlineInputBorder(
                     borderSide: BorderSide(width: 2.0),
                   ),
@@ -385,7 +403,10 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
                         height: 30,
                         width: 40,
                         alignment: Alignment.center,
-                        child: Icon(Icons.keyboard_arrow_down, color: iconColor),
+                        child: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: iconColor,
+                        ),
                       ),
                     ),
                   ],

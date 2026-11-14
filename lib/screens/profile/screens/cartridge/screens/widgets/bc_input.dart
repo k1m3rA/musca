@@ -2,18 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
+import 'package:musca/utils/decimal_input.dart';
 
 class BCTypeInput extends StatefulWidget {
   final TextEditingController controller;
   final double scrollStep;
   final Function(double) onUpdateBCValue;
-  final int initialBCType; 
+  final int initialBCType;
   final Function(int) onUpdateBCType;
 
   const BCTypeInput({
     super.key,
     required this.controller,
-    this.scrollStep = 1, 
+    this.scrollStep = 1,
     required this.onUpdateBCValue,
     this.initialBCType = -1,
     required this.onUpdateBCType,
@@ -45,13 +46,13 @@ class _BCTypeInputState extends State<BCTypeInput> {
   void _updateBCValue(double delta) {
     // Ensure we're working with a valid number
     String currentValue = widget.controller.text;
-    double? numValue = double.tryParse(currentValue);
-    
+    double? numValue = tryParseDecimal(currentValue);
+
     if (numValue != null) {
       double newValue = numValue + delta;
       // Ensure we don't go below zero
       newValue = newValue > 0 ? newValue : 0;
-      
+
       // Format to 3 decimal places for better readability
       widget.controller.text = newValue.toStringAsFixed(3);
       widget.onUpdateBCValue(delta);
@@ -61,7 +62,7 @@ class _BCTypeInputState extends State<BCTypeInput> {
       widget.onUpdateBCValue(0);
     }
   }
-  
+
   // Helper method to get the current BC profile text
   String _getCurrentProfileText() {
     switch (_selectedButtonIndex) {
@@ -97,9 +98,14 @@ class _BCTypeInputState extends State<BCTypeInput> {
                   child: TextField(
                     controller: widget.controller,
                     focusNode: _focusNode,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,3}')),
+                      const DecimalPointFormatter(),
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d*\.?\d{0,3}'),
+                      ),
                     ],
                     onTap: () {
                       // Request unfocus and then focus to reset keyboard state
@@ -110,14 +116,17 @@ class _BCTypeInputState extends State<BCTypeInput> {
                     },
                     onChanged: (value) {
                       // Prevent callback loops by only triggering when actual edits happen
-                      if (value.isNotEmpty && double.tryParse(value) != null) {
+                      if (value.isNotEmpty && tryParseDecimal(value) != null) {
                         debugPrint('Text changed to: $value');
                         // Don't call onUpdateBCValue here as it will create a loop
                       }
                     },
                     decoration: InputDecoration(
-                      labelText: AppLocalizations.of(context)!.ballisticCoefficient,
-                      labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+                      labelText:
+                          AppLocalizations.of(context)!.ballisticCoefficient,
+                      labelStyle: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                       border: const OutlineInputBorder(
                         borderSide: BorderSide(width: 2.0),
                       ),
@@ -148,7 +157,9 @@ class _BCTypeInputState extends State<BCTypeInput> {
                     width: 40,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Column(
@@ -163,7 +174,10 @@ class _BCTypeInputState extends State<BCTypeInput> {
                             height: 30,
                             width: 40,
                             alignment: Alignment.center,
-                            child: Icon(Icons.keyboard_arrow_up, color: iconColor),
+                            child: Icon(
+                              Icons.keyboard_arrow_up,
+                              color: iconColor,
+                            ),
                           ),
                         ),
                         Container(
@@ -184,7 +198,10 @@ class _BCTypeInputState extends State<BCTypeInput> {
                             height: 30,
                             width: 40,
                             alignment: Alignment.center,
-                            child: Icon(Icons.keyboard_arrow_down, color: iconColor),
+                            child: Icon(
+                              Icons.keyboard_arrow_down,
+                              color: iconColor,
+                            ),
                           ),
                         ),
                       ],
@@ -195,7 +212,7 @@ class _BCTypeInputState extends State<BCTypeInput> {
             ),
           ),
         ),
-        
+
         // Two buttons in a row
         const SizedBox(height: 16),
         Padding(
@@ -213,10 +230,13 @@ class _BCTypeInputState extends State<BCTypeInput> {
                   },
                   child: Card(
                     elevation: 4,
-                    color: _selectedButtonIndex == 0 
-                      ? Theme.of(context).colorScheme.primary 
-                      : null,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    color:
+                        _selectedButtonIndex == 0
+                            ? Theme.of(context).colorScheme.primary
+                            : null,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -227,9 +247,10 @@ class _BCTypeInputState extends State<BCTypeInput> {
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
-                              color: _selectedButtonIndex == 0
-                                ? Theme.of(context).colorScheme.background
-                                : Theme.of(context).colorScheme.primary,
+                              color:
+                                  _selectedButtonIndex == 0
+                                      ? Theme.of(context).colorScheme.background
+                                      : Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ],
@@ -250,10 +271,13 @@ class _BCTypeInputState extends State<BCTypeInput> {
                   },
                   child: Card(
                     elevation: 4,
-                    color: _selectedButtonIndex == 1 
-                      ? Theme.of(context).colorScheme.primary 
-                      : null,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    color:
+                        _selectedButtonIndex == 1
+                            ? Theme.of(context).colorScheme.primary
+                            : null,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -264,9 +288,10 @@ class _BCTypeInputState extends State<BCTypeInput> {
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
-                              color: _selectedButtonIndex == 1
-                                ? Theme.of(context).colorScheme.background
-                                : Theme.of(context).colorScheme.primary,
+                              color:
+                                  _selectedButtonIndex == 1
+                                      ? Theme.of(context).colorScheme.background
+                                      : Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ],

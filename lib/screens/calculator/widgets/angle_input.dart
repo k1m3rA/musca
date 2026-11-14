@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter/gestures.dart';
+import 'package:musca/utils/decimal_input.dart';
 
 class AngleInput extends StatelessWidget {
   final TextEditingController controller;
@@ -28,8 +29,9 @@ class AngleInput extends StatelessWidget {
     return Listener(
       onPointerSignal: (pointerSignal) {
         if (pointerSignal is PointerScrollEvent) {
-          final currentAngle = double.tryParse(controller.text) ?? 0.0;
-          final delta = pointerSignal.scrollDelta.dy > 0 ? -scrollStep : scrollStep;
+          final currentAngle = tryParseDecimal(controller.text) ?? 0.0;
+          final delta =
+              pointerSignal.scrollDelta.dy > 0 ? -scrollStep : scrollStep;
           final newAngle = _clampAngle(currentAngle + delta);
           onUpdateAngle(newAngle - currentAngle);
         }
@@ -41,9 +43,13 @@ class AngleInput extends StatelessWidget {
             Expanded(
               child: TextField(
                 controller: controller,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                  signed: true,
+                ),
+                inputFormatters: const [DecimalPointFormatter()],
                 onChanged: (value) {
-                  final angle = double.tryParse(value);
+                  final angle = tryParseDecimal(value);
                   if (angle != null) {
                     final clampedAngle = _clampAngle(angle);
                     if (angle != clampedAngle) {
@@ -56,7 +62,9 @@ class AngleInput extends StatelessWidget {
                 },
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.verticalAngle,
-                  labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+                  labelStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   helperText: AppLocalizations.of(context)!.angleRangeHelper,
                   border: const OutlineInputBorder(
                     borderSide: BorderSide(width: 2.0),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter/gestures.dart';
+import 'package:musca/utils/decimal_input.dart';
 
 class MuzzleVelocityInput extends StatelessWidget {
   final TextEditingController controller;
@@ -22,7 +23,10 @@ class MuzzleVelocityInput extends StatelessWidget {
     return Listener(
       onPointerSignal: (pointerSignal) {
         if (pointerSignal is PointerScrollEvent) {
-          final delta = pointerSignal.scrollDelta.dy > 0 ? -scrollStep * 5 : scrollStep * 5;
+          final delta =
+              pointerSignal.scrollDelta.dy > 0
+                  ? -scrollStep * 5
+                  : scrollStep * 5;
           onUpdateMuzzleVelocity(delta);
         }
       },
@@ -33,10 +37,15 @@ class MuzzleVelocityInput extends StatelessWidget {
             Expanded(
               child: TextField(
                 controller: controller,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                inputFormatters: const [DecimalPointFormatter()],
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.muzzleVelocity,
-                  labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+                  labelStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   border: const OutlineInputBorder(
                     borderSide: BorderSide(width: 2.0),
                   ),
@@ -96,7 +105,10 @@ class MuzzleVelocityInput extends StatelessWidget {
                         height: 30,
                         width: 40,
                         alignment: Alignment.center,
-                        child: Icon(Icons.keyboard_arrow_down, color: iconColor),
+                        child: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: iconColor,
+                        ),
                       ),
                     ),
                   ],

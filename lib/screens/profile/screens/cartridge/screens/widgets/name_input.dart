@@ -22,7 +22,9 @@ class NameInput extends StatelessWidget {
               controller: controller,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)!.cartridgeName,
-                labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+                labelStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 border: const OutlineInputBorder(
                   borderSide: BorderSide(width: 2.0),
                 ),

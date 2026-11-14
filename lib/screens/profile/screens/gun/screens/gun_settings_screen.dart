@@ -6,10 +6,11 @@ import 'widgets/zero_range_input.dart';
 import 'widgets/name_input.dart';
 import '../../../../../models/gun_model.dart'; // Import the new Gun model
 import '../../../../../services/gun_storage.dart'; // Import the gun storage service
+import 'package:musca/utils/decimal_input.dart';
 
 class GunSettingsScreen extends StatefulWidget {
   final Gun? gun; // Now uses the proper Gun model
-  
+
   const GunSettingsScreen({Key? key, this.gun}) : super(key: key);
 
   @override
@@ -23,18 +24,18 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
   late TextEditingController _twistRateController;
   late double _twistRate;
   late int _twistDirection;
-  
+
   late TextEditingController _muzzleVelocityController;
   late double _muzzleVelocity;
-  
+
   late TextEditingController _zeroRangeController;
   late double _zeroRange;
-  
+
   String? _gunId;
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize values based on whether we're editing an existing gun
     if (widget.gun != null) {
       _gunId = widget.gun!.id;
@@ -51,12 +52,18 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
       _zeroRange = 100.0;
       _twistDirection = 1; // Default to right twist
     }
-    
+
     _nameController = TextEditingController(text: _name);
-    _twistRateController = TextEditingController(text: _twistRate.toStringAsFixed(1));
-    _muzzleVelocityController = TextEditingController(text: _muzzleVelocity.toStringAsFixed(0));
-    _zeroRangeController = TextEditingController(text: _zeroRange.toStringAsFixed(0));
-    
+    _twistRateController = TextEditingController(
+      text: _twistRate.toStringAsFixed(1),
+    );
+    _muzzleVelocityController = TextEditingController(
+      text: _muzzleVelocity.toStringAsFixed(0),
+    );
+    _zeroRangeController = TextEditingController(
+      text: _zeroRange.toStringAsFixed(0),
+    );
+
     // Add listeners to update values when text changes
     _nameController.addListener(_updateNameFromText);
     _twistRateController.addListener(_updateTwistRateFromText);
@@ -86,13 +93,13 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
       _twistRateController.text = _twistRate.toStringAsFixed(1);
     });
   }
-  
+
   void _updateTwistDirection(int direction) {
     setState(() {
       _twistDirection = direction;
     });
   }
-  
+
   void _updateMuzzleVelocity(double delta) {
     setState(() {
       _muzzleVelocity += delta;
@@ -100,7 +107,7 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
       _muzzleVelocityController.text = _muzzleVelocity.toStringAsFixed(0);
     });
   }
-  
+
   void _updateZeroRange(double delta) {
     setState(() {
       _zeroRange += delta;
@@ -108,6 +115,7 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
       _zeroRangeController.text = _zeroRange.toStringAsFixed(0);
     });
   }
+
   Future<void> _saveAndNavigateBack() async {
     // Create a Gun object with the current values using the new model
     final gun = Gun(
@@ -118,38 +126,32 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
       muzzleVelocity: _muzzleVelocity,
       zeroRange: _zeroRange,
     );
-    
+
     try {
       // Save the gun to storage
       await GunStorage.saveGun(gun);
-      
+
       // Show success feedback to user
       final snackBar = SnackBar(
         content: Text(widget.gun != null ? 'Gun updated!' : 'Gun created!'),
         backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.only(
-          left: 20, 
-          bottom: 20.0,
-          right: 20.0,
-        ),
+        margin: const EdgeInsets.only(left: 20, bottom: 20.0, right: 20.0),
         duration: const Duration(seconds: 2),
       );
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
-      
+
       // Return the gun to the previous screen
       Navigator.of(context).pop(gun);
     } catch (e) {
       // Show error feedback to user
       final snackBar = SnackBar(
-        content: Text(AppLocalizations.of(context)!.errorSavingGun(e.toString())),
+        content: Text(
+          AppLocalizations.of(context)!.errorSavingGun(e.toString()),
+        ),
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.only(
-          left: 20, 
-          bottom: 20.0,
-          right: 20.0,
-        ),
+        margin: const EdgeInsets.only(left: 20, bottom: 20.0, right: 20.0),
         duration: const Duration(seconds: 3),
       );
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
@@ -165,7 +167,7 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
   void _updateTwistRateFromText() {
     if (_twistRateController.text.isNotEmpty) {
       try {
-        final newValue = double.parse(_twistRateController.text);
+        final newValue = parseDecimal(_twistRateController.text);
         setState(() {
           _twistRate = newValue;
         });
@@ -178,7 +180,7 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
   void _updateMuzzleVelocityFromText() {
     if (_muzzleVelocityController.text.isNotEmpty) {
       try {
-        final newValue = double.parse(_muzzleVelocityController.text);
+        final newValue = parseDecimal(_muzzleVelocityController.text);
         setState(() {
           _muzzleVelocity = newValue;
         });
@@ -191,7 +193,7 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
   void _updateZeroRangeFromText() {
     if (_zeroRangeController.text.isNotEmpty) {
       try {
-        final newValue = double.parse(_zeroRangeController.text);
+        final newValue = parseDecimal(_zeroRangeController.text);
         setState(() {
           _zeroRange = newValue;
         });
@@ -214,9 +216,7 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
               centerTitle: true,
               title: Text(
                 widget.gun != null ? "Edit Gun" : "Gun Settings",
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
               ),
             ),
             leading: IconButton(
@@ -230,34 +230,32 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
           SliverPadding(
             padding: const EdgeInsets.all(16.0),
             sliver: SliverList(
-              delegate: SliverChildListDelegate(
-                [
-                  const SizedBox(height: 10),
-                  NameInput(
-                    controller: _nameController,
-                    onUpdateName: _updateName,
-                  ),
-                  const SizedBox(height: 16),
-                  MuzzleVelocityInput(
-                    controller: _muzzleVelocityController,
-                    onUpdateMuzzleVelocity: _updateMuzzleVelocity,
-                  ),
-                  const SizedBox(height: 16),
-                  ZeroRangeInput(
-                    controller: _zeroRangeController,
-                    onUpdateZeroRange: _updateZeroRange,
-                  ),
-                  const SizedBox(height: 16),
-                  TwistRateInput(
-                    controller: _twistRateController,
-                    onUpdateTwistRate: _updateTwistRate,
-                    initialTwistDirection: _twistDirection,
-                    onUpdateTwistDirection: _updateTwistDirection,
-                  ),
-                  const SizedBox(height: 24),
-                  // Additional settings can be added here
-                ],
-              ),
+              delegate: SliverChildListDelegate([
+                const SizedBox(height: 10),
+                NameInput(
+                  controller: _nameController,
+                  onUpdateName: _updateName,
+                ),
+                const SizedBox(height: 16),
+                MuzzleVelocityInput(
+                  controller: _muzzleVelocityController,
+                  onUpdateMuzzleVelocity: _updateMuzzleVelocity,
+                ),
+                const SizedBox(height: 16),
+                ZeroRangeInput(
+                  controller: _zeroRangeController,
+                  onUpdateZeroRange: _updateZeroRange,
+                ),
+                const SizedBox(height: 16),
+                TwistRateInput(
+                  controller: _twistRateController,
+                  onUpdateTwistRate: _updateTwistRate,
+                  initialTwistDirection: _twistDirection,
+                  onUpdateTwistDirection: _updateTwistDirection,
+                ),
+                const SizedBox(height: 24),
+                // Additional settings can be added here
+              ]),
             ),
           ),
         ],
@@ -271,7 +269,10 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
           onPressed: _saveAndNavigateBack,
           backgroundColor: Theme.of(context).colorScheme.primary,
           elevation: 0,
-          child: Icon(Icons.save, color: Theme.of(context).scaffoldBackgroundColor)
+          child: Icon(
+            Icons.save,
+            color: Theme.of(context).scaffoldBackgroundColor,
+          ),
         ),
       ),
     );

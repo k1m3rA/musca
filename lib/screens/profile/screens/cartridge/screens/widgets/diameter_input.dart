@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:musca/l10n/app_localizations.dart';
 import 'package:flutter/gestures.dart';
+import 'package:musca/utils/decimal_input.dart';
 
 class DiameterInput extends StatelessWidget {
   final TextEditingController controller;
@@ -22,7 +23,8 @@ class DiameterInput extends StatelessWidget {
     return Listener(
       onPointerSignal: (pointerSignal) {
         if (pointerSignal is PointerScrollEvent) {
-          final delta = pointerSignal.scrollDelta.dy > 0 ? -scrollStep : scrollStep;
+          final delta =
+              pointerSignal.scrollDelta.dy > 0 ? -scrollStep : scrollStep;
           onUpdateDiameter(delta);
         }
       },
@@ -33,10 +35,15 @@ class DiameterInput extends StatelessWidget {
             Expanded(
               child: TextField(
                 controller: controller,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                inputFormatters: const [DecimalPointFormatter()],
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.diameter,
-                  labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+                  labelStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   border: const OutlineInputBorder(
                     borderSide: BorderSide(width: 2.0),
                   ),
@@ -59,7 +66,9 @@ class DiameterInput extends StatelessWidget {
             const SizedBox(width: 10),
             GestureDetector(
               onVerticalDragUpdate: (details) {
-                double delta = -details.delta.dy * 0.001; // Smaller multiplier for more precise control
+                double delta =
+                    -details.delta.dy *
+                    0.001; // Smaller multiplier for more precise control
                 onUpdateDiameter(delta);
               },
               child: Container(
@@ -96,7 +105,10 @@ class DiameterInput extends StatelessWidget {
                         height: 30,
                         width: 40,
                         alignment: Alignment.center,
-                        child: Icon(Icons.keyboard_arrow_down, color: iconColor),
+                        child: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: iconColor,
+                        ),
                       ),
                     ),
                   ],

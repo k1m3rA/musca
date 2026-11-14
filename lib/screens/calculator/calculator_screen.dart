@@ -17,14 +17,15 @@ import '../../models/gun_model.dart';
 import '../../models/cartridge_model.dart';
 import '../../models/scope_model.dart';
 import 'package:musca/l10n/app_localizations.dart';
+import 'package:musca/utils/decimal_input.dart';
 
 class CalculatorScreen extends StatefulWidget {
   final Function(int)? onNavigate;
   final ValueNotifier<bool>? reloadProfilesNotifier;
   final VoidCallback? onNavigateToSettingsWithHighlight;
-  
+
   const CalculatorScreen({
-    super.key, 
+    super.key,
     this.onNavigate,
     this.reloadProfilesNotifier,
     this.onNavigateToSettingsWithHighlight,
@@ -35,23 +36,41 @@ class CalculatorScreen extends StatefulWidget {
 }
 
 class _CalculatorScreenState extends State<CalculatorScreen> {
-  final TextEditingController _distanceController = TextEditingController(text: '100.0');
+  final TextEditingController _distanceController = TextEditingController(
+    text: '100.0',
+  );
   double _distance = 100.0;
   final double _scrollStep = 0.5;
-  final TextEditingController _angleController = TextEditingController(text: '0.0');
+  final TextEditingController _angleController = TextEditingController(
+    text: '0.0',
+  );
   double _angle = 0.0;
-  final TextEditingController _windSpeedController = TextEditingController(text: '0.0');
-  double _windSpeed = 0.0;  final TextEditingController _windDirectionController = TextEditingController(text: '0.0');
+  final TextEditingController _windSpeedController = TextEditingController(
+    text: '0.0',
+  );
+  double _windSpeed = 0.0;
+  final TextEditingController _windDirectionController = TextEditingController(
+    text: '0.0',
+  );
   double _windDirection = 0.0;
   bool _hasCompass = false;
   BallisticsResult? _ballisticsResult;
   // Add new controllers and variables for environmental data
-  final TextEditingController _temperatureController = TextEditingController(text: '20.0');
+  final TextEditingController _temperatureController = TextEditingController(
+    text: '20.0',
+  );
   double _temperature = 20.0;
-  final TextEditingController _pressureController = TextEditingController(text: '1013.0');
+  final TextEditingController _pressureController = TextEditingController(
+    text: '1013.0',
+  );
   double _pressure = 1013.0;
-  final TextEditingController _humidityController = TextEditingController(text: '50.0');
-  double _humidity = 50.0;  final TextEditingController _latitudeController = TextEditingController(text: '0.0');
+  final TextEditingController _humidityController = TextEditingController(
+    text: '50.0',
+  );
+  double _humidity = 50.0;
+  final TextEditingController _latitudeController = TextEditingController(
+    text: '0.0',
+  );
   double _latitude = 0.0;
   // Acimut del disparo (rumbo de la brújula) y altitud GPS de la boca del arma
   double _azimuth = 0.0;
@@ -65,26 +84,27 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     _distanceController.addListener(_updateDistanceFromText);
     _angleController.addListener(_updateAngleFromText);
     _windSpeedController.addListener(_updateWindSpeedFromText);
     _windDirectionController.addListener(_updateWindDirectionFromText);
-      // Add listeners for environmental data
+    // Add listeners for environmental data
     _temperatureController.addListener(_updateTemperatureFromText);
     _pressureController.addListener(_updatePressureFromText);
     _humidityController.addListener(_updateHumidityFromText);
     _latitudeController.addListener(_updateLatitudeFromText);
-    
+
     // Listen for profile reload notifications
     widget.reloadProfilesNotifier?.addListener(_onReloadProfilesNotification);
-    
+
     // Load selected profiles
     _loadSelectedProfiles();
-    
+
     // Check if compass is available
     _checkCompassAvailability();
   }
+
   // This will be called when returning from other screens
   @override
   void didChangeDependencies() {
@@ -97,7 +117,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         }
       });
     }
-  }  // Public method to be called from navigation container
+  } // Public method to be called from navigation container
+
   void reloadProfilesFromNavigation() {
     print('Reloading profiles from navigation...'); // Debug print
     _loadSelectedProfiles();
@@ -107,18 +128,20 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   void _onReloadProfilesNotification() {
     print('Profile reload notification received!'); // Debug print
     _loadSelectedProfiles();
-  }  Future<void> _loadSelectedProfiles() async {
+  }
+
+  Future<void> _loadSelectedProfiles() async {
     try {
       final gun = await GunStorage.getSelectedGun();
       final cartridge = await CartridgeStorage.getSelectedCartridge();
       final scope = await ScopeStorage.getSelectedScope();
-      
+
       setState(() {
         _selectedGun = gun;
         _selectedCartridge = cartridge;
         _selectedScope = scope;
       });
-      
+
       // Profile loaded, calculations will run when calculate button is pressed
     } catch (e) {
       print('Error loading selected profiles: $e');
@@ -129,34 +152,39 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     setState(() {
       _hasCompass = FlutterCompass.events != null;
     });
-  }  void _updateWindDirectionFromText() {
+  }
+
+  void _updateWindDirectionFromText() {
     if (_windDirectionController.text.isNotEmpty) {
       try {
-        final newValue = double.parse(_windDirectionController.text);
+        final newValue = parseDecimal(_windDirectionController.text);
         setState(() => _windDirection = newValue);
       } catch (_) {}
     }
   }
+
   void _updateDistanceFromText() {
     if (_distanceController.text.isNotEmpty) {
       try {
-        final newValue = double.parse(_distanceController.text);
+        final newValue = parseDecimal(_distanceController.text);
         setState(() => _distance = newValue);
       } catch (_) {}
     }
   }
+
   void _updateAngleFromText() {
     if (_angleController.text.isNotEmpty) {
       try {
-        final newValue = double.parse(_angleController.text);
+        final newValue = parseDecimal(_angleController.text);
         setState(() => _angle = newValue);
       } catch (_) {}
     }
   }
+
   void _updateWindSpeedFromText() {
     if (_windSpeedController.text.isNotEmpty) {
       try {
-        final newValue = double.parse(_windSpeedController.text);
+        final newValue = parseDecimal(_windSpeedController.text);
         setState(() => _windSpeed = newValue);
       } catch (_) {}
     }
@@ -165,7 +193,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   void _updateTemperatureFromText() {
     if (_temperatureController.text.isNotEmpty) {
       try {
-        final newValue = double.parse(_temperatureController.text);
+        final newValue = parseDecimal(_temperatureController.text);
         setState(() => _temperature = newValue);
       } catch (_) {}
     }
@@ -174,7 +202,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   void _updatePressureFromText() {
     if (_pressureController.text.isNotEmpty) {
       try {
-        final newValue = double.parse(_pressureController.text);
+        final newValue = parseDecimal(_pressureController.text);
         setState(() => _pressure = newValue);
       } catch (_) {}
     }
@@ -183,7 +211,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   void _updateHumidityFromText() {
     if (_humidityController.text.isNotEmpty) {
       try {
-        final newValue = double.parse(_humidityController.text);
+        final newValue = parseDecimal(_humidityController.text);
         setState(() => _humidity = newValue);
       } catch (_) {}
     }
@@ -192,7 +220,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   void _updateLatitudeFromText() {
     if (_latitudeController.text.isNotEmpty) {
       try {
-        final newValue = double.parse(_latitudeController.text);
+        final newValue = parseDecimal(_latitudeController.text);
         setState(() => _latitude = newValue);
       } catch (_) {}
     }
@@ -216,7 +244,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       _angle = clampedAngle;
       _angleController.text = _angle.toStringAsFixed(1);
     });
-  }  void _updateWindSpeed(double delta) {
+  }
+
+  void _updateWindSpeed(double delta) {
     final newWindSpeed = _windSpeed + delta;
     if (newWindSpeed >= 0) {
       setState(() {
@@ -225,6 +255,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       });
     }
   }
+
   void _updateWindDirection(double delta) {
     setState(() {
       _windDirection = (_windDirection + delta) % 360;
@@ -250,6 +281,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       });
     }
   }
+
   void _updateHumidity(double delta) {
     final newHumidity = _humidity + delta;
     if (newHumidity >= 0 && newHumidity <= 100) {
@@ -259,12 +291,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       });
     }
   }
+
   Future<void> _openCameraForAngle() async {
     final measuredAngle = await Navigator.push<double>(
       context,
       MaterialPageRoute(builder: (context) => const CameraAngleScreen()),
     );
-    
+
     if (measuredAngle != null) {
       // Apply the same 90-degree limit as in AngleInput widget
       final clampedAngle = measuredAngle.clamp(-90.0, 90.0);
@@ -273,7 +306,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _angleController.text = _angle.toStringAsFixed(1);
       });
     }
-  }    void _updateLatitude(double newLatitude) {
+  }
+
+  void _updateLatitude(double newLatitude) {
     setState(() {
       _latitude = newLatitude;
     });
@@ -281,17 +316,19 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   Future<void> _saveCalculation() async {
     // Validate that all required profiles are selected
-    if (_selectedGun == null || _selectedCartridge == null || _selectedScope == null) {
+    if (_selectedGun == null ||
+        _selectedCartridge == null ||
+        _selectedScope == null) {
       _showProfileErrorDialog();
       return;
     }
-    
+
     // Validate that distance is greater than 0
     if (_distance <= 0) {
       _showDistanceErrorDialog();
       return;
     }
-    
+
     try {
       // Calculate ballistics result for saving
       final ballisticsResult = BallisticsCalculator.calculateWithProfiles(
@@ -309,7 +346,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         latitude: _latitude,
         altitude: _altitude,
       );
-      
+
       final calculation = Calculation(
         distance: _distance,
         angle: _angle,
@@ -330,32 +367,40 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         timeOfFlight: ballisticsResult.timeS,
         impactVelocity: ballisticsResult.speedMs,
         impactEnergy: ballisticsResult.energyJ,
-        spinDrift: ballisticsResult.spinDriftM.isNaN
-            ? null
-            : ballisticsResult.spinDriftM,
+        spinDrift:
+            ballisticsResult.spinDriftM.isNaN
+                ? null
+                : ballisticsResult.spinDriftM,
       );
-      
+
       await CalculationStorage.saveCalculation(calculation);
-      
+
       if (!mounted) return;
-      
+
       final snackBar = SnackBar(
-        content: Text(AppLocalizations.of(context)!.shotSaved(_distance.toStringAsFixed(1), _windSpeed.toStringAsFixed(1))),
+        content: Text(
+          AppLocalizations.of(context)!.shotSaved(
+            _distance.toStringAsFixed(1),
+            _windSpeed.toStringAsFixed(1),
+          ),
+        ),
         backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.only(left: 16.0, right: 16.0),
         duration: const Duration(seconds: 3),
       );
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
-      
+
       if (widget.onNavigate != null) {
         widget.onNavigate!(0);
       }
     } catch (e) {
       if (!mounted) return;
-      
+
       final snackBar = SnackBar(
-        content: Text(AppLocalizations.of(context)!.errorSavingCalculation(e.toString())),
+        content: Text(
+          AppLocalizations.of(context)!.errorSavingCalculation(e.toString()),
+        ),
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.only(left: 16.0, right: 16.0),
@@ -375,13 +420,24 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(AppLocalizations.of(context)!.pleaseSelectAllRequiredProfilesBeforeSaving),
+              Text(
+                AppLocalizations.of(
+                  context,
+                )!.pleaseSelectAllRequiredProfilesBeforeSaving,
+              ),
               const SizedBox(height: 8),
-              if (_selectedGun == null) Text(AppLocalizations.of(context)!.gunProfileMissing),
-              if (_selectedCartridge == null) Text(AppLocalizations.of(context)!.cartridgeProfileMissing),
-              if (_selectedScope == null) Text(AppLocalizations.of(context)!.scopeProfileMissing),
+              if (_selectedGun == null)
+                Text(AppLocalizations.of(context)!.gunProfileMissing),
+              if (_selectedCartridge == null)
+                Text(AppLocalizations.of(context)!.cartridgeProfileMissing),
+              if (_selectedScope == null)
+                Text(AppLocalizations.of(context)!.scopeProfileMissing),
               const SizedBox(height: 16),
-              Text(AppLocalizations.of(context)!.goToTheProfilesTabToCreateAndSelectProfiles),
+              Text(
+                AppLocalizations.of(
+                  context,
+                )!.goToTheProfilesTabToCreateAndSelectProfiles,
+              ),
             ],
           ),
           actions: [
@@ -410,7 +466,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(AppLocalizations.of(context)!.invalidDistance),
-          content: Text(AppLocalizations.of(context)!.pleaseEnterADistanceGreaterThan0MetersBeforeSaving),
+          content: Text(
+            AppLocalizations.of(
+              context,
+            )!.pleaseEnterADistanceGreaterThan0MetersBeforeSaving,
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -425,12 +485,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   @override
   void dispose() {
     // Remove profile reload listener
-    widget.reloadProfilesNotifier?.removeListener(_onReloadProfilesNotification);
-    
+    widget.reloadProfilesNotifier?.removeListener(
+      _onReloadProfilesNotification,
+    );
+
     _distanceController.dispose();
     _angleController.dispose();
     _windSpeedController.dispose();
-    _windDirectionController.dispose();    _temperatureController.dispose();
+    _windDirectionController.dispose();
+    _temperatureController.dispose();
     _pressureController.dispose();
     _humidityController.dispose();
     _latitudeController.dispose();
@@ -450,9 +513,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               centerTitle: true,
               title: Text(
                 AppLocalizations.of(context)!.fieldData,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
               ),
             ),
           ),
@@ -481,11 +542,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     onUpdateWindSpeed: _updateWindSpeed,
                   ),
                   const SizedBox(height: 20),
-                    _hasCompass 
-                    ? CompassWidget(                        onWindDirectionChanged: (direction) {
+                  _hasCompass
+                      ? CompassWidget(
+                        onWindDirectionChanged: (direction) {
                           setState(() {
                             _windDirection = direction;
-                            _windDirectionController.text = _windDirection.round().toString();
+                            _windDirectionController.text =
+                                _windDirection.round().toString();
                           });
                         },
                         onAzimuthChanged: (azimuth) {
@@ -494,14 +557,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                           });
                         },
                       )
-                    : WindDirectionInput(
+                      : WindDirectionInput(
                         controller: _windDirectionController,
                         scrollStep: 5.0,
                         onUpdateWindDirection: _updateWindDirection,
                       ),
-                      
+
                   const SizedBox(height: 20),
-                    EnvironmentalInput(
+                  EnvironmentalInput(
                     temperatureController: _temperatureController,
                     pressureController: _pressureController,
                     humidityController: _humidityController,
@@ -510,26 +573,36 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     onUpdateTemperature: _updateTemperature,
                     onUpdatePressure: _updatePressure,
                     onUpdateHumidity: _updateHumidity,
-                    onUpdateLatitude: _updateLatitude, // Pass the latitude callback
+                    onUpdateLatitude:
+                        _updateLatitude, // Pass the latitude callback
                     onUpdateAltitude: (altitude) {
                       setState(() {
                         _altitude = altitude;
                       });
                     },
-                    onNavigateToSettingsWithHighlight: widget.onNavigateToSettingsWithHighlight,
+                    onNavigateToSettingsWithHighlight:
+                        widget.onNavigateToSettingsWithHighlight,
                   ),
-                    const SizedBox(height: 20),                  // Display the current latitude value (optional)
+                  const SizedBox(
+                    height: 20,
+                  ), // Display the current latitude value (optional)
                 ],
               ),
             ),
           ),
         ],
-      ),      floatingActionButton: Padding(
+      ),
+      floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 0.0, right: 7.0),
         child: FloatingActionButton(
           onPressed: _saveCalculation,
-          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.8),
-          child: Icon(Icons.gps_fixed, color: Theme.of(context).scaffoldBackgroundColor),
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.primary.withOpacity(0.8),
+          child: Icon(
+            Icons.gps_fixed,
+            color: Theme.of(context).scaffoldBackgroundColor,
+          ),
         ),
       ),
     );

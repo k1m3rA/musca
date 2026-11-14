@@ -5,10 +5,11 @@ import '../../../../../services/scope_storage.dart';
 import 'widgets/name_input.dart';
 import 'widgets/sight_height_input.dart';
 import 'widgets/units_input.dart';
+import 'package:musca/utils/decimal_input.dart';
 
 class ScopeSettingsScreen extends StatefulWidget {
   final Scope? scope;
-  
+
   const ScopeSettingsScreen({Key? key, this.scope}) : super(key: key);
 
   @override
@@ -18,49 +19,72 @@ class ScopeSettingsScreen extends StatefulWidget {
 class _ScopeSettingsScreenState extends State<ScopeSettingsScreen> {
   late TextEditingController _nameController;
   late TextEditingController _sightHeightController;
-  
+
   late String _name;
   late double _sightHeight;
   late String _units; // Using string identifiers in the UI
-  
+
   String? _scopeId;
-  
+
   // Helper methods to convert between string unit IDs and integer values
   String _unitIntToString(int unitInt) {
-    switch(unitInt) {
-      case 0: return 'in';
-      case 1: return 'cm';
-      case 2: return 'moa';
-      case 3: return 'moa_2';
-      case 4: return 'moa_3';
-      case 5: return 'moa_4';
-      case 6: return 'moa_8';
-      case 7: return 'mrad';
-      case 8: return 'mrad_10';
-      case 9: return 'mrad_20';
-      default: return 'moa'; // Default to MOA
+    switch (unitInt) {
+      case 0:
+        return 'in';
+      case 1:
+        return 'cm';
+      case 2:
+        return 'moa';
+      case 3:
+        return 'moa_2';
+      case 4:
+        return 'moa_3';
+      case 5:
+        return 'moa_4';
+      case 6:
+        return 'moa_8';
+      case 7:
+        return 'mrad';
+      case 8:
+        return 'mrad_10';
+      case 9:
+        return 'mrad_20';
+      default:
+        return 'moa'; // Default to MOA
     }
   }
-  
+
   int _unitStringToInt(String unitString) {
-    switch(unitString) {
-      case 'in': return 0;
-      case 'cm': return 1;
-      case 'moa': return 2;
-      case 'moa_2': return 3;
-      case 'moa_3': return 4;
-      case 'moa_4': return 5;
-      case 'moa_8': return 6;
-      case 'mrad': return 7;
-      case 'mrad_10': return 8;
-      case 'mrad_20': return 9;
-      default: return 2; // Default to MOA
+    switch (unitString) {
+      case 'in':
+        return 0;
+      case 'cm':
+        return 1;
+      case 'moa':
+        return 2;
+      case 'moa_2':
+        return 3;
+      case 'moa_3':
+        return 4;
+      case 'moa_4':
+        return 5;
+      case 'moa_8':
+        return 6;
+      case 'mrad':
+        return 7;
+      case 'mrad_10':
+        return 8;
+      case 'mrad_20':
+        return 9;
+      default:
+        return 2; // Default to MOA
     }
   }
+
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize values based on whether we're editing an existing scope
     if (widget.scope != null) {
       _scopeId = widget.scope!.id;
@@ -70,13 +94,15 @@ class _ScopeSettingsScreenState extends State<ScopeSettingsScreen> {
     } else {
       // Default values for new scope
       _name = "My Scope";
-      _sightHeight = 1.5;  // Default sight height (inches)
-      _units = "moa";  // Default to MOA
+      _sightHeight = 1.5; // Default sight height (inches)
+      _units = "moa"; // Default to MOA
     }
-    
+
     _nameController = TextEditingController(text: _name);
-    _sightHeightController = TextEditingController(text: _sightHeight.toStringAsFixed(2));
-    
+    _sightHeightController = TextEditingController(
+      text: _sightHeight.toStringAsFixed(2),
+    );
+
     // Add listeners for text fields
     _nameController.addListener(_updateNameFromText);
     _sightHeightController.addListener(_updateSightHeightFromText);
@@ -88,12 +114,13 @@ class _ScopeSettingsScreenState extends State<ScopeSettingsScreen> {
     _sightHeightController.dispose();
     super.dispose();
   }
+
   void _updateName(String value) {
     setState(() {
       _name = value;
     });
   }
-  
+
   void _updateNameFromText() {
     if (_nameController.text.isNotEmpty) {
       setState(() {
@@ -101,32 +128,37 @@ class _ScopeSettingsScreenState extends State<ScopeSettingsScreen> {
       });
     }
   }
-  
+
   void _updateSightHeightFromText() {
     if (_sightHeightController.text.isNotEmpty) {
       try {
-        final newValue = double.parse(_sightHeightController.text);
+        final newValue = parseDecimal(_sightHeightController.text);
         setState(() {
           _sightHeight = newValue.clamp(0.0, 10.0); // Changed from 0.1 to 0.0
         });
       } catch (_) {}
     }
   }
-  
+
   void _updateSightHeightDelta(double delta) {
-    final currentHeight = double.tryParse(_sightHeightController.text) ?? _sightHeight;
-    final newHeight = (currentHeight + delta).clamp(0.0, 10.0);  // Changed from 0.1 to 0.0
+    final currentHeight =
+        tryParseDecimal(_sightHeightController.text) ?? _sightHeight;
+    final newHeight = (currentHeight + delta).clamp(
+      0.0,
+      10.0,
+    ); // Changed from 0.1 to 0.0
     setState(() {
       _sightHeight = newHeight;
       _sightHeightController.text = newHeight.toStringAsFixed(2);
     });
   }
-  
+
   void _updateUnits(String units) {
     setState(() {
       _units = units;
     });
   }
+
   void _saveAndNavigateBack() async {
     // Create a Scope object with the current values
     final scope = Scope(
@@ -135,24 +167,20 @@ class _ScopeSettingsScreenState extends State<ScopeSettingsScreen> {
       sightHeight: _sightHeight,
       units: _unitStringToInt(_units), // Convert string to int for the model
     );
-    
+
     // Save the scope to permanent storage
     await ScopeStorage.saveScope(scope);
-    
+
     // Show feedback to user
     final snackBar = SnackBar(
       content: Text(widget.scope != null ? 'Scope updated!' : 'Scope created!'),
       backgroundColor: Colors.green,
       behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.only(
-        left: 20, 
-        bottom: 20.0,
-        right: 20.0,
-      ),
+      margin: const EdgeInsets.only(left: 20, bottom: 20.0, right: 20.0),
       duration: const Duration(seconds: 2),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    
+
     // Return the scope to the previous screen
     Navigator.of(context).pop(scope);
   }
@@ -180,9 +208,7 @@ class _ScopeSettingsScreenState extends State<ScopeSettingsScreen> {
               centerTitle: true,
               title: Text(
                 widget.scope != null ? "Edit Scope" : "New Scope",
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
               ),
             ),
             leading: IconButton(
@@ -196,34 +222,29 @@ class _ScopeSettingsScreenState extends State<ScopeSettingsScreen> {
           SliverPadding(
             padding: const EdgeInsets.all(16.0),
             sliver: SliverList(
-              delegate: SliverChildListDelegate(
-                [
-                  const SizedBox(height: 10),
-                  
-                  // Name Input
-                  NameInput(
-                    controller: _nameController,
-                    onUpdateName: _updateName,
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Units Input
-                  UnitsInput(
-                    initialUnit: _units,
-                    onUpdateUnits: _updateUnits,
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Sight Height Input
-                  SightHeightInput(
-                    controller: _sightHeightController,
-                    onUpdateSightHeight: _updateSightHeightDelta,
-                    units: unitsLabel,
-                  ),
-                  
-                  const SizedBox(height: 24),
-                ],
-              ),
+              delegate: SliverChildListDelegate([
+                const SizedBox(height: 10),
+
+                // Name Input
+                NameInput(
+                  controller: _nameController,
+                  onUpdateName: _updateName,
+                ),
+                const SizedBox(height: 16),
+
+                // Units Input
+                UnitsInput(initialUnit: _units, onUpdateUnits: _updateUnits),
+                const SizedBox(height: 16),
+
+                // Sight Height Input
+                SightHeightInput(
+                  controller: _sightHeightController,
+                  onUpdateSightHeight: _updateSightHeightDelta,
+                  units: unitsLabel,
+                ),
+
+                const SizedBox(height: 24),
+              ]),
             ),
           ),
         ],
@@ -237,7 +258,10 @@ class _ScopeSettingsScreenState extends State<ScopeSettingsScreen> {
           onPressed: _saveAndNavigateBack,
           backgroundColor: Theme.of(context).colorScheme.primary,
           elevation: 0,
-          child: Icon(Icons.save, color: Theme.of(context).scaffoldBackgroundColor)
+          child: Icon(
+            Icons.save,
+            color: Theme.of(context).scaffoldBackgroundColor,
+          ),
         ),
       ),
     );
