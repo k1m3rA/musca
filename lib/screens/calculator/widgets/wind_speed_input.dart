@@ -32,7 +32,7 @@ class WindSpeedInput extends StatelessWidget {
             Expanded(
               child: TextField(
                 controller: controller,
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.windSpeedLabel,
                   labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),

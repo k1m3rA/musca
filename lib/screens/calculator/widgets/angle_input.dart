@@ -41,7 +41,7 @@ class AngleInput extends StatelessWidget {
             Expanded(
               child: TextField(
                 controller: controller,
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
                 onChanged: (value) {
                   final angle = double.tryParse(value);
                   if (angle != null) {

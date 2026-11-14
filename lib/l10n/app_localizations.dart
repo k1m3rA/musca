@@ -1383,8 +1383,6 @@ abstract class AppLocalizations {
   /// **'Drift\n({units})'**
   String driftUnitsTable(Object units);
 
-  // Modelo balístico v5
-
   /// No description provided for @energyJHeader.
   ///
   /// In en, this message translates to:
@@ -1408,6 +1406,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Spin drift'**
   String get spinDriftLabel;
+
+  /// No description provided for @windCoriolisDriftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind+Coriolis drift'**
+  String get windCoriolisDriftLabel;
+
+  /// No description provided for @totalDriftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total drift'**
+  String get totalDriftLabel;
+
+  /// No description provided for @latitudeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Latitude'**
+  String get latitudeLabel;
+
+  /// No description provided for @azimuthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Azimuth'**
+  String get azimuthLabel;
+
+  /// No description provided for @altitudeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude'**
+  String get altitudeLabel;
 
   /// No description provided for @timeOfFlightLabel.
   ///
@@ -1433,8 +1461,6 @@ abstract class AppLocalizations {
   /// **'Velocity (m/s)'**
   String get velocityMsHeader;
 }
-
-
 
 class _AppLocalizationsDelegate
     extends LocalizationsDelegate<AppLocalizations> {

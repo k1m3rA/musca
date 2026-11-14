@@ -142,14 +142,14 @@ class _BallisticsResultsWidgetState extends State<BallisticsResultsWidget> {
           'Deriva horizontal',
           corrections['drift'],
           corrections['unit'],
-          'Ajustar ${corrections['drift'] > 0 ? 'a la derecha' : 'a la izquierda'}',
+          'Ajustar ${corrections['drift'] > 0 ? 'a la izquierda' : 'a la derecha'}',
         ),
         const Divider(),
         _buildCorrectionCard(
           'Caída vertical',
           corrections['drop'],
           corrections['unit'],
-          'Ajustar ${corrections['drop'] > 0 ? 'hacia arriba' : 'hacia abajo'}',
+          'Ajustar ${corrections['drop'] > 0 ? 'hacia abajo' : 'hacia arriba'}',
         ),
       ],
     );
@@ -291,12 +291,12 @@ class _BallisticsResultsWidgetState extends State<BallisticsResultsWidget> {
 
   String _getDirectionText(String label, double value) {
     if (label.contains('Deriva')) {
-      if (value > 0) return 'Ajustar a la derecha';
-      if (value < 0) return 'Ajustar a la izquierda';
+      if (value > 0) return 'Ajustar a la izquierda';
+      if (value < 0) return 'Ajustar a la derecha';
       return 'Sin corrección horizontal';
     } else {
-      if (value > 0) return 'Ajustar hacia arriba';
-      if (value < 0) return 'Ajustar hacia abajo';
+      if (value > 0) return 'Ajustar hacia abajo';
+      if (value < 0) return 'Ajustar hacia arriba';
       return 'Sin corrección vertical';
     }
   }

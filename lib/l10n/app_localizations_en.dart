@@ -740,7 +740,6 @@ class AppLocalizationsEn extends AppLocalizations {
     return 'Drift\n($units)';
   }
 
-  // Modelo balístico v5
   @override
   String get energyJHeader => 'Energy (J)';
 
@@ -752,6 +751,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spinDriftLabel => 'Spin drift';
+
+  @override
+  String get windCoriolisDriftLabel => 'Wind+Coriolis drift';
+
+  @override
+  String get totalDriftLabel => 'Total drift';
+
+  @override
+  String get latitudeLabel => 'Latitude';
+
+  @override
+  String get azimuthLabel => 'Azimuth';
+
+  @override
+  String get altitudeLabel => 'Altitude';
 
   @override
   String get timeOfFlightLabel => 'Flight time';

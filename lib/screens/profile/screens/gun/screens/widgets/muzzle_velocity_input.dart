@@ -33,7 +33,7 @@ class MuzzleVelocityInput extends StatelessWidget {
             Expanded(
               child: TextField(
                 controller: controller,
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.muzzleVelocity,
                   labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),

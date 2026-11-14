@@ -89,13 +89,9 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
         ? sightHeightValue * 0.0254  // inches to meters
         : sightHeightValue * 0.01;   // cm to meters
 
-    // Line of sight slope based on inclination angle
-    final double inclinationAngleRad = widget.calculation.angle * pi / 180.0;
-    final double losSlope = tan(inclinationAngleRad);
-
-    // UNA sola simulación del modelo v5; los puntos de la gráfica se
-    // interpolan de la trayectoria almacenada (antes se re-simulaba por punto
-    // y había aproximaciones de juguete en los fallbacks).
+    // La línea de mira se usa como referencia: la gráfica muestra la
+    // trayectoria RELATIVA a la LOS (la LOS es la recta horizontal y=0),
+    // así la caída se aprecia igual en tiros llano, de subida o de bajada.
     try {
       final result = BallisticsCalculator.calculateWithProfiles(
         maxCalcDistance,
@@ -117,22 +113,18 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
       for (int i = 0; i <= 100; i++) {
         final distance = i * step;
 
-        // Altura de la bala sobre el ánima, referida al origen de la LOS:
-        // en la boca la bala está a -visorHeight (bajo la mira).
-        final y = distance == 0
-            ? 0.0
-            : traj.atRange(min(distance, traj.xEnd)).yM;
-        trajectory.add(FlSpot(distance, y - visorHeight));
+        // Altura de la bala RELATIVA a la línea de mira: en la boca la
+        // bala está a -visorHeight bajo la mira y cruza la LOS en el cero.
+        final sample = traj.atRange(min(distance, traj.xEnd),
+            sightHeight: visorHeight, losAngleDeg: widget.calculation.angle);
+        trajectory.add(FlSpot(distance, sample.dropM));
 
-        // Línea de mira con la inclinación del tiro
-        lineOfSight.add(FlSpot(distance, distance * losSlope));
+        // Línea de mira: referencia horizontal
+        lineOfSight.add(FlSpot(distance, 0.0));
 
         // Deriva lateral total (viento + Coriolis + giro)
-        final drift = distance == 0
-            ? 0.0
-            : traj.atRange(min(distance, traj.xEnd)).driftTotalM;
-        horizontalDrift
-            .add(FlSpot(distance, drift.isNaN ? 0.0 : drift));
+        final drift = sample.driftTotalM;
+        horizontalDrift.add(FlSpot(distance, drift.isNaN ? 0.0 : drift));
       }
     } catch (e) {
       print('Error calculando la trayectoria (modelo v5): $e');
@@ -380,7 +372,7 @@ class _BallisticsChartScreenState extends State<BallisticsChartScreen> {
             ),
             if (widget.calculation.driftHorizontal != null)
               Text(
-                AppLocalizations.of(context)!.impactInfo((widget.calculation.dropVertical! * 100).toStringAsFixed(1), (widget.calculation.driftHorizontal! * 100).toStringAsFixed(1)),
+                AppLocalizations.of(context)!.impactInfo((widget.calculation.driftHorizontal! * 100).toStringAsFixed(1), (widget.calculation.dropVertical! * 100).toStringAsFixed(1)),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: Theme.of(context).colorScheme.primary,

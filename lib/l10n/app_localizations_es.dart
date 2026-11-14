@@ -746,7 +746,6 @@ class AppLocalizationsEs extends AppLocalizations {
     return 'Deriva\n($units)';
   }
 
-  // Modelo balístico v5
   @override
   String get energyJHeader => 'Energía (J)';
 
@@ -758,6 +757,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get spinDriftLabel => 'Deriva por giro';
+
+  @override
+  String get windCoriolisDriftLabel => 'Deriva viento+Coriolis';
+
+  @override
+  String get totalDriftLabel => 'Deriva total';
+
+  @override
+  String get latitudeLabel => 'Latitud';
+
+  @override
+  String get azimuthLabel => 'Acimut';
+
+  @override
+  String get altitudeLabel => 'Altitud';
 
   @override
   String get timeOfFlightLabel => 'Tiempo de vuelo';

@@ -319,7 +319,7 @@ class _EnvironmentalInputState extends State<EnvironmentalInput> {
             Expanded(
               child: TextField(
                 controller: controller,
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
                 decoration: InputDecoration(
                   labelText: label,
                   labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),

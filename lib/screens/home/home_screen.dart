@@ -180,7 +180,7 @@ class _HomeContentState extends State<HomeContent> {
                 // Add shot conditions summary
                 const SizedBox(height: 8),
                 Text(
-                  AppLocalizations.of(context)!.angleAndWind(latest.angle.toStringAsFixed(1), latest.windSpeed.toStringAsFixed(1), latest.windDirection.toStringAsFixed(0)),
+                  AppLocalizations.of(context)!.angleAndWind(latest.angle.toStringAsFixed(1), latest.windDirection.toStringAsFixed(0), latest.windSpeed.toStringAsFixed(1)),
                   style: TextStyle(
                     fontSize: 12,
                     color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
@@ -298,6 +298,25 @@ class _HomeContentState extends State<HomeContent> {
       l10n.spinDriftLabel: c.spinDrift == null
           ? null
           : '${(c.spinDrift! * 100).toStringAsFixed(1)} cm',
+      // Desglose de la deriva: viento+Coriolis = total - giro. Si el giro
+      // es desconocido (Sg<1), el total del motor ya excluye el giro, así
+      // que viento+Coriolis coincide con el total.
+      l10n.windCoriolisDriftLabel: c.driftHorizontal == null
+          ? null
+          : '${((c.driftHorizontal! - (c.spinDrift ?? 0.0)) * 100).toStringAsFixed(1)} cm',
+      l10n.totalDriftLabel: c.driftHorizontal == null
+          ? null
+          : '${(c.driftHorizontal! * 100).toStringAsFixed(1)} cm',
+      // Condiciones guardadas del tiro (0.0 = no registrada / legacy).
+      l10n.latitudeLabel: c.latitude == 0.0
+          ? null
+          : '${c.latitude.toStringAsFixed(4)}°',
+      l10n.azimuthLabel: c.azimuth == 0.0
+          ? null
+          : '${c.azimuth.toStringAsFixed(1)}°',
+      l10n.altitudeLabel: c.altitude == 0.0
+          ? null
+          : '${c.altitude.toStringAsFixed(0)} m',
     };
     return Wrap(
       spacing: 8,
@@ -334,13 +353,13 @@ class _HomeContentState extends State<HomeContent> {
     
     if (label == AppLocalizations.of(context)!.horizontalDrift) {
       // For horizontal drift: positive = adjust right, negative = adjust left
-      correctionIcon = value > 0 ? Icons.arrow_forward : Icons.arrow_back;
-      correctionDirection = value > 0 ? AppLocalizations.of(context)!.right : AppLocalizations.of(context)!.left;
+      correctionIcon = value > 0 ? Icons.arrow_back : Icons.arrow_forward;
+      correctionDirection = value > 0 ? AppLocalizations.of(context)!.left : AppLocalizations.of(context)!.right;
       correctionColor = value > 0 ? Colors.green : Colors.red;
     } else {
       // For vertical drop: positive = adjust up, negative = adjust down
-      correctionIcon = value > 0 ? Icons.arrow_upward : Icons.arrow_downward;
-      correctionDirection = value > 0 ? AppLocalizations.of(context)!.up : AppLocalizations.of(context)!.down;
+      correctionIcon = value > 0 ? Icons.arrow_downward : Icons.arrow_upward;
+      correctionDirection = value > 0 ? AppLocalizations.of(context)!.down : AppLocalizations.of(context)!.up;
       correctionColor = value > 0 ? Colors.green : Colors.red;
     }
     
