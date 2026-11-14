@@ -225,5 +225,14 @@
   "timeOfFlightLabel": "Tiempo de vuelo",
   "tofSHeader": "Tiempo (s)",
   "velocityLabel": "Velocidad",
-  "velocityMsHeader": "Velocidad (m/s)"
+  "velocityMsHeader": "Velocidad (m/s)",
+  "exportProfiles": "Exportar perfiles",
+  "exportProfilesError": "No se pudo exportar la copia de perfiles.",
+  "importProfiles": "Importar perfiles",
+  "importProfilesDone": "Copia importada: {added} perfiles nuevos y {updated} actualizados.",
+  "importProfilesError": "No se pudieron importar los perfiles.",
+  "importProfilesInvalidFile": "El archivo elegido no es una copia de perfiles de Musca válida.",
+  "importProfilesQuestion": "Ya tienes perfiles guardados. ¿Cómo quieres importar la copia?",
+  "importMerge": "Combinar",
+  "importReplaceAll": "Reemplazar todo"
 }

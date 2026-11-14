@@ -377,5 +377,24 @@
   "timeOfFlightLabel": "Flight time",
   "tofSHeader": "Time (s)",
   "velocityLabel": "Velocity",
-  "velocityMsHeader": "Velocity (m/s)"
+  "velocityMsHeader": "Velocity (m/s)",
+  "exportProfiles": "Export profiles",
+  "exportProfilesError": "The profile backup could not be exported.",
+  "importProfiles": "Import profiles",
+  "importProfilesDone": "Backup imported: {added} new profiles and {updated} updated.",
+  "@importProfilesDone": {
+    "placeholders": {
+      "added": {
+        "type": "String"
+      },
+      "updated": {
+        "type": "String"
+      }
+    }
+  },
+  "importProfilesError": "The profiles could not be imported.",
+  "importProfilesInvalidFile": "The chosen file is not a valid Musca profile backup.",
+  "importProfilesQuestion": "You already have saved profiles. How do you want to import the backup?",
+  "importMerge": "Merge",
+  "importReplaceAll": "Replace all"
 }

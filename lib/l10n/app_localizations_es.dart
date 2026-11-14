@@ -784,4 +784,35 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get velocityMsHeader => 'Velocidad (m/s)';
+
+  @override
+  String get exportProfiles => 'Exportar perfiles';
+
+  @override
+  String get exportProfilesError => 'No se pudo exportar la copia de perfiles.';
+
+  @override
+  String get importProfiles => 'Importar perfiles';
+
+  @override
+  String importProfilesDone(String added, String updated) {
+    return 'Copia importada: $added perfiles nuevos y $updated actualizados.';
+  }
+
+  @override
+  String get importProfilesError => 'No se pudieron importar los perfiles.';
+
+  @override
+  String get importProfilesInvalidFile =>
+      'El archivo elegido no es una copia de perfiles de Musca válida.';
+
+  @override
+  String get importProfilesQuestion =>
+      'Ya tienes perfiles guardados. ¿Cómo quieres importar la copia?';
+
+  @override
+  String get importMerge => 'Combinar';
+
+  @override
+  String get importReplaceAll => 'Reemplazar todo';
 }

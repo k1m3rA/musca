@@ -50,6 +50,9 @@ dependencies:
   printing: ^5.11.1
   url_launcher: ^6.3.1  # Added for opening URLs
   url_launcher_web: ^2.3.3  # Added for web support
+  share_plus: ^10.1.4  # Exportar copia de perfiles (.musca) vía hoja de compartir
+  file_picker: ^8.3.7  # Importar copia de perfiles (.musca) con el selector de archivos
+  path_provider: ^2.1.5  # Carpeta temporal para generar el .musca antes de compartir
 
 dev_dependencies:
   flutter_test:

@@ -1460,6 +1460,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Velocity (m/s)'**
   String get velocityMsHeader;
+
+  /// No description provided for @exportProfiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Export profiles'**
+  String get exportProfiles;
+
+  /// No description provided for @exportProfilesError.
+  ///
+  /// In en, this message translates to:
+  /// **'The profile backup could not be exported.'**
+  String get exportProfilesError;
+
+  /// No description provided for @importProfiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Import profiles'**
+  String get importProfiles;
+
+  /// No description provided for @importProfilesDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup imported: {added} new profiles and {updated} updated.'**
+  String importProfilesDone(String added, String updated);
+
+  /// No description provided for @importProfilesError.
+  ///
+  /// In en, this message translates to:
+  /// **'The profiles could not be imported.'**
+  String get importProfilesError;
+
+  /// No description provided for @importProfilesInvalidFile.
+  ///
+  /// In en, this message translates to:
+  /// **'The chosen file is not a valid Musca profile backup.'**
+  String get importProfilesInvalidFile;
+
+  /// No description provided for @importProfilesQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have saved profiles. How do you want to import the backup?'**
+  String get importProfilesQuestion;
+
+  /// No description provided for @importMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get importMerge;
+
+  /// No description provided for @importReplaceAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace all'**
+  String get importReplaceAll;
 }
 
 class _AppLocalizationsDelegate

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../services/calculation_storage.dart';
 import '../../services/cartridge_storage.dart';
 import '../../services/scope_storage.dart';
 import '../../services/api_key_service.dart';
 import '../../services/weather_service.dart';
+import '../../services/profile_backup_service.dart';
 import '../privacy/privacy_policy_screen.dart';
 import 'package:musca/l10n/app_localizations.dart';
 
@@ -211,6 +213,147 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       );
     }
+  }
+
+  // Exporta la copia de perfiles (.musca) con la hoja de compartir
+  Future<void> _exportProfiles() async {
+    try {
+      await ProfileBackupService.shareBackup();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.exportProfilesError),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  // Importa una copia de perfiles (.musca) desde el selector de archivos
+  Future<void> _importProfiles() async {
+    final l10n = AppLocalizations.of(context)!;
+
+    FilePickerResult? picked;
+    try {
+      picked = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['musca'],
+        withData: true,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.importProfilesError),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+      return;
+    }
+
+    // Cancelado por el usuario
+    if (picked == null || picked.files.isEmpty) return;
+
+    final content = await ProfileBackupService.readPickedFileContent(
+      picked.files.single,
+    );
+
+    ProfileBackup? backup;
+    if (content != null) {
+      try {
+        backup = ProfileBackupService.parseBackup(content);
+      } on ProfileBackupException {
+        backup = null;
+      }
+    }
+
+    if (backup == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.importProfilesInvalidFile),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+      return;
+    }
+
+    // Si ya hay perfiles, preguntar si combinar o reemplazar
+    bool replace = false;
+    if (await ProfileBackupService.hasExistingProfiles()) {
+      final choice = await _showImportModeDialog();
+      if (choice == null) return; // Cancelado
+      replace = choice == 'replace';
+    }
+
+    try {
+      final result = await ProfileBackupService.importBackup(
+        backup,
+        replace: replace,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.importProfilesDone(
+                result.added.toString(),
+                result.updated.toString(),
+              ),
+            ),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.importProfilesError),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  // Diálogo: combinar con los perfiles actuales o reemplazarlos todos
+  Future<String?> _showImportModeDialog() async {
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        final l10n = AppLocalizations.of(dialogContext)!;
+        return AlertDialog(
+          title: Text(l10n.importProfiles),
+          content: Text(l10n.importProfilesQuestion),
+          actions: <Widget>[
+            TextButton(
+              child: Text(l10n.cancel),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            TextButton(
+              child: Text(l10n.importMerge),
+              onPressed: () {
+                Navigator.of(dialogContext).pop('merge');
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text(l10n.importReplaceAll),
+              onPressed: () {
+                Navigator.of(dialogContext).pop('replace');
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // Add method to clear all cartridges with confirmation dialog
@@ -843,6 +986,57 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       trailing: const SizedBox.shrink(),
                       children: [
+                        InkWell(
+                          onTap: _exportProfiles,
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.upload_file,
+                                  size: 32,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  AppLocalizations.of(context)!.exportProfiles,
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        InkWell(
+                          onTap: _importProfiles,
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.file_open,
+                                  size: 32,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  AppLocalizations.of(context)!.importProfiles,
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const Divider(),
                         InkWell(
                           onTap: _showClearConfirmationDialog,
                           child: Container(
