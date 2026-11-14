@@ -65,6 +65,9 @@
       },
       "weight": {
         "type": "String"
+      },
+      "mv": {
+        "type": "String"
       }
     }
   },
@@ -128,9 +131,6 @@
         "type": "String"
       },
       "twistRate": {
-        "type": "String"
-      },
-      "mv": {
         "type": "String"
       },
       "zero": {
@@ -211,7 +211,7 @@
   "deleteScope": "Delete Scope",
   "developedByMiguelBenetAkaK1m3ra": "developed by Miguel Benet. aka. k1m3rA",
   "diameter": "Diameter",
-  "diameterWeightFormat": "Diameter: {diameter} cm · Weight: {weight} gr",
+  "diameterWeightFormat": "Diameter: {diameter} cm · Weight: {weight} gr · MV: {mv} m/s",
   "distanceLabel": "Distance",
   "distanceMustBeGreaterThan0m": "Distance must be greater than 0m",
   "drift": "Drift",
@@ -310,7 +310,7 @@
   "yourGuns": "Your Guns",
   "yourScopes": "Your Scopes",
   "lengthBcFormat": "Length: {length} cm · BC: {bc} {model}",
-  "gunDescriptionFormat": "{twistDir}: 1:{twistRate}, MV: {mv} m/s, Zero: {zero} m",
+  "gunDescriptionFormat": "{twistDir}: 1:{twistRate}, Zero: {zero} m",
   "temperature": "Temperature",
   "pressure": "Pressure",
   "humidity": "Humidity",

@@ -9,6 +9,11 @@ class Cartridge {
   final double ballisticCoefficient;
   final int? bcModelType; // Add bcModelType field (0 for G1, 1 for G7)
 
+  /// Velocidad inicial en m/s. Null en datos antiguos (la velocidad se
+  /// guardaba en el arma); la migración la rellena y el motor usa el arma
+  /// como respaldo mientras tanto.
+  final double? muzzleVelocity;
+
   // Time of Flight (ToF) polynomial correction coefficients
   // ToF_adjusted = a0 + a1*t + a2*t² + a3*t³
   final double? tofA0; // Constant term (typically 1.0)
@@ -24,6 +29,7 @@ class Cartridge {
     required this.bulletLength,
     required this.ballisticCoefficient,
     this.bcModelType, // Add to constructor (optional with default null)
+    this.muzzleVelocity,
     this.tofA0, // Default: 1.0 (no correction)
     this.tofA1, // Default: 0.0 (no correction)
     this.tofA2, // Default: 0.0 (no correction)
@@ -44,6 +50,10 @@ class Cartridge {
       bulletLength: json['bulletLength'] ?? '',
       ballisticCoefficient: json['ballisticCoefficient']?.toDouble() ?? 0.0,
       bcModelType: json['bcModelType'], // Add field to from JSON conversion
+      muzzleVelocity:
+          json['muzzleVelocity'] != null
+              ? (json['muzzleVelocity'] as num).toDouble()
+              : null,
       tofA0: json['tofA0'] != null ? (json['tofA0'] as num).toDouble() : null,
       tofA1: json['tofA1'] != null ? (json['tofA1'] as num).toDouble() : null,
       tofA2: json['tofA2'] != null ? (json['tofA2'] as num).toDouble() : null,
@@ -61,6 +71,7 @@ class Cartridge {
       'bulletLength': bulletLength,
       'ballisticCoefficient': ballisticCoefficient,
       'bcModelType': bcModelType, // Add field to JSON conversion
+      'muzzleVelocity': muzzleVelocity,
       'tofA0': tofA0,
       'tofA1': tofA1,
       'tofA2': tofA2,
@@ -77,6 +88,7 @@ class Cartridge {
     double? bulletLength,
     double? ballisticCoefficient,
     int? bcModelType, // Add field to copyWith method
+    double? muzzleVelocity,
     double? tofA0,
     double? tofA1,
     double? tofA2,
@@ -89,7 +101,9 @@ class Cartridge {
       bulletWeight: bulletWeight ?? this.bulletWeight,
       bulletLength: bulletLength ?? this.bulletLength,
       ballisticCoefficient: ballisticCoefficient ?? this.ballisticCoefficient,
-      bcModelType: bcModelType ?? this.bcModelType, // Use the new field in copyWith
+      bcModelType:
+          bcModelType ?? this.bcModelType, // Use the new field in copyWith
+      muzzleVelocity: muzzleVelocity ?? this.muzzleVelocity,
       tofA0: tofA0 ?? this.tofA0,
       tofA1: tofA1 ?? this.tofA1,
       tofA2: tofA2 ?? this.tofA2,

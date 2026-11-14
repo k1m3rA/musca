@@ -8,6 +8,7 @@ import 'widgets/name_input.dart'; // Import the name input widget
 import 'widgets/diameter_input.dart'; // Import the diameter input widget
 import 'widgets/weight_input.dart'; // Import the weight input widget
 import 'package:musca/utils/decimal_input.dart';
+import 'package:musca/screens/profile/screens/gun/screens/widgets/muzzle_velocity_input.dart';
 
 class CartridgeSettingsScreen extends StatefulWidget {
   final Cartridge? cartridge;
@@ -25,13 +26,15 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
   late TextEditingController _bulletWeightController;
   late TextEditingController _bulletLengthController;
   late TextEditingController _ballisticCoefficientController;
+  late TextEditingController _muzzleVelocityController;
 
   late String _name;
   late String _diameter;
   late double _bulletWeight;
   late String _bulletLength;
   late double _ballisticCoefficient;
-  late int _bcModelType; // 0 for G1, 1 for G7
+  late int _bcModelType;
+  late double _muzzleVelocity; // 0 for G1, 1 for G7
 
   String? _cartridgeId;
 
@@ -49,6 +52,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
       _ballisticCoefficient = widget.cartridge!.ballisticCoefficient;
       _bcModelType =
           widget.cartridge!.bcModelType ?? 0; // Default to G1 if not specified
+      _muzzleVelocity = widget.cartridge!.muzzleVelocity ?? 800.0;
     } else {
       // Default values for new cartridge
       _name = "My Cartridge";
@@ -57,6 +61,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
       _bulletLength = "3.550"; // Length in centimeters
       _ballisticCoefficient = 0.5;
       _bcModelType = 0; // Default to G1
+      _muzzleVelocity = 800.0;
     }
     _nameController = TextEditingController(text: _name);
     _diameterController = TextEditingController(text: _diameter);
@@ -67,6 +72,9 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
     _ballisticCoefficientController = TextEditingController(
       text: _ballisticCoefficient.toStringAsFixed(3),
     );
+    _muzzleVelocityController = TextEditingController(
+      text: _muzzleVelocity.toStringAsFixed(0),
+    );
 
     // Add listeners for text fields
     _nameController.addListener(_updateNameFromText);
@@ -76,6 +84,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
     _ballisticCoefficientController.addListener(
       _updateBallisticCoefficientFromText,
     );
+    _muzzleVelocityController.addListener(_updateMuzzleVelocityFromText);
   }
 
   @override
@@ -85,6 +94,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
     _bulletWeightController.dispose();
     _bulletLengthController.dispose();
     _ballisticCoefficientController.dispose();
+    _muzzleVelocityController.dispose();
     super.dispose();
   }
 
@@ -126,6 +136,27 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
       setState(() {
         _bulletLength = _bulletLengthController.text;
       });
+    }
+  }
+
+  void _updateMuzzleVelocity(double delta) {
+    setState(() {
+      _muzzleVelocity += delta;
+      if (_muzzleVelocity < 0) _muzzleVelocity = 0;
+      _muzzleVelocityController.text = _muzzleVelocity.toStringAsFixed(0);
+    });
+  }
+
+  void _updateMuzzleVelocityFromText() {
+    if (_muzzleVelocityController.text.isNotEmpty) {
+      try {
+        final newValue = parseDecimal(_muzzleVelocityController.text);
+        setState(() {
+          _muzzleVelocity = newValue;
+        });
+      } catch (_) {
+        // Invalid input, ignore
+      }
     }
   }
 
@@ -221,6 +252,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
       bulletLength: parseDecimal(_bulletLength),
       ballisticCoefficient: _ballisticCoefficient,
       bcModelType: _bcModelType,
+      muzzleVelocity: _muzzleVelocity,
     );
 
     // Save the cartridge to permanent storage
@@ -299,6 +331,13 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
                   controller: _bulletWeightController,
                   scrollStep: 0.5,
                   onUpdateWeight: _updateBulletWeightDelta,
+                ),
+                const SizedBox(height: 16),
+
+                // Velocidad inicial (antes estaba en el perfil del rifle)
+                MuzzleVelocityInput(
+                  controller: _muzzleVelocityController,
+                  onUpdateMuzzleVelocity: _updateMuzzleVelocity,
                 ),
                 const SizedBox(height: 16),
 

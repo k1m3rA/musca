@@ -7,7 +7,7 @@ import 'package:musca/l10n/app_localizations.dart';
 
 class ListGunsScreen extends StatefulWidget {
   final Gun? selectedGun;
-  
+
   const ListGunsScreen({Key? key, this.selectedGun}) : super(key: key);
 
   @override
@@ -24,17 +24,18 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
     super.initState();
     _loadGuns();
   }
-    Future<void> _loadGuns() async {
+
+  Future<void> _loadGuns() async {
     setState(() {
       _isLoading = true;
     });
-    
+
     final loadedGuns = await GunStorage.getGuns();
-    
+
     setState(() {
       guns = loadedGuns;
       _isLoading = false;
-      
+
       // If we have a pre-selected gun, find and select it
       if (widget.selectedGun != null) {
         for (int i = 0; i < guns.length; i++) {
@@ -52,6 +53,7 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
       _selectedIndex = index;
     });
   }
+
   void _confirmSelection() async {
     if (_selectedIndex != null) {
       final selectedGun = guns[_selectedIndex!];
@@ -61,14 +63,13 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
       Navigator.of(context).pop(selectedGun);
     }
   }
+
   void _addNewGun() async {
     final Gun? newGun = await Navigator.push<Gun>(
       context,
-      MaterialPageRoute(
-        builder: (context) => const GunSettingsScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const GunSettingsScreen()),
     );
-    
+
     // If a gun was returned, add it to the list and save
     if (newGun != null) {
       final wasEmpty = guns.isEmpty;
@@ -80,12 +81,13 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
       });
       // Save the updated list
       await GunStorage.saveGun(newGun);
-      
+
       if (wasEmpty) {
         _confirmSelection();
       }
     }
   }
+
   void _editSelectedGun() {
     if (_selectedIndex != null) {
       Navigator.push<Gun>(
@@ -104,35 +106,42 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
       });
     }
   }
-  
+
   void _deleteSelectedGun() async {
     if (_selectedIndex != null) {
       final gunToDelete = guns[_selectedIndex!];
-      
+
       // Show confirmation dialog
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(AppLocalizations.of(context)!.deleteGun),
-          content: Text(AppLocalizations.of(context)!.areYouSureDeleteGun(gunToDelete.name)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(AppLocalizations.of(context)!.cancel),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text(AppLocalizations.of(context)!.delete),
-            ),
-          ],
-        ),
-      ) ?? false;
-        if (confirmed) {
+      final confirmed =
+          await showDialog<bool>(
+            context: context,
+            builder:
+                (context) => AlertDialog(
+                  title: Text(AppLocalizations.of(context)!.deleteGun),
+                  content: Text(
+                    AppLocalizations.of(
+                      context,
+                    )!.areYouSureDeleteGun(gunToDelete.name),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: Text(AppLocalizations.of(context)!.cancel),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: Text(AppLocalizations.of(context)!.delete),
+                    ),
+                  ],
+                ),
+          ) ??
+          false;
+      if (confirmed) {
         setState(() {
           guns.removeAt(_selectedIndex!);
           _selectedIndex = null;
         });
-        
+
         // Delete the gun using GunStorage
         await GunStorage.deleteGun(gunToDelete.id);
       }
@@ -151,7 +160,7 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
         ),
       );
     }
-    
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -163,149 +172,100 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
               centerTitle: true,
               title: Text(
                 AppLocalizations.of(context)!.yourGuns,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
               ),
             ),
           ),
           guns.isEmpty
               ? SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        GestureDetector(
-                          onTap: _addNewGun,
-                          child: Card(
-                            elevation: 4,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            child: Padding(
-                              padding: const EdgeInsets.all(40.0),
-                              child: Column(
-                                children: [
-                                  SvgPicture.asset(
-                                    'assets/icon/rifle.svg',
-                                    height: 110,
-                                    width: 110,
-                                    color: Theme.of(context).colorScheme.primary,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: _addNewGun,
+                        child: Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(40.0),
+                            child: Column(
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/icon/rifle.svg',
+                                  height: 110,
+                                  width: 110,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  AppLocalizations.of(context)!.addFirstGun,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                   ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    AppLocalizations.of(context)!.addFirstGun,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).colorScheme.primary,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          AppLocalizations.of(context)!.noGunsAddedYet,
-                          style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        AppLocalizations.of(context)!.noGunsAddedYet,
+                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                      ),
+                    ],
                   ),
-                )
+                ),
+              )
               : SliverFillRemaining(
-                  hasScrollBody: true,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 0),
-                    child: ListView.builder(
-                      itemCount: guns.length + 1, // Add 1 for the "Add" button
-                      itemBuilder: (context, index) {
-                        if (index == 0) {
-                          // Add New Gun button at the beginning
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 10.0),
-                            child: GestureDetector(
-                              onTap: _addNewGun,
-                              child: Card(
-                                elevation: 4,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                child: Container(
-                                  height: 100, 
-                                  padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.add_circle_outline,
-                                        size: 40,
-                                        color: Theme.of(context).colorScheme.primary,
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Text(
-                                        AppLocalizations.of(context)!.addNewGun,
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).colorScheme.primary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        }
-
-                        // Adjust the index for the gun list (subtract 1 because of the Add button)
-                        final gunIndex = index - 1;
-                        final isSelected = _selectedIndex == gunIndex;
-                        final gun = guns[gunIndex];
-                        
+                hasScrollBody: true,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 0),
+                  child: ListView.builder(
+                    itemCount: guns.length + 1, // Add 1 for the "Add" button
+                    itemBuilder: (context, index) {
+                      if (index == 0) {
+                        // Add New Gun button at the beginning
                         return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 5),
+                          padding: const EdgeInsets.only(bottom: 10.0),
                           child: GestureDetector(
-                            onTap: () => _selectGun(gunIndex),
+                            onTap: _addNewGun,
                             child: Card(
                               elevation: 4,
-                              color: isSelected 
-                                ? Theme.of(context).colorScheme.primary 
-                                : null,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              child: Container(
+                                height: 100,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16.0,
+                                  horizontal: 20.0,
+                                ),
                                 child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            gun.name,
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: isSelected 
-                                                ? Theme.of(context).colorScheme.background
-                                                : Theme.of(context).colorScheme.primary,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                          Text(
-                                            AppLocalizations.of(context)!.gunDescriptionFormat(
-                                              gun.twistDirection == 0 ? AppLocalizations.of(context)!.leftTwist : AppLocalizations.of(context)!.rightTwist,
-                                              gun.twistRate.toStringAsFixed(1),
-                                              gun.muzzleVelocity.toStringAsFixed(0),
-                                              gun.zeroRange.toStringAsFixed(0)
-                                            ),
-                                            style: TextStyle(
-                                              color: isSelected
-                                                ? Theme.of(context).colorScheme.background.withOpacity(0.8)
-                                                : null,
-                                            ),
-                                          ),
-                                        ],
+                                    Icon(
+                                      Icons.add_circle_outline,
+                                      size: 40,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Text(
+                                      AppLocalizations.of(context)!.addNewGun,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
                                       ),
                                     ),
                                   ],
@@ -314,61 +274,151 @@ class _ListGunsScreenState extends State<ListGunsScreen> {
                             ),
                           ),
                         );
-                      },
-                    ),
+                      }
+
+                      // Adjust the index for the gun list (subtract 1 because of the Add button)
+                      final gunIndex = index - 1;
+                      final isSelected = _selectedIndex == gunIndex;
+                      final gun = guns[gunIndex];
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 5),
+                        child: GestureDetector(
+                          onTap: () => _selectGun(gunIndex),
+                          child: Card(
+                            elevation: 4,
+                            color:
+                                isSelected
+                                    ? Theme.of(context).colorScheme.primary
+                                    : null,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          gun.name,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color:
+                                                isSelected
+                                                    ? Theme.of(
+                                                      context,
+                                                    ).colorScheme.background
+                                                    : Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        Text(
+                                          AppLocalizations.of(
+                                            context,
+                                          )!.gunDescriptionFormat(
+                                            gun.twistDirection == 0
+                                                ? AppLocalizations.of(
+                                                  context,
+                                                )!.leftTwist
+                                                : AppLocalizations.of(
+                                                  context,
+                                                )!.rightTwist,
+                                            gun.twistRate.toStringAsFixed(1),
+                                            gun.zeroRange.toStringAsFixed(0),
+                                          ),
+                                          style: TextStyle(
+                                            color:
+                                                isSelected
+                                                    ? Theme.of(context)
+                                                        .colorScheme
+                                                        .background
+                                                        .withOpacity(0.8)
+                                                    : null,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
+              ),
         ],
       ),
-      floatingActionButton: _selectedIndex != null 
-        ? Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              const SizedBox(width: 30), // Push the buttons to the right
-              Material(
-                color: Colors.transparent,
-                elevation: 10.0,
-                borderRadius: BorderRadius.circular(30),
-                shadowColor: Colors.black.withOpacity(1),
-                child: FloatingActionButton(
-                  heroTag: "delete_button",
-                  onPressed: _deleteSelectedGun,
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  elevation: 0,
-                  child: Icon(Icons.delete, color: Theme.of(context).scaffoldBackgroundColor)
-                ),
-              ),
-              const SizedBox(width: 16),
-              Material(
-                color: Colors.transparent,
-                elevation: 10.0,
-                borderRadius: BorderRadius.circular(30),
-                shadowColor: Colors.black.withOpacity(1),
-                child: FloatingActionButton(
-                  heroTag: "edit_button",
-                  onPressed: _editSelectedGun,
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  elevation: 0,
-                  child: Icon(Icons.edit, color: Theme.of(context).scaffoldBackgroundColor)
-                ),
-              ),
-              const SizedBox(width: 16),
-              Material(
-                color: Colors.transparent,
-                elevation: 10.0,
-                borderRadius: BorderRadius.circular(30),
-                shadowColor: Colors.black.withOpacity(1),
-                child: FloatingActionButton(
-                  heroTag: "select_button",
-                  onPressed: _confirmSelection,
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  elevation: 0,
-                  child: Icon(Icons.check, color: Theme.of(context).scaffoldBackgroundColor)
-                ),
-              ),
-            ],
-          )
-        : null,
+      floatingActionButton:
+          _selectedIndex != null
+              ? Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  const SizedBox(width: 30), // Push the buttons to the right
+                  Material(
+                    color: Colors.transparent,
+                    elevation: 10.0,
+                    borderRadius: BorderRadius.circular(30),
+                    shadowColor: Colors.black.withOpacity(1),
+                    child: FloatingActionButton(
+                      heroTag: "delete_button",
+                      onPressed: _deleteSelectedGun,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      elevation: 0,
+                      child: Icon(
+                        Icons.delete,
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Material(
+                    color: Colors.transparent,
+                    elevation: 10.0,
+                    borderRadius: BorderRadius.circular(30),
+                    shadowColor: Colors.black.withOpacity(1),
+                    child: FloatingActionButton(
+                      heroTag: "edit_button",
+                      onPressed: _editSelectedGun,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      elevation: 0,
+                      child: Icon(
+                        Icons.edit,
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Material(
+                    color: Colors.transparent,
+                    elevation: 10.0,
+                    borderRadius: BorderRadius.circular(30),
+                    shadowColor: Colors.black.withOpacity(1),
+                    child: FloatingActionButton(
+                      heroTag: "select_button",
+                      onPressed: _confirmSelection,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      elevation: 0,
+                      child: Icon(
+                        Icons.check,
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                      ),
+                    ),
+                  ),
+                ],
+              )
+              : null,
     );
   }
 }

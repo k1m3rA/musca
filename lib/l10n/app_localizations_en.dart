@@ -206,8 +206,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diameter => 'Diameter';
 
   @override
-  String diameterWeightFormat(String diameter, String weight) {
-    return 'Diameter: $diameter cm · Weight: $weight gr';
+  String diameterWeightFormat(String diameter, String weight, String mv) {
+    return 'Diameter: $diameter cm · Weight: $weight gr · MV: $mv m/s';
   }
 
   @override
@@ -534,13 +534,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String gunDescriptionFormat(
-    String twistDir,
-    String twistRate,
-    String mv,
-    String zero,
-  ) {
-    return '$twistDir: 1:$twistRate, MV: $mv m/s, Zero: $zero m';
+  String gunDescriptionFormat(String twistDir, String twistRate, String zero) {
+    return '$twistDir: 1:$twistRate, Zero: $zero m';
   }
 
   @override

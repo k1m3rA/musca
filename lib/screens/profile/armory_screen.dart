@@ -14,10 +14,7 @@ import '../../services/scope_storage.dart'; // Add import for ScopeStorage
 class ProfileScreen extends StatefulWidget {
   final Function(int) onNavigate;
 
-  const ProfileScreen({
-    Key? key,
-    required this.onNavigate,
-  }) : super(key: key);
+  const ProfileScreen({Key? key, required this.onNavigate}) : super(key: key);
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -38,7 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadSavedSelections() async {
     setState(() {
       _isLoading = true;
-    });    // Load saved gun
+    }); // Load saved gun
     try {
       final Gun? gun = await GunStorage.getSelectedGun();
       if (gun != null) {
@@ -52,7 +49,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     // Load saved cartridge
     try {
-      final Cartridge? cartridge = await CartridgeStorage.getSelectedCartridge();
+      final Cartridge? cartridge =
+          await CartridgeStorage.getSelectedCartridge();
       if (cartridge != null) {
         setState(() {
           selectedCartridge = cartridge;
@@ -102,9 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               centerTitle: true,
               title: Text(
                 AppLocalizations.of(context)!.armory,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
               ),
             ),
           ),
@@ -119,10 +115,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     final Gun? result = await Navigator.push<Gun>(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ListGunsScreen(selectedGun: selectedGun),
+                        builder:
+                            (context) =>
+                                ListGunsScreen(selectedGun: selectedGun),
                       ),
                     );
-                      if (result != null) {
+                    if (result != null) {
                       setState(() {
                         selectedGun = result;
                       });
@@ -132,7 +130,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   },
                   child: Card(
                     elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -146,7 +146,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            selectedGun?.name ?? AppLocalizations.of(context)!.gunProfile.replaceAll('Profile', '').trim(),
+                            selectedGun?.name ??
+                                AppLocalizations.of(
+                                  context,
+                                )!.gunProfile.replaceAll('Profile', '').trim(),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -155,10 +158,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           if (selectedGun != null)
                             Text(
-                              AppLocalizations.of(context)!.gunDescriptionFormat(
-                                selectedGun!.twistDirection == 1 ? AppLocalizations.of(context)!.rightTwist : AppLocalizations.of(context)!.leftTwist,
+                              AppLocalizations.of(
+                                context,
+                              )!.gunDescriptionFormat(
+                                selectedGun!.twistDirection == 1
+                                    ? AppLocalizations.of(context)!.rightTwist
+                                    : AppLocalizations.of(context)!.leftTwist,
                                 selectedGun!.twistRate.toStringAsFixed(1),
-                                selectedGun!.muzzleVelocity.toStringAsFixed(0),
                                 selectedGun!.zeroRange.toStringAsFixed(0),
                               ),
                               style: TextStyle(
@@ -179,10 +185,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     final Scope? result = await Navigator.push<Scope>(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ListScopeScreen(selectedScope: selectedScope),
+                        builder:
+                            (context) =>
+                                ListScopeScreen(selectedScope: selectedScope),
                       ),
                     );
-                    
+
                     if (result != null) {
                       setState(() {
                         selectedScope = result;
@@ -193,7 +201,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   },
                   child: Card(
                     elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -207,18 +217,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            selectedScope?.name ?? AppLocalizations.of(context)!.scopeProfile.replaceAll('Profile', '').trim(),
+                            selectedScope?.name ??
+                                AppLocalizations.of(context)!.scopeProfile
+                                    .replaceAll('Profile', '')
+                                    .trim(),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
-                          if (selectedScope != null) 
+                          if (selectedScope != null)
                             Column(
                               children: [
                                 Text(
-                                  AppLocalizations.of(context)!.sightHeightFormat(selectedScope!.sightHeight.toStringAsFixed(2), selectedScope!.units <= 1 ? 'cm' : 'cm'),
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.sightHeightFormat(
+                                    selectedScope!.sightHeight.toStringAsFixed(
+                                      2,
+                                    ),
+                                    selectedScope!.units <= 1 ? 'cm' : 'cm',
+                                  ),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey[600],
@@ -226,7 +246,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   textAlign: TextAlign.center,
                                 ),
                                 Text(
-                                  AppLocalizations.of(context)!.clickUnitsFormat(selectedScope!.getUnitsDisplayName()),
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.clickUnitsFormat(
+                                    selectedScope!.getUnitsDisplayName(),
+                                  ),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey[600],
@@ -247,10 +271,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     final Cartridge? result = await Navigator.push<Cartridge>(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ListCartridgeScreen(selectedCartridge: selectedCartridge),
+                        builder:
+                            (context) => ListCartridgeScreen(
+                              selectedCartridge: selectedCartridge,
+                            ),
                       ),
                     );
-                    
+
                     if (result != null) {
                       setState(() {
                         selectedCartridge = result;
@@ -261,7 +288,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   },
                   child: Card(
                     elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -275,7 +304,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            selectedCartridge?.name ?? AppLocalizations.of(context)!.cartridgeProfile.replaceAll('Profile', '').trim(),
+                            selectedCartridge?.name ??
+                                AppLocalizations.of(context)!.cartridgeProfile
+                                    .replaceAll('Profile', '')
+                                    .trim(),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -286,7 +318,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Column(
                               children: [
                                 Text(
-                                  AppLocalizations.of(context)!.diameterWeightFormat(selectedCartridge!.diameter.toString(), selectedCartridge!.bulletWeight.toString()),
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.diameterWeightFormat(
+                                    selectedCartridge!.diameter.toString(),
+                                    selectedCartridge!.bulletWeight.toString(),
+                                    selectedCartridge!.muzzleVelocity
+                                            ?.toStringAsFixed(0) ??
+                                        '-',
+                                  ),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey[600],
@@ -294,7 +334,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   textAlign: TextAlign.center,
                                 ),
                                 Text(
-                                  AppLocalizations.of(context)!.bcFormat(selectedCartridge!.ballisticCoefficient.toStringAsFixed(3), selectedCartridge!.bcModelType == 0 ? "G1" : "G7"),
+                                  AppLocalizations.of(context)!.bcFormat(
+                                    selectedCartridge!.ballisticCoefficient
+                                        .toStringAsFixed(3),
+                                    selectedCartridge!.bcModelType == 0
+                                        ? "G1"
+                                        : "G7",
+                                  ),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey[600],

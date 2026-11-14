@@ -178,6 +178,7 @@ class BallisticsCalculator {
       bulletLength: 0.0,
       ballisticCoefficient: 0.504,
       bcModelType: 0,
+      muzzleVelocity: 820.0,
     );
     final defaultScope = Scope(
       id: 'default-test-scope',
@@ -254,6 +255,9 @@ class BallisticsCalculator {
       humidityPercent: humidity,
       altitude: altitude,
     );
+    // La velocidad inicial vive en el cartucho; el valor del arma queda
+    // como respaldo para perfiles antiguos sin migrar.
+    final muzzleVelocity = cartridge.muzzleVelocity ?? gun.muzzleVelocity;
     final sightHeight = _sightHeightM(scope);
     final shotAngleDeg = elevationAngle + slopeAngle;
 
@@ -263,7 +267,7 @@ class BallisticsCalculator {
     if (gun.zeroRange > 0.0) {
       zeroElDeg = v5.solveElevation(
         proj,
-        gun.muzzleVelocity,
+        muzzleVelocity,
         gun.zeroRange,
         sightHeight: sightHeight,
         atmosphere: atm,
@@ -274,7 +278,7 @@ class BallisticsCalculator {
     final wind = v5.windVector(windSpeed, _windFromAngle(windDirection));
     final trajectory = v5.simulate(
       proj,
-      gun.muzzleVelocity,
+      muzzleVelocity,
       boreElDeg,
       azimuthDeg: azimuthAngle,
       latitudeDeg: latitude,

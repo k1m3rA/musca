@@ -3,10 +3,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:musca/l10n/app_localizations.dart';
 import '../navigation/navigation_container.dart';
+import '../services/profile_migration.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
-  
+
   @override
   State<MyApp> createState() => _MyAppState();
 }
@@ -20,6 +21,8 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _loadPreferences();
+    // Migración v5: la velocidad inicial pasa del arma al cartucho.
+    ProfileMigration.migrateMuzzleVelocityToCartridges();
   }
 
   Future<void> _loadPreferences() async {
@@ -102,7 +105,7 @@ class _MyAppState extends State<MyApp> {
       ),
       themeMode: _themeMode,
       home: NavigationContainer(
-        title: 'Last Shots', 
+        title: 'Last Shots',
         onThemeChanged: _updateTheme,
         onLocaleChanged: _updateLocale,
       ),

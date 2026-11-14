@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:musca/l10n/app_localizations.dart';
 import 'widgets/twist_rate_input.dart';
-import 'widgets/muzzle_velocity_input.dart';
 import 'widgets/zero_range_input.dart';
 import 'widgets/name_input.dart';
 import '../../../../../models/gun_model.dart'; // Import the new Gun model
@@ -25,9 +24,6 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
   late double _twistRate;
   late int _twistDirection;
 
-  late TextEditingController _muzzleVelocityController;
-  late double _muzzleVelocity;
-
   late TextEditingController _zeroRangeController;
   late double _zeroRange;
 
@@ -42,13 +38,11 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
       _name = widget.gun!.name;
       _twistRate = widget.gun!.twistRate;
       _twistDirection = widget.gun!.twistDirection;
-      _muzzleVelocity = widget.gun!.muzzleVelocity;
       _zeroRange = widget.gun!.zeroRange;
     } else {
       // Default values for new gun
       _name = "My Gun";
       _twistRate = 10.0;
-      _muzzleVelocity = 800.0;
       _zeroRange = 100.0;
       _twistDirection = 1; // Default to right twist
     }
@@ -57,9 +51,6 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
     _twistRateController = TextEditingController(
       text: _twistRate.toStringAsFixed(1),
     );
-    _muzzleVelocityController = TextEditingController(
-      text: _muzzleVelocity.toStringAsFixed(0),
-    );
     _zeroRangeController = TextEditingController(
       text: _zeroRange.toStringAsFixed(0),
     );
@@ -67,7 +58,6 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
     // Add listeners to update values when text changes
     _nameController.addListener(_updateNameFromText);
     _twistRateController.addListener(_updateTwistRateFromText);
-    _muzzleVelocityController.addListener(_updateMuzzleVelocityFromText);
     _zeroRangeController.addListener(_updateZeroRangeFromText);
   }
 
@@ -75,7 +65,6 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
   void dispose() {
     _nameController.dispose();
     _twistRateController.dispose();
-    _muzzleVelocityController.dispose();
     _zeroRangeController.dispose();
     super.dispose();
   }
@@ -100,14 +89,6 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
     });
   }
 
-  void _updateMuzzleVelocity(double delta) {
-    setState(() {
-      _muzzleVelocity += delta;
-      if (_muzzleVelocity < 0) _muzzleVelocity = 0;
-      _muzzleVelocityController.text = _muzzleVelocity.toStringAsFixed(0);
-    });
-  }
-
   void _updateZeroRange(double delta) {
     setState(() {
       _zeroRange += delta;
@@ -123,7 +104,9 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
       name: _name,
       twistRate: _twistRate,
       twistDirection: _twistDirection,
-      muzzleVelocity: _muzzleVelocity,
+      // La velocidad inicial se edita ahora en el cartucho; se conserva
+      // la del arma como respaldo para datos antiguos sin migrar.
+      muzzleVelocity: widget.gun?.muzzleVelocity ?? 800.0,
       zeroRange: _zeroRange,
     );
 
@@ -177,19 +160,6 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
     }
   }
 
-  void _updateMuzzleVelocityFromText() {
-    if (_muzzleVelocityController.text.isNotEmpty) {
-      try {
-        final newValue = parseDecimal(_muzzleVelocityController.text);
-        setState(() {
-          _muzzleVelocity = newValue;
-        });
-      } catch (_) {
-        // Invalid input, ignore
-      }
-    }
-  }
-
   void _updateZeroRangeFromText() {
     if (_zeroRangeController.text.isNotEmpty) {
       try {
@@ -235,11 +205,6 @@ class _GunSettingsScreenState extends State<GunSettingsScreen> {
                 NameInput(
                   controller: _nameController,
                   onUpdateName: _updateName,
-                ),
-                const SizedBox(height: 16),
-                MuzzleVelocityInput(
-                  controller: _muzzleVelocityController,
-                  onUpdateMuzzleVelocity: _updateMuzzleVelocity,
                 ),
                 const SizedBox(height: 16),
                 ZeroRangeInput(

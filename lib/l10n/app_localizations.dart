@@ -456,8 +456,8 @@ abstract class AppLocalizations {
   /// No description provided for @diameterWeightFormat.
   ///
   /// In en, this message translates to:
-  /// **'Diameter: {diameter} cm · Weight: {weight} gr'**
-  String diameterWeightFormat(String diameter, String weight);
+  /// **'Diameter: {diameter} cm · Weight: {weight} gr · MV: {mv} m/s'**
+  String diameterWeightFormat(String diameter, String weight, String mv);
 
   /// No description provided for @distanceLabel.
   ///
@@ -1051,13 +1051,8 @@ abstract class AppLocalizations {
   /// No description provided for @gunDescriptionFormat.
   ///
   /// In en, this message translates to:
-  /// **'{twistDir}: 1:{twistRate}, MV: {mv} m/s, Zero: {zero} m'**
-  String gunDescriptionFormat(
-    String twistDir,
-    String twistRate,
-    String mv,
-    String zero,
-  );
+  /// **'{twistDir}: 1:{twistRate}, Zero: {zero} m'**
+  String gunDescriptionFormat(String twistDir, String twistRate, String zero);
 
   /// No description provided for @temperature.
   ///
