@@ -172,7 +172,7 @@ void main() {
       tR.impact.hitMaxRange == tR.hitMaxRange);
   check('Plano inalcanzable: t_max_reached=True (no es un impacto)',
       tT.tMaxReached && !tT.hitGround && tT.impact.tMaxReached);
-  check('impact() devuelve doubles', tG.impact.rangeM is double);
+  check('impact() devuelve valores finitos', tG.impact.rangeM.isFinite);
 
   print(_ok ? '\nTodos los tests OK' : '\nHAY TESTS FALLIDOS');
   if (!_ok) {

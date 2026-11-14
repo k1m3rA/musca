@@ -337,6 +337,42 @@ class BallisticsCalculator {
     );
   }
 
+  /// Alias de compatibilidad: en el modelo v5 la línea de mira SIEMPRE se
+  /// deriva del cero del arma (el comportamiento "fixed LOS" es el nativo).
+  static BallisticsResult calculateWithFixedLos(
+    double distance,
+    double windSpeed,
+    double windDirection,
+    Gun gun,
+    Cartridge cartridge,
+    Scope scope, {
+    required double temperature,
+    required double pressure,
+    required double humidity,
+    double elevationAngle = 0.0,
+    double azimuthAngle = 0.0,
+    double slopeAngle = 0.0,
+    double latitude = 0.0,
+    double altitude = 0.0,
+  }) {
+    return calculateWithProfiles(
+      distance,
+      windSpeed,
+      windDirection,
+      gun,
+      cartridge,
+      scope,
+      temperature: temperature,
+      pressure: pressure,
+      humidity: humidity,
+      elevationAngle: elevationAngle,
+      azimuthAngle: azimuthAngle,
+      slopeAngle: slopeAngle,
+      latitude: latitude,
+      altitude: altitude,
+    );
+  }
+
   /// Tabla balística reutilizando UNA sola simulación.
   static List<BallisticsResult> generateBallisticTable(
     double startDistance,

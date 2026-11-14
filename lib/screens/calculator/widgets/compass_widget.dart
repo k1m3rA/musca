@@ -44,14 +44,14 @@ class _CompassWidgetState extends State<CompassWidget> {
     }
 
     _compassSubscription = FlutterCompass.events!.listen((event) {
+      // Asegurar que la dirección siempre sea un valor positivo entre 0 y 360
+      double heading = event.heading ?? 0;
+
+      // Normalizamos al rango 0-360
+      heading = heading % 360;
+      if (heading < 0) heading += 360;
+
       setState(() {
-        // Asegurar que la dirección siempre sea un valor positivo entre 0 y 360
-        double heading = event.heading ?? 0;
-        
-        // Normalizamos al rango 0-360
-        heading = heading % 360;
-        if (heading < 0) heading += 360;
-        
         _direction = heading;
       });
 

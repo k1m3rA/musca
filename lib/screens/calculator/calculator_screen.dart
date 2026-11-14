@@ -53,6 +53,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   final TextEditingController _humidityController = TextEditingController(text: '50.0');
   double _humidity = 50.0;  final TextEditingController _latitudeController = TextEditingController(text: '0.0');
   double _latitude = 0.0;
+  // Acimut del disparo (rumbo de la brújula) y altitud GPS de la boca del arma
+  double _azimuth = 0.0;
+  double _altitude = 0.0;
 
   // Profile data
   Gun? _selectedGun;
@@ -302,8 +305,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         pressure: _pressure,
         humidity: _humidity,
         elevationAngle: _angle,
-        azimuthAngle: _windDirection,
+        azimuthAngle: _azimuth,
         latitude: _latitude,
+        altitude: _altitude,
       );
       
       final calculation = Calculation(
@@ -321,6 +325,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         dropMrad: ballisticsResult.dropMrad,
         driftMoa: ballisticsResult.driftMoa,
         dropMoa: ballisticsResult.dropMoa,
+        azimuth: _azimuth,
+        altitude: _altitude,
+        timeOfFlight: ballisticsResult.timeS,
+        impactVelocity: ballisticsResult.speedMs,
+        impactEnergy: ballisticsResult.energyJ,
+        spinDrift: ballisticsResult.spinDriftM.isNaN
+            ? null
+            : ballisticsResult.spinDriftM,
       );
       
       await CalculationStorage.saveCalculation(calculation);
@@ -499,6 +511,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     onUpdatePressure: _updatePressure,
                     onUpdateHumidity: _updateHumidity,
                     onUpdateLatitude: _updateLatitude, // Pass the latitude callback
+                    onUpdateAltitude: (altitude) {
+                      setState(() {
+                        _altitude = altitude;
+                      });
+                    },
                     onNavigateToSettingsWithHighlight: widget.onNavigateToSettingsWithHighlight,
                   ),
                     const SizedBox(height: 20),                  // Display the current latitude value (optional)
