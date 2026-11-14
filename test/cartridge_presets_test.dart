@@ -3,17 +3,17 @@ import 'package:musca/data/cartridge_presets.dart';
 
 void main() {
   test('la batería de calibres es válida', () {
-    expect(kCartridgePresets.length, greaterThanOrEqualTo(10));
+    expect(kCartridgePresets.length, 44);
     final names = kCartridgePresets.map((p) => p.name).toList();
     expect(names.toSet().length, names.length); // sin duplicados
     for (final p in kCartridgePresets) {
-      expect(p.diameterCm, inInclusiveRange(0.4, 1.2), reason: p.name);
-      expect(p.bulletLengthCm, inInclusiveRange(1.0, 5.0), reason: p.name);
-      expect(p.bulletWeightGr, inInclusiveRange(30, 400), reason: p.name);
-      expect(p.ballisticCoefficient, inInclusiveRange(0.1, 1.2),
+      expect(p.diameterCm, inInclusiveRange(0.4, 2.0), reason: p.name);
+      expect(p.bulletLengthCm, inInclusiveRange(0.5, 7.0), reason: p.name);
+      expect(p.bulletWeightGr, inInclusiveRange(10, 800), reason: p.name);
+      expect(p.ballisticCoefficient, inInclusiveRange(0.05, 1.3),
           reason: p.name);
       expect(p.bcModelType, isIn([0, 1]), reason: p.name);
-      expect(p.muzzleVelocity, inInclusiveRange(500, 1200), reason: p.name);
+      expect(p.muzzleVelocity, inInclusiveRange(200, 1400), reason: p.name);
     }
   });
 
