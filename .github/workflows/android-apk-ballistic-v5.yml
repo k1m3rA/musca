@@ -27,6 +27,7 @@ jobs:
           p = Path('android/app/build.gradle.kts')
           s = p.read_text().replace('// id("kotlin-android") // Removed for Built-in Kotlin', 'id("org.jetbrains.kotlin.android")')
           s = s.replace('keepDebugSymbols += setOf("**/*.so")', '// Native debug symbols stripped for compact test APK')
+          s += '\nkotlin {\n    compilerOptions {\n        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)\n    }\n}\n'
           p.write_text(s)
           PY
       - name: Resolve dependencies
