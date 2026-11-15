@@ -8,6 +8,7 @@ import 'widgets/bc_input.dart'; // Import the BC input widget
 import 'package:musca/data/cartridge_presets.dart';
 import 'widgets/diameter_input.dart'; // Import the diameter input widget
 import 'widgets/weight_input.dart'; // Import the weight input widget
+import 'widgets/cartridge_preset_picker_dialog.dart'; // Modal de calibres precargados
 import 'package:musca/utils/decimal_input.dart';
 import 'package:musca/screens/profile/screens/gun/screens/widgets/muzzle_velocity_input.dart';
 
@@ -56,7 +57,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
       _muzzleVelocity = widget.cartridge!.muzzleVelocity ?? 800.0;
     } else {
       // Default values for new cartridge
-      _name = "My Cartridge";
+      _name = ""; // Vacío: al pulsar el campo se abre la lista de calibres
       _diameter = "0.782"; // Diameter in centimeters (.308" = 0.782 cm)
       _bulletWeight = 168.0;
       _bulletLength = "3.550"; // Length in centimeters
@@ -97,12 +98,6 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
     _ballisticCoefficientController.dispose();
     _muzzleVelocityController.dispose();
     super.dispose();
-  }
-
-  void _updateName(String value) {
-    setState(() {
-      _name = value;
-    });
   }
 
   void _updateNameFromText() {
@@ -176,6 +171,7 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
   void _applyPreset(CartridgePreset preset) {
     setState(() {
       _name = preset.name;
+      _nameController.text = _name;
       _diameter = preset.diameterCm.toStringAsFixed(3);
       _bulletLength = preset.bulletLengthCm.toStringAsFixed(3);
       _bulletWeight = preset.bulletWeightGr;
@@ -192,58 +188,61 @@ class _CartridgeSettingsScreenState extends State<CartridgeSettingsScreen> {
     });
   }
 
-  // Campo de nombre con autocompletado de calibres precargados.
+  // Campo de nombre: vacío por defecto; al pulsarlo se abre el modal de
+  // calibres precargados (con buscador) en lugar del autocompletado inline.
   Widget _buildNameWithPresets(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(10),
-      child: Autocomplete<CartridgePreset>(
-        initialValue: TextEditingValue(text: _name),
-        displayStringForOption: (preset) => preset.name,
-        optionsBuilder: (TextEditingValue value) {
-          final query = value.text.trim().toLowerCase();
-          if (query.isEmpty) return kCartridgePresets;
-          return kCartridgePresets.where(
-            (preset) => preset.name.toLowerCase().contains(query),
-          );
-        },
-        onSelected: _applyPreset,
-        fieldViewBuilder: (
-          BuildContext fieldContext,
-          TextEditingController textController,
-          FocusNode focusNode,
-          VoidCallback onFieldSubmitted,
-        ) {
-          return TextField(
-            controller: textController,
-            focusNode: focusNode,
-            decoration: InputDecoration(
-              labelText: l10n.cartridgeName,
-              helperText: l10n.cartridgePresetHint,
-              labelStyle: TextStyle(
-                color: Theme.of(fieldContext).colorScheme.primary,
-              ),
-              border: const OutlineInputBorder(
-                borderSide: BorderSide(width: 2.0),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  width: 2.0,
-                  color: Theme.of(fieldContext).colorScheme.outline,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  width: 2.0,
-                  color: Theme.of(fieldContext).colorScheme.primary,
-                ),
-              ),
+      child: TextField(
+        controller: _nameController,
+        readOnly: true,
+        onTap: _openPresetPicker,
+        decoration: InputDecoration(
+          labelText: l10n.cartridgeName,
+          helperText: l10n.cartridgePresetHint,
+          suffixIcon: Icon(
+            Icons.arrow_drop_down,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          labelStyle: TextStyle(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          border: const OutlineInputBorder(
+            borderSide: BorderSide(width: 2.0),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              width: 2.0,
+              color: Theme.of(context).colorScheme.outline,
             ),
-            onChanged: _updateName,
-          );
-        },
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              width: 2.0,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        ),
       ),
     );
+  }
+
+  // Abre el modal de selección de cartucho y aplica la elección.
+  Future<void> _openPresetPicker() async {
+    final selection = await showDialog<CartridgePresetSelection>(
+      context: context,
+      builder: (dialogContext) => const CartridgePresetPickerDialog(),
+    );
+    if (selection == null) return;
+    if (selection.preset != null) {
+      _applyPreset(selection.preset!);
+    } else if (selection.customName != null) {
+      setState(() {
+        _name = selection.customName!;
+        _nameController.text = _name;
+      });
+    }
   }
 
   // Add method to handle weight delta updates

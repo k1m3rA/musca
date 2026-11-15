@@ -20,6 +20,13 @@
       }
     }
   },
+  "@useCustomCartridgeName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "@areYouSureDeleteGun": {
     "placeholders": {
       "gunName": {
@@ -180,7 +187,7 @@
   "bulletTrajectoryVerticalDrop": "Bullet trajectory (vertical drop)",
   "cancel": "Cancel",
   "cartridgeName": "Cartridge Name",
-  "cartridgePresetHint": "Type a name or pick a caliber from the list",
+  "cartridgePresetHint": "Tap to pick a caliber or type a new name",
   "cartridgeProfile": "Cartridge Profile",
   "cartridgeProfileMissing": "• Cartridge profile missing",
   "centimeters": "Centimeters",
@@ -253,6 +260,7 @@
   "musca": "Musca",
   "muzzleVelocity": "Muzzle Velocity",
   "noCartridgesAddedYet": "No cartridges added yet",
+  "noCartridgesFound": "No cartridges match the search",
   "noCompassAvailable": "No compass available",
   "noGunsAddedYet": "No guns added yet",
   "noProfilesSelected": "No profiles selected",
@@ -273,6 +281,8 @@
   "readOurCompletePrivacyPolicyOnline": "Read our complete privacy policy online",
   "rightTwist": "Right Twist",
   "save": "Save",
+  "searchCartridgesHint": "Type to filter the list",
+  "selectCartridgePreset": "Choose a cartridge",
   "saveAngle": "Save Angle",
   "scopeName": "Scope Name",
   "scopeProfile": "Scope Profile",
@@ -293,6 +303,7 @@
   "twistRate": "Twist Rate",
   "unableToCalculateTrajectorynpleaseEnsureAllProfilesAreSelected": "Unable to calculate trajectory.\\nPlease ensure all profiles are selected.",
   "unidad": "Unidad: ",
+  "useCustomCartridgeName": "Use \"{name}\" as the name",
   "units": "Units:",
   "unitsLabel": "Units:",
   "verticalAngle": "Vertical angle",

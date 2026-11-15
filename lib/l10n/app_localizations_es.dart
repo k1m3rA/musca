@@ -108,7 +108,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cartridgePresetHint =>
-      'Escribe el nombre o elige un calibre de la lista';
+      'Toca para elegir un calibre o escribir un nombre';
 
   @override
   String get cartridgeProfile => 'Perfil de Cartucho';
@@ -346,6 +346,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get noCartridgesAddedYet => 'Aún no se han añadido cartuchos';
 
   @override
+  String get noCartridgesFound => 'Ningún cartucho coincide con la búsqueda';
+
+  @override
   String get noCompassAvailable => 'Brújula no disponible';
 
   @override
@@ -410,6 +413,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get save => 'Guardar';
+
+  @override
+  String get searchCartridgesHint => 'Escribe para filtrar la lista';
+
+  @override
+  String get selectCartridgePreset => 'Elige un cartucho';
 
   @override
   String get saveAngle => 'Guardar Ángulo';
@@ -481,6 +490,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get unidad => 'Unidad: ';
+
+  @override
+  String useCustomCartridgeName(String name) {
+    return 'Usar \"$name\" como nombre';
+  }
 
   @override
   String get units => 'Unidades:';

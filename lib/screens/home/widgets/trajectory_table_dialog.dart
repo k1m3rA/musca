@@ -286,30 +286,50 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final isLandscape = media.orientation == Orientation.landscape;
+    final gap = isLandscape ? 6.0 : 16.0;
+
     return Dialog(
+      // En horizontal el diálogo usa casi toda la pantalla: la altura
+      // disponible es pequeña y con los márgenes por defecto la tabla no se ve.
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: isLandscape ? 16 : 40,
+        vertical: isLandscape ? 8 : 24,
+      ),
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.9,
-        height: MediaQuery.of(context).size.height * 0.8,
-        padding: const EdgeInsets.all(16.0),
+        width: media.size.width * (isLandscape ? 0.96 : 0.9),
+        height: media.size.height * (isLandscape ? 0.95 : 0.8),
+        padding: EdgeInsets.all(isLandscape ? 10.0 : 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [                Text(
-                  AppLocalizations.of(context)!.correctionTable,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
+              children: [
+                Expanded(
+                  child: Text(
+                    AppLocalizations.of(context)!.correctionTable,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),                IconButton(
+                ),
+                if (isLandscape)
+                  IconButton(
+                    tooltip: AppLocalizations.of(context)!.exportToPdf,
+                    icon: const Icon(Icons.picture_as_pdf),
+                    onPressed: _exportToPdf,
+                  ),
+                IconButton(
                   icon: const Icon(Icons.close),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: isLandscape ? 4 : 8),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(isLandscape ? 8 : 12),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
@@ -320,22 +340,23 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
               child: Text(
                 AppLocalizations.of(context)!.correctionsRelativeToLineOfSightPositiveDropBulletHitsBelowLineOfSightPositiveDriftBulletHitsToTheRight,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: isLandscape ? 11 : 12,
                   color: Theme.of(context).colorScheme.primary,
                   fontStyle: FontStyle.italic,
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: gap),
             Row(
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(AppLocalizations.of(context)!.stepSizeMLabel, style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(AppLocalizations.of(context)!.stepSizeMLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: isLandscape ? 12 : 14)),
                       DropdownButton<int>(
                         value: _stepSize,
+                        isDense: isLandscape,
                         items: _stepOptions.map((step) {
                           return DropdownMenuItem(
                             value: step,
@@ -359,9 +380,10 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(AppLocalizations.of(context)!.unitsLabel, style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(AppLocalizations.of(context)!.unitsLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: isLandscape ? 12 : 14)),
                       DropdownButton<int>(
                         value: _selectedUnits,
+                        isDense: isLandscape,
                         items: _unitLabels.asMap().entries.map((entry) {
                           return DropdownMenuItem(
                             value: entry.key,
@@ -381,9 +403,11 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: gap),
             if (_isCalculating)
-              const Center(child: CircularProgressIndicator())
+              const Expanded(
+                child: Center(child: CircularProgressIndicator()),
+              )
             else
               Expanded(
                 child: SingleChildScrollView(
@@ -425,29 +449,33 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
                   ),
                 ),
               ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _exportToPdf,
-                icon: Icon(Icons.picture_as_pdf, 
-                  color: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.grey[900]),
-                label: Text(
-                  AppLocalizations.of(context)!.exportToPdf,
-                  style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.grey[900],
-                    fontWeight: FontWeight.bold,
+            // En horizontal el botón de exportar va en la barra de título
+            // para dejar toda la altura disponible a la tabla.
+            if (!isLandscape) ...[
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _exportToPdf,
+                  icon: Icon(Icons.picture_as_pdf, 
+                    color: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.grey[900]),
+                  label: Text(
+                    AppLocalizations.of(context)!.exportToPdf,
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.grey[900],
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ),
@@ -455,8 +483,10 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
   }
 
   Widget _buildHeaderCell(String text) {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     return Padding(
-      padding: const EdgeInsets.all(12.0),
+      padding: EdgeInsets.all(isLandscape ? 6.0 : 12.0),
       child: Text(
         text,
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
@@ -466,8 +496,10 @@ class _TrajectoryTableDialogState extends State<TrajectoryTableDialog> {
   }
 
   Widget _buildDataCell(String text) {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     return Padding(
-      padding: const EdgeInsets.all(12.0),
+      padding: EdgeInsets.all(isLandscape ? 6.0 : 12.0),
       child: Text(
         text,
         style: const TextStyle(fontSize: 13),

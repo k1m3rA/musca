@@ -269,7 +269,7 @@ abstract class AppLocalizations {
   /// No description provided for @cartridgePresetHint.
   ///
   /// In en, this message translates to:
-  /// **'Type a name or pick a caliber from the list'**
+  /// **'Tap to pick a caliber or type a new name'**
   String get cartridgePresetHint;
 
   /// No description provided for @cartridgeProfile.
@@ -705,6 +705,12 @@ abstract class AppLocalizations {
   /// **'No cartridges added yet'**
   String get noCartridgesAddedYet;
 
+  /// No description provided for @noCartridgesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No cartridges match the search'**
+  String get noCartridgesFound;
+
   /// No description provided for @noCompassAvailable.
   ///
   /// In en, this message translates to:
@@ -826,6 +832,18 @@ abstract class AppLocalizations {
   /// **'Save'**
   String get save;
 
+  /// No description provided for @searchCartridgesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type to filter the list'**
+  String get searchCartridgesHint;
+
+  /// No description provided for @selectCartridgePreset.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a cartridge'**
+  String get selectCartridgePreset;
+
   /// No description provided for @saveAngle.
   ///
   /// In en, this message translates to:
@@ -945,6 +963,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unidad: '**
   String get unidad;
+
+  /// No description provided for @useCustomCartridgeName.
+  ///
+  /// In en, this message translates to:
+  /// **'Use \"{name}\" as the name'**
+  String useCustomCartridgeName(String name);
 
   /// No description provided for @units.
   ///
