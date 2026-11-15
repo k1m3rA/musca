@@ -54,7 +54,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "ballistic-v5-arm64-${GITHUB_RUN_NUMBER}" musca-ballistic-v5-arm64.apk SHA256SUMS.txt build-info.txt --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Musca ballistic-v5 arm64 ${GITHUB_RUN_NUMBER}" --notes "APK de pruebas arm64 con el modelo balistico v5 y la lista de calibres v3 (rama ballistic-v5-model). Paquete real com.musca.app con firma debug: desinstala primero la version de Play (se borran sus datos locales) o usa otro dispositivo. No es una actualizacion de Play." --prerelease --latest=false
+          gh release create "ballistic-v5-arm64-${GITHUB_RUN_NUMBER}" musca-ballistic-v5-arm64.apk SHA256SUMS.txt build-info.txt --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Musca ballistic-v5 arm64 ${GITHUB_RUN_NUMBER}" --notes "APK de pruebas arm64 con el modelo balistico v5, la lista de calibres v3 y los arreglos de UI (modal de calibres con buscador, nombre vacio por defecto, tabla de correcciones en horizontal). Paquete real com.musca.app con firma debug: desinstala primero la version de Play (se borran sus datos locales) o usa otro dispositivo. No es una actualizacion de Play." --prerelease --latest=false
       - name: Upload build artifact
         if: always()
         uses: actions/upload-artifact@v4
