@@ -19,13 +19,14 @@ jobs:
           flutter-version: '3.47.9'
           channel: stable
           cache: false
-      - name: Strip native debug symbols for compact APK
+      - name: Prepare CI build (kotlin plugin, strip native debug symbols)
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p = Path('android/app/build.gradle.kts')
-          s = p.read_text().replace('keepDebugSymbols += setOf("**/*.so")', '// Native debug symbols stripped for compact test APK')
+          s = p.read_text().replace('// id("kotlin-android") // Removed for Built-in Kotlin', 'id("org.jetbrains.kotlin.android")')
+          s = s.replace('keepDebugSymbols += setOf("**/*.so")', '// Native debug symbols stripped for compact test APK')
           p.write_text(s)
           PY
       - name: Resolve dependencies
