@@ -1,0 +1,67 @@
+name: Musca ballistic-v5 arm64 APK
+on:
+  push:
+    branches: [ballistic-v5-model]
+    paths:
+      - '.github/workflows/android-apk-ballistic-v5.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.9'
+          channel: stable
+          cache: false
+      - name: Strip native debug symbols for compact APK
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/build.gradle.kts')
+          s = p.read_text().replace('keepDebugSymbols += setOf("**/*.so")', '// Native debug symbols stripped for compact test APK')
+          p.write_text(s)
+          PY
+      - name: Resolve dependencies
+        run: flutter pub get
+      - name: Build arm64 release APK
+        run: flutter build apk --release --split-per-abi --target-platform android-arm64
+      - name: Verify APK manifest and resources.arsc
+        shell: bash
+        run: |
+          set -euo pipefail
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          APK=build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          "$BT/aapt" dump badging "$APK" | tee manifest.txt
+          grep -q "name='com.musca.app'" manifest.txt
+          grep -q "targetSdkVersion:'36'" manifest.txt
+          grep -q "native-code: 'arm64-v8a'$" manifest.txt
+          unzip -lv "$APK" | grep "resources.arsc" | tee arsc.txt
+          grep -q "Stored" arsc.txt
+          cp "$APK" musca-ballistic-v5-arm64.apk
+          sha256sum musca-ballistic-v5-arm64.apk > SHA256SUMS.txt
+          flutter --version > build-info.txt
+          git rev-parse HEAD >> build-info.txt
+      - name: Publish arm64 prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "ballistic-v5-arm64-${GITHUB_RUN_NUMBER}" musca-ballistic-v5-arm64.apk SHA256SUMS.txt build-info.txt --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Musca ballistic-v5 arm64 ${GITHUB_RUN_NUMBER}" --notes "APK de pruebas arm64 con el modelo balistico v5 y la lista de calibres v3 (rama ballistic-v5-model). Paquete real com.musca.app con firma debug: desinstala primero la version de Play (se borran sus datos locales) o usa otro dispositivo. No es una actualizacion de Play." --prerelease --latest=false
+      - name: Upload build artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: musca-ballistic-v5-apk
+          path: |
+            musca-ballistic-v5-arm64.apk
+            SHA256SUMS.txt
+            build-info.txt
+            manifest.txt
+            arsc.txt
+          retention-days: 7
